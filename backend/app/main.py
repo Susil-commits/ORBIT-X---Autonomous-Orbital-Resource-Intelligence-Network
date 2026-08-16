@@ -12,6 +12,8 @@ from app.api.routes_simulation import router as sim_router
 from app.api.routes_missions import router as missions_router
 from app.api.routes_benchmarks import router as benchmarks_router
 from app.api.routes_multi_agent import router as multi_agent_router
+from app.api.routes_isl import router as isl_router
+from app.api.routes_scenarios import router as scenarios_router
 
 
 class ConnectionManager:
@@ -72,7 +74,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="ORBIT-X Backend",
     description="Autonomous Orbital Resource & Intelligence Network API",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -90,6 +92,8 @@ app.include_router(sim_router)
 app.include_router(missions_router)
 app.include_router(benchmarks_router)
 app.include_router(multi_agent_router)
+app.include_router(isl_router)
+app.include_router(scenarios_router)
 
 
 @app.get("/")
@@ -97,20 +101,24 @@ async def root():
     return {
         "system": "ORBIT-X",
         "status": "ONLINE",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "capabilities": [
             "Keplerian Orbital Propagator with J2 Precession & Eclipse Geometry",
             "Line-of-Sight Access & Ground-Station Elevation Model",
+            "Intersatellite Optical Laser Links (ISL) Mesh Network & Multi-Hop Relay Routing",
+            "Extreme Space Scenario Director (Solar Storm, Debris Conjunction, Ground Blackout, Disaster Surge)",
             "Battery Energy Intelligence & Lookahead SoC Forecasting",
             "Spacecraft Health AI (Isolation Forest Telemetry Anomaly Detection)",
             "Google OR-Tools CP-SAT Constellation Mission Optimizer",
             "Multi-Agent Cooperative Auction / Bidding Engine",
-            "Pairwise Conjunction & Collision-Risk (TCA) Assessment",
+            "Pairwise Conjunction & Collision-Risk (TCA) Assessment & Autonomous Avoidance",
+            "Interactive Point-and-Click 3D Target Dispatcher",
             "Structured Decision Explainability Trails",
             "Real-time WebSocket Constellation Stream",
             "Comparative Benchmarks (CP-SAT vs Greedy EDF vs Random)",
         ],
     }
+
 
 
 @app.websocket("/ws/constellation")

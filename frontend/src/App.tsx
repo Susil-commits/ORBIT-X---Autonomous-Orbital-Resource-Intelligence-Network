@@ -9,6 +9,9 @@ import { ScheduleGantt } from './components/ScheduleGantt';
 import { ExplainabilityModal } from './components/ExplainabilityModal';
 import { BenchmarkModal } from './components/BenchmarkModal';
 import { MultiAgentModal } from './components/MultiAgentModal';
+import { ScenarioDirectorModal } from './components/ScenarioDirectorModal';
+import { TargetDispatchModal } from './components/TargetDispatchModal';
+import { ISLNetworkHUD } from './components/ISLNetworkHUD';
 
 export const App: React.FC = () => {
   // Establish real-time WebSocket connection to backend
@@ -54,8 +57,18 @@ export const App: React.FC = () => {
 
       {/* Multi-Agent Cooperative Auction Ledger */}
       <MultiAgentModal />
+
+      {/* Extreme Space Mission Scenario Director */}
+      <ScenarioDirectorModal />
+
+      {/* Point-and-Click Target Dispatch Deck */}
+      <TargetDispatchModal />
+
+      {/* Intersatellite Optical Laser Mesh Topology HUD */}
+      <ISLNetworkHUD />
     </div>
   );
 };
 
 export default App;
+

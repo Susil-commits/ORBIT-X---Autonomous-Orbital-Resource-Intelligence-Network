@@ -3,9 +3,10 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
 
-from app.core.schemas import MissionRequest, DecisionExplanation
+from app.core.schemas import MissionRequest, DecisionExplanation, TargetDispatchRequest
 from app.simulation.simulator import get_simulator
 from app.simulation.scenarios import generate_random_mission
+
 
 router = APIRouter(prefix="/api/missions", tags=["Missions"])
 
@@ -35,6 +36,14 @@ async def create_random_mission():
     return m
 
 
+@router.post("/dispatch", response_model=MissionRequest)
+async def dispatch_target(req: TargetDispatchRequest):
+    """Spawns a custom point-and-click observation target and triggers optimization."""
+    sim = get_simulator()
+    mission = sim.dispatch_custom_target(req)
+    return mission
+
+
 @router.get("/{mission_id}/explanation", response_model=DecisionExplanation)
 async def get_mission_explanation(mission_id: str):
     """Retrieves detailed explainability reasoning and candidate evaluations for a mission."""
@@ -43,3 +52,4 @@ async def get_mission_explanation(mission_id: str):
         if exp.mission_id == mission_id:
             return exp
     raise HTTPException(status_code=404, detail=f"Explanation for mission {mission_id} not found")
+

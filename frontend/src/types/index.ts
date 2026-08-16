@@ -1,14 +1,14 @@
 export type HealthStatus = 'NOMINAL' | 'DEGRADED' | 'CRITICAL_FAULT';
 export type MissionStatus = 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 export type WindowType = 'IMAGING' | 'DOWNLINK';
+export type SensorType = 'OPTICAL_RGB' | 'SAR_RADAR' | 'THERMAL_IR' | 'HYPERSPECTRAL';
+export type ScenarioType = 'NOMINAL' | 'SOLAR_STORM' | 'DEBRIS_CONJUNCTION' | 'GROUND_BLACKOUT' | 'DISASTER_SURGE';
 
 export interface Position3D {
-  x: float;
-  y: float;
-  z: float;
+  x: number;
+  y: number;
+  z: number;
 }
-
-export type float = number;
 
 export interface GeodeticLocation {
   lat: number;
@@ -140,6 +140,66 @@ export interface DecisionExplanation {
   binding_constraints: string[];
 }
 
+export interface ISLLink {
+  sat_1_id: string;
+  sat_2_id: string;
+  distance_km: number;
+  latency_ms: number;
+  throughput_gbps: number;
+  status: 'ACTIVE' | 'OCCLUDED' | 'OUT_OF_RANGE' | string;
+  is_in_use: boolean;
+}
+
+export interface ISLRoute {
+  source_sat_id: string;
+  target_gs_id: string;
+  hops: string[];
+  total_distance_km: number;
+  total_latency_ms: number;
+  bottleneck_throughput_gbps: number;
+}
+
+export interface ISLMeshState {
+  active_links_count: number;
+  max_links_possible: number;
+  average_latency_ms: number;
+  routes: ISLRoute[];
+  links: ISLLink[];
+}
+
+export interface ScenarioState {
+  scenario_type: ScenarioType;
+  title: string;
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | string;
+  is_active: boolean;
+  activated_at_s: number;
+  elapsed_s: number;
+  ai_actions_taken: string[];
+  debris_position?: Position3D | null;
+  affected_satellite_ids: string[];
+}
+
+export interface TargetDispatchRequest {
+  name: string;
+  lat: number;
+  lon: number;
+  priority: number;
+  sensor_type: SensorType;
+  data_size_gb: number;
+  deadline_offset_s: number;
+}
+
+export interface ConjunctionManeuver {
+  satellite_id: string;
+  debris_id: string;
+  burn_delta_v_mps: number;
+  execution_time_s: number;
+  pre_maneuver_miss_distance_km: number;
+  post_maneuver_miss_distance_km: number;
+  status: string;
+}
+
 export interface ConstellationTick {
   tick: number;
   sim_time_s: number;
@@ -153,6 +213,9 @@ export interface ConstellationTick {
   recent_explanations: DecisionExplanation[];
   collision_alerts: CollisionAlert[];
   metrics_summary: Record<string, any>;
+  isl_mesh?: ISLMeshState | null;
+  active_scenario?: ScenarioState | null;
+  active_maneuvers?: ConjunctionManeuver[];
 }
 
 export interface BenchmarkResult {

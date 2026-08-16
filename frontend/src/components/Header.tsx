@@ -1,6 +1,21 @@
 import React from 'react';
 import { useSimulationStore } from '../hooks/useSimulationStore';
-import { Play, Pause, FastForward, RotateCcw, BarChart3, Users, Zap, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  FastForward,
+  RotateCcw,
+  BarChart3,
+  Users,
+  Zap,
+  ShieldAlert,
+  Wifi,
+  WifiOff,
+  Network,
+  Target,
+  Download,
+  Activity,
+} from 'lucide-react';
 
 export const Header: React.FC = () => {
   const {
@@ -13,7 +28,10 @@ export const Header: React.FC = () => {
     resetSim,
     runBenchmarks,
     fetchAuctions,
-    addRandomMission,
+    setShowScenarioModal,
+    setShowDispatchModal,
+    setShowISLModal,
+    exportDossier,
   } = useSimulationStore();
 
   const speed = tickData?.speed_multiplier || 5.0;
@@ -21,6 +39,7 @@ export const Header: React.FC = () => {
   const wallClock = tickData?.wall_clock_iso ? new Date(tickData.wall_clock_iso).toLocaleTimeString() : '--:--:--';
   const collisionAlerts = tickData?.collision_alerts?.length || 0;
   const activeAnomalies = tickData?.metrics_summary?.active_anomalies || 0;
+  const isScenarioActive = tickData?.active_scenario?.is_active;
 
   return (
     <header className="hud-panel w-full px-6 py-3 flex items-center justify-between z-20 border-b border-cyan-500/20">
@@ -35,11 +54,11 @@ export const Header: React.FC = () => {
               ORBIT-X
             </h1>
             <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
-              Autonomous LEO Constellation Twin
+              Autonomous Constellation Network V2.0
             </span>
           </div>
           <p className="text-xs text-slate-400 font-mono">
-            OR-Tools CP-SAT • Multi-Agent Auction • Isolation Forest Health AI
+            OR-Tools CP-SAT • Multi-Agent Auction • ISL Optical Mesh • Health AI
           </p>
         </div>
       </div>
@@ -92,8 +111,8 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Simulator Control Bar */}
-      <div className="flex items-center gap-3">
+      {/* Simulator Control Bar & Action Modals */}
+      <div className="flex items-center gap-2.5">
         {/* Speed Controls */}
         <div className="flex items-center bg-slate-900/80 rounded-lg p-1 border border-slate-700">
           {[1, 5, 20, 60].map((s) => (
@@ -112,7 +131,7 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Play / Pause / Step / Reset */}
-        <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-lg border border-slate-700">
+        <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-700">
           <button
             onClick={startSim}
             className="p-1.5 rounded hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 transition"
@@ -145,28 +164,63 @@ export const Header: React.FC = () => {
 
         {/* Action Modals */}
         <button
-          onClick={addRandomMission}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono hover:bg-cyan-600/30 transition shadow-sm"
+          onClick={() => setShowScenarioModal(true)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition shadow-sm ${
+            isScenarioActive
+              ? 'bg-rose-500/30 border-rose-500 text-rose-300 animate-pulse font-bold'
+              : 'bg-amber-600/20 border-amber-500/40 text-amber-300 hover:bg-amber-600/30'
+          }`}
+          title="Extreme Space Weather & Mission Scenarios"
         >
-          + Target
+          <Activity className="w-3.5 h-3.5" />
+          {isScenarioActive ? 'Scenario Active' : 'Scenario Director'}
+        </button>
+
+        <button
+          onClick={() => setShowISLModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono hover:bg-emerald-600/30 transition shadow-sm"
+          title="Intersatellite Optical Laser Mesh"
+        >
+          <Network className="w-3.5 h-3.5" />
+          ISL Mesh
+        </button>
+
+        <button
+          onClick={() => setShowDispatchModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono hover:bg-cyan-600/30 transition shadow-sm"
+          title="Dispatch Observation Target"
+        >
+          <Target className="w-3.5 h-3.5" />
+          Dispatch Target
         </button>
 
         <button
           onClick={fetchAuctions}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-xs font-mono hover:bg-indigo-600/30 transition shadow-sm"
+          title="Multi-Agent Auction Ledger"
         >
           <Users className="w-3.5 h-3.5" />
-          Auction Ledger
+          Auctions
         </button>
 
         <button
           onClick={runBenchmarks}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono hover:bg-emerald-600/30 transition shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono hover:bg-slate-700 hover:text-white transition shadow-sm"
+          title="Run Scheduler Benchmarks"
         >
           <BarChart3 className="w-3.5 h-3.5" />
           Benchmarks
+        </button>
+
+        <button
+          onClick={exportDossier}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-mono transition shadow-sm"
+          title="Export Constellation Telemetry Dossier JSON"
+        >
+          <Download className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>
   );
 };
+

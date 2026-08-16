@@ -1,8 +1,8 @@
 # ORBIT-X — Autonomous Orbital Resource & Intelligence Network
 
-**ORBIT-X** is an AI-driven autonomous orbital resource and constellation scheduling platform. It coordinates a simulated Low Earth Orbit (LEO) satellite constellation, balancing dynamic observation requests, orbital access windows, physical battery dynamics, spacecraft telemetry health, and collision-risk constraints.
+**ORBIT-X V2.0** is an AI-driven autonomous orbital resource and constellation scheduling platform. It coordinates a simulated Low Earth Orbit (LEO) satellite constellation, balancing dynamic observation requests, orbital access windows, physical battery dynamics, spacecraft telemetry health, intersatellite optical laser mesh routing, and collision-risk constraints.
 
-![ORBIT-X Architecture](https://img.shields.io/badge/ORBIT--X-Autonomous%20Constellation%20Twin-00f0ff?style=for-the-badge)
+![ORBIT-X Architecture](https://img.shields.io/badge/ORBIT--X-Autonomous%20Constellation%20V2.0-00f0ff?style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
 ![Google OR-Tools](https://img.shields.io/badge/Google%20OR--Tools-CP--SAT-4285F4?style=flat)
 ![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Isolation%20Forest-F7931E?style=flat&logo=scikit-learn&logoColor=white)
@@ -15,40 +15,43 @@
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        ORBIT-X SYSTEM OVERVIEW                         │
+│                      ORBIT-X V2.0 SYSTEM OVERVIEW                      │
 └────────────────────────────────────────────────────────────────────────┘
                                    │
  ┌─────────────────────────────────┴─────────────────────────────────┐
  │                   PHYSICS & PROPAGATION LAYER                     │
  │  • Keplerian Orbit Propagator (ECI/ECEF, ground track, day/night)  │
  │  • Line-of-Sight Access Model (ground targets, comm stations)     │
- │  • Pairwise Conjunction & Collision-Risk (TCA lookahead)          │
+ │  • Intersatellite Optical Laser Links (ISL) Mesh & Earth Occlusion │
+ │  • Pairwise Conjunction & Collision-Risk (TCA lookahead & CAM)    │
  └─────────────────────────────────┬─────────────────────────────────┘
                                    │ Constellation Ticks
  ┌─────────────────────────────────┴─────────────────────────────────┐
  │                   INTELLIGENCE & AI SUBSYSTEMS                    │
  │  • Battery Intelligence: Physics + Lookahead Energy Forecasting   │
  │  • Spacecraft Health AI: Isolation Forest Anomaly Detection       │
- │  • Multi-Agent Coordination: Decentralized Bidding Engine         │
+ │  • Extreme Space Scenario Director: Self-Healing Reactive Engine  │
+ │  • Multi-Agent Coordination: Decentralized Bidding & ISL Routing  │
  │  • Mission Optimizer: Google OR-Tools CP-SAT Constraint Solver    │
  │  • Explainability Engine: Structured Decision Reasoning & Diffs   │
  └─────────────────────────────────┬─────────────────────────────────┘
                                    │ Real-time State & Schedules
  ┌─────────────────────────────────┴─────────────────────────────────┐
  │                     BACKEND SERVICE (FastAPI)                     │
- │  • Async REST APIs for missions, telemetries, and benchmarks      │
+ │  • Async REST APIs for missions, ISL mesh, scenarios & benchmarks │
  │  • High-frequency WebSocket stream (10 Hz) for 3D visualization   │
  │  • Benchmark Runner: CP-SAT vs. Greedy vs. Random baseline        │
  └─────────────────────────────────┬─────────────────────────────────┘
                                    │ WebSocket / REST
  ┌─────────────────────────────────┴─────────────────────────────────┐
  │               FRONTEND DASHBOARD (React + Three.js)               │
- │  • Three.js (@react-three/fiber): 3D Globe, orbits, FOV cones     │
- │  • Real-time Telemetry HUD: Battery, thermal, solar, health       │
- │  • Mission Gantt & Access Windows Timeline                        │
- │  • Explainability Inspector & Benchmark Radar/Bar Metrics         │
+ │  • Three.js (@react-three/fiber): 3D Globe, orbits, laser ISL mesh │
+ │  • Point-and-Click 3D Earth Observation Target Dispatcher         │
+ │  • Scenario Director HUD: Solar Storm, Debris Evasion, Blackout   │
+ │  • Real-time Telemetry HUD, Mission Gantt & Decision Inspector    │
  └───────────────────────────────────────────────────────────────────┘
 ```
+
 
 ---
 

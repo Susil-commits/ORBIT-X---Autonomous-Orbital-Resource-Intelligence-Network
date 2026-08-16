@@ -170,6 +170,81 @@ class ScheduleDecision(BaseModel):
     total_reward: float = 0.0
 
 
+class SensorType(str, Enum):
+    OPTICAL_RGB = "OPTICAL_RGB"
+    SAR_RADAR = "SAR_RADAR"
+    THERMAL_IR = "THERMAL_IR"
+    HYPERSPECTRAL = "HYPERSPECTRAL"
+
+
+class ScenarioType(str, Enum):
+    NOMINAL = "NOMINAL"
+    SOLAR_STORM = "SOLAR_STORM"
+    DEBRIS_CONJUNCTION = "DEBRIS_CONJUNCTION"
+    GROUND_BLACKOUT = "GROUND_BLACKOUT"
+    DISASTER_SURGE = "DISASTER_SURGE"
+
+
+class ISLLink(BaseModel):
+    sat_1_id: str
+    sat_2_id: str
+    distance_km: float
+    latency_ms: float
+    throughput_gbps: float = 10.0
+    status: str = "ACTIVE"  # "ACTIVE", "OCCLUDED", "OUT_OF_RANGE"
+    is_in_use: bool = False
+
+
+class ISLRoute(BaseModel):
+    source_sat_id: str
+    target_gs_id: str
+    hops: List[str]  # e.g. ["SAT-01", "SAT-02", "GS-SVALBARD"]
+    total_distance_km: float
+    total_latency_ms: float
+    bottleneck_throughput_gbps: float = 10.0
+
+
+class ISLMeshState(BaseModel):
+    active_links_count: int = 0
+    max_links_possible: int = 0
+    average_latency_ms: float = 0.0
+    routes: List[ISLRoute] = []
+    links: List[ISLLink] = []
+
+
+class ScenarioState(BaseModel):
+    scenario_type: ScenarioType = ScenarioType.NOMINAL
+    title: str = "Nominal Constellation Baseline"
+    description: str = "All satellite payloads, solar arrays, attitude controllers, and ground downlinks operating within nominal envelope."
+    severity: str = "LOW"  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
+    is_active: bool = False
+    activated_at_s: float = 0.0
+    elapsed_s: float = 0.0
+    ai_actions_taken: List[str] = []
+    debris_position: Optional[Position3D] = None
+    affected_satellite_ids: List[str] = []
+
+
+class TargetDispatchRequest(BaseModel):
+    name: str = Field(..., description="Target or mission name")
+    lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude degrees")
+    lon: float = Field(..., ge=-180.0, le=180.0, description="Longitude degrees")
+    priority: int = Field(4, ge=1, le=5, description="Priority level (1-5)")
+    sensor_type: SensorType = Field(SensorType.OPTICAL_RGB, description="Payload sensor required")
+    data_size_gb: float = Field(15.0, description="Data volume generated (GB)")
+    deadline_offset_s: float = Field(3600.0, description="Time until deadline (seconds)")
+
+
+class ConjunctionManeuver(BaseModel):
+    satellite_id: str
+    debris_id: str
+    burn_delta_v_mps: float
+    execution_time_s: float
+    pre_maneuver_miss_distance_km: float
+    post_maneuver_miss_distance_km: float
+    status: str = "COMPLETED"  # "PLANNED", "EXECUTING", "COMPLETED"
+
+
 class ConstellationTick(BaseModel):
     tick: int
     sim_time_s: float
@@ -183,6 +258,9 @@ class ConstellationTick(BaseModel):
     recent_explanations: List[DecisionExplanation]
     collision_alerts: List[CollisionAlert]
     metrics_summary: Dict[str, Any]
+    isl_mesh: Optional[ISLMeshState] = None
+    active_scenario: Optional[ScenarioState] = None
+    active_maneuvers: List[ConjunctionManeuver] = []
 
 
 class BenchmarkResult(BaseModel):
@@ -197,3 +275,4 @@ class BenchmarkResult(BaseModel):
     ground_station_utilization_pct: float
     total_reward_yield: float
     avg_solve_time_ms: float
+

@@ -3,7 +3,8 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { useSimulationStore } from '../hooks/useSimulationStore';
-import type { SatelliteState, GroundStation, MissionRequest, GeodeticLocation } from '../types';
+import type { SatelliteState, GroundStation, MissionRequest, GeodeticLocation, ISLLink } from '../types';
+
 
 // Scale factor: Earth Radius (6378 km) = 2.0 units in 3D
 const EARTH_RADIUS_3D = 2.0;
@@ -23,6 +24,17 @@ function geodeticTo3D(geo: GeodeticLocation, altKm: number = 0): [number, number
   const y = r * Math.sin(latRad);
   const z = r * Math.cos(latRad) * Math.cos(lonRad);
   return [x, y, z];
+}
+
+// 3D Point to Geodetic conversion (for click-to-pin target dispatching)
+function point3DToGeodetic(point: THREE.Vector3): { lat: number; lon: number } {
+  const norm = point.clone().normalize();
+  const lat = Math.asin(norm.y) * (180.0 / Math.PI);
+  const lon = Math.atan2(norm.x, norm.z) * (180.0 / Math.PI);
+  return {
+    lat: Math.round(lat * 100) / 100,
+    lon: Math.round(lon * 100) / 100,
+  };
 }
 
 // Procedural Earth Texture
@@ -93,14 +105,25 @@ function createEarthCanvasTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// 3D Earth Mesh with Atmosphere Glow
+// 3D Earth Mesh with Atmosphere Glow & Click-to-Dispatch Listener
 const EarthMesh: React.FC = () => {
   const texture = useMemo(() => createEarthCanvasTexture(), []);
+  const setDispatchCoords = useSimulationStore((s) => s.setDispatchCoordinates);
+  const setShowDispatchModal = useSimulationStore((s) => s.setShowDispatchModal);
+
+  const handleEarthClick = (e: any) => {
+    e.stopPropagation();
+    if (e.point) {
+      const geo = point3DToGeodetic(e.point);
+      setDispatchCoords(geo);
+      setShowDispatchModal(true);
+    }
+  };
 
   return (
     <group>
       {/* Core Earth */}
-      <mesh>
+      <mesh onClick={handleEarthClick}>
         <sphereGeometry args={[EARTH_RADIUS_3D, 64, 64]} />
         <meshStandardMaterial
           map={texture}
@@ -112,7 +135,7 @@ const EarthMesh: React.FC = () => {
       </mesh>
 
       {/* Atmosphere Glow Halo */}
-      <mesh>
+      <mesh raycast={() => null}>
         <sphereGeometry args={[EARTH_RADIUS_3D * 1.03, 32, 32]} />
         <meshBasicMaterial
           color="#00f0ff"
@@ -121,6 +144,7 @@ const EarthMesh: React.FC = () => {
           side={THREE.BackSide}
         />
       </mesh>
+
     </group>
   );
 };
@@ -245,11 +269,21 @@ const GroundStationMarker: React.FC<{ station: GroundStation }> = ({ station }) 
     <group position={pos}>
       <mesh>
         <cylinderGeometry args={[0.02, 0.04, 0.03, 8]} />
-        <meshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={0.6} />
+        <meshStandardMaterial
+          color={station.is_active ? '#38bdf8' : '#64748b'}
+          emissive={station.is_active ? '#38bdf8' : '#334155'}
+          emissiveIntensity={station.is_active ? 0.6 : 0.1}
+        />
       </mesh>
       <Html distanceFactor={16} position={[0, 0.06, 0]} center>
-        <div className="px-1 py-0.5 rounded bg-slate-900/90 border border-sky-400/40 text-[8px] font-mono text-sky-200 pointer-events-none whitespace-nowrap">
-          📡 {station.id}
+        <div
+          className={`px-1 py-0.5 rounded border text-[8px] font-mono whitespace-nowrap ${
+            station.is_active
+              ? 'bg-slate-900/90 border-sky-400/40 text-sky-200'
+              : 'bg-slate-950/90 border-red-500/40 text-red-400 line-through opacity-70'
+          }`}
+        >
+          📡 {station.id} {station.is_active ? '' : '(OFFLINE)'}
         </div>
       </Html>
     </group>
@@ -275,11 +309,48 @@ const MissionTargetMarker: React.FC<{ mission: MissionRequest }> = ({ mission })
       <Html distanceFactor={16} position={[0, 0.06, 0]} center>
         <div
           onClick={(e) => { e.stopPropagation(); fetchExp(mission.id); }}
-          className="cursor-pointer px-1 py-0.5 rounded bg-slate-900/90 border border-amber-400/50 text-[8px] font-mono text-amber-300 hover:scale-105 transition"
+          className="cursor-pointer px-1 py-0.5 rounded bg-slate-900/90 border border-amber-400/50 text-[8px] font-mono text-amber-300 hover:scale-105 transition shadow-md"
         >
           🎯 P{mission.priority} • {mission.name.slice(0, 16)}...
         </div>
       </Html>
+    </group>
+  );
+};
+
+// Intersatellite Laser Links (ISL Mesh) Beams
+const ISLLaserMesh: React.FC<{ satellites: SatelliteState[]; links?: ISLLink[] }> = ({
+  satellites,
+  links = [],
+}) => {
+  const satPosMap = useMemo(() => {
+    const map: Record<string, [number, number, number]> = {};
+    satellites.forEach((s) => {
+      map[s.id] = geodeticTo3D(s.geodetic, s.geodetic.alt);
+    });
+    return map;
+  }, [satellites]);
+
+  const activeLinks = useMemo(() => {
+    return links.filter((l) => l.status === 'ACTIVE' && satPosMap[l.sat_1_id] && satPosMap[l.sat_2_id]);
+  }, [links, satPosMap]);
+
+  return (
+    <group>
+      {activeLinks.map((lk, idx) => {
+        const from = satPosMap[lk.sat_1_id];
+        const to = satPosMap[lk.sat_2_id];
+        return (
+          <Line
+            key={idx}
+            points={[from, to]}
+            color={lk.is_in_use ? '#10b981' : '#00f0ff'}
+            lineWidth={lk.is_in_use ? 2.2 : 0.8}
+            transparent
+            opacity={lk.is_in_use ? 0.85 : 0.25}
+          />
+        );
+      })}
     </group>
   );
 };
@@ -321,12 +392,36 @@ const DownlinkLaserBeams: React.FC<{ satellites: SatelliteState[]; stations: Gro
   );
 };
 
+// Orbital Debris Field Marker (when Debris Conjunction scenario is active)
+const DebrisCloudMarker: React.FC<{ position?: { x: number; y: number; z: number } | null }> = ({ position }) => {
+  if (!position) return null;
+  const p3d: [number, number, number] = [kmTo3D(position.x), kmTo3D(position.y), kmTo3D(position.z)];
+
+  return (
+    <group position={p3d}>
+      <mesh>
+        <octahedronGeometry args={[0.06, 0]} />
+        <meshStandardMaterial color="#f43f5e" emissive="#f43f5e" emissiveIntensity={1.0} wireframe />
+      </mesh>
+      <Html distanceFactor={14} position={[0, 0.08, 0]} center>
+        <div className="px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500 text-[8px] font-mono text-rose-300 animate-pulse whitespace-nowrap">
+          ⚠️ DEBRIS FRAG #COSMOS-2251
+        </div>
+      </Html>
+    </group>
+  );
+};
+
 export const GlobeView3D: React.FC = () => {
   const tickData = useSimulationStore((s) => s.tickData);
   const selectedSatId = useSimulationStore((s) => s.selectedSatelliteId);
 
   const satellites = tickData?.satellites || [];
+
   const groundStations = tickData?.ground_stations || [];
+  const islLinks = tickData?.isl_mesh?.links || [];
+  const debrisPos = tickData?.active_scenario?.debris_position;
+
   const missions = useMemo(() => {
     const active = tickData?.active_missions || [];
     const pending = tickData?.pending_missions || [];
@@ -363,7 +458,9 @@ export const GlobeView3D: React.FC = () => {
           <MissionTargetMarker key={m.id} mission={m} />
         ))}
 
+        <ISLLaserMesh satellites={satellites} links={islLinks} />
         <DownlinkLaserBeams satellites={satellites} stations={groundStations} />
+        <DebrisCloudMarker position={debrisPos} />
 
         <OrbitControls
           enablePan={true}
@@ -375,6 +472,13 @@ export const GlobeView3D: React.FC = () => {
         />
       </Canvas>
 
+      {/* Top Helper Hint */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md border border-cyan-500/30 px-3 py-1 rounded-full text-[10px] font-mono text-cyan-300 pointer-events-none flex items-center gap-2 shadow-lg z-10">
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+        <span>Click anywhere on 3D Earth to drop an observation target</span>
+      </div>
+
+      {/* Bottom HUD Legend */}
       <div className="absolute bottom-4 left-4 hud-panel px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-4 pointer-events-none z-10">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-cyan-400" />
@@ -382,7 +486,7 @@ export const GlobeView3D: React.FC = () => {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>Imaging Pass</span>
+          <span>Imaging / ISL Relay</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-purple-400" />
@@ -390,7 +494,7 @@ export const GlobeView3D: React.FC = () => {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-rose-500" />
-          <span>Critical Fault</span>
+          <span>Critical / Debris</span>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-"""Constellation Digital Twin & Time-Stepped Simulation Engine."""
+"""Constellation Digital Twin & Time-Stepped Simulation Engine with ISL Mesh & Scenario AI."""
 
 import time
 import math
@@ -20,6 +20,12 @@ from app.core.schemas import (
     WindowType,
     Position3D,
     TelemetryFrame,
+    ISLMeshState,
+    ScenarioType,
+    ScenarioState,
+    TargetDispatchRequest,
+    ConjunctionManeuver,
+    SensorType,
 )
 from app.physics.orbit_propagator import (
     propagate_orbit,
@@ -30,10 +36,15 @@ from app.physics.access_model import (
     get_default_ground_stations,
 )
 from app.physics.collision import evaluate_conjunctions
+from app.physics.isl_network import build_isl_mesh
 from app.intelligence.battery_model import compute_step_battery_update
 from app.intelligence.health_ai import get_health_ai
 from app.intelligence.optimizer import ConstellationOptimizer
-from app.simulation.scenarios import get_default_missions, generate_random_mission
+from app.simulation.scenarios import (
+    get_default_missions,
+    generate_random_mission,
+    get_scenario_disaster_missions,
+)
 
 
 class ConstellationSimulator:
@@ -52,6 +63,9 @@ class ConstellationSimulator:
         
         self.recent_explanations: List[DecisionExplanation] = []
         self.collision_alerts: List[CollisionAlert] = []
+        self.active_maneuvers: List[ConjunctionManeuver] = []
+        self.active_scenario: ScenarioState = ScenarioState()
+        self.isl_mesh: Optional[ISLMeshState] = None
         
         self.health_ai = get_health_ai()
         self.optimizer = ConstellationOptimizer(time_limit_seconds=self.optimizer_time_limit)
@@ -60,7 +74,8 @@ class ConstellationSimulator:
         self.last_schedule_time_s: float = -999.0
         self.replan_interval_s: float = 120.0
         
-        # Initial run of optimizer to establish schedule
+        # Initial run of optimizer and ISL mesh to establish schedule
+        self.isl_mesh = build_isl_mesh(self.satellites, self.ground_stations)
         self.replan_schedule()
 
     def replan_schedule(self):
@@ -138,8 +153,10 @@ class ConstellationSimulator:
         self.sim_time_s += eff_dt
         self.tick += 1
         
-        sat_map = {s.id: s for s in self.satellites}
-        
+        # Update active scenario state elapsed time
+        if self.active_scenario.is_active:
+            self.active_scenario.elapsed_s = self.sim_time_s - self.active_scenario.activated_at_s
+            
         # 1. Update each satellite state
         for sat in self.satellites:
             # Orbital propagation
@@ -191,12 +208,21 @@ class ConstellationSimulator:
             sat.active_task_type = active_task_type
             sat.active_target_name = active_target_name
             
-            # Update Battery
+            # Scenario specific modifiers
             power_mult = 1.0
             solar_mult = 1.0
+            t_batt_add = 0.0
+            jitter_add = 0.0
+            
+            if self.active_scenario.is_active and self.active_scenario.scenario_type == ScenarioType.SOLAR_STORM:
+                solar_mult = 0.55  # Degraded solar cell efficiency
+                power_mult = 1.45  # Increased thermal and sensor heater load
+                t_batt_add = 14.0  # Elevated thermal environment
+                jitter_add = 0.12  # Reaction wheel plasma disturbance
+            
             if sat.id in self.fault_overrides:
-                power_mult = self.fault_overrides[sat.id].get("power_mult", 1.0)
-                solar_mult = self.fault_overrides[sat.id].get("solar_mult", 1.0)
+                power_mult *= self.fault_overrides[sat.id].get("power_mult", 1.0)
+                solar_mult *= self.fault_overrides[sat.id].get("solar_mult", 1.0)
                 
             new_soc, draw_w, solar_w = compute_step_battery_update(
                 current_soc=sat.battery.soc,
@@ -217,9 +243,9 @@ class ConstellationSimulator:
             base_v = 28.2 if is_sunlit else 27.6
             v_bus = base_v - (draw_w / 400.0) + noise_v
             i_sol = (solar_w / 28.0) + np.random.uniform(0, 0.2) if is_sunlit else 0.0
-            t_batt = 18.0 + (draw_w / 20.0) + np.random.normal(0, 0.2)
-            t_pay = (35.0 if is_imaging else 22.0) + np.random.normal(0, 0.3)
-            jitter = (0.08 if is_imaging else 0.02) + np.random.exponential(0.005)
+            t_batt = 18.0 + (draw_w / 20.0) + t_batt_add + np.random.normal(0, 0.2)
+            t_pay = (35.0 if is_imaging else 22.0) + (t_batt_add * 0.7) + np.random.normal(0, 0.3)
+            jitter = (0.08 if is_imaging else 0.02) + jitter_add + np.random.exponential(0.005)
             rf_snr = (18.5 if is_downlinking else 0.0) + np.random.normal(0, 0.4)
             
             # Apply any injected faults
@@ -250,7 +276,33 @@ class ConstellationSimulator:
             sat.telemetry = frame
             sat.health_status = health
 
-        # 2. Check Mission Completion & Expiration
+        # 2. Update Debris Conjunction Scenario & Autonomous Avoidance
+        if self.active_scenario.is_active and self.active_scenario.scenario_type == ScenarioType.DEBRIS_CONJUNCTION:
+            target_sat = next((s for s in self.satellites if s.id == "SAT-04"), self.satellites[0])
+            # Simulated retrograde debris closing in on SAT-04
+            debris_t = max(0.0, (self.active_scenario.elapsed_s / 60.0))
+            deb_x = target_sat.position_eci.x + math.sin(debris_t) * 12.0
+            deb_y = target_sat.position_eci.y + math.cos(debris_t) * 15.0
+            deb_z = target_sat.position_eci.z + 8.0 - (debris_t * 0.4)
+            self.active_scenario.debris_position = Position3D(x=round(deb_x, 1), y=round(deb_y, 1), z=round(deb_z, 1))
+            
+            # Check for autonomous CAM execution
+            if self.active_scenario.elapsed_s >= 8.0 and not self.active_maneuvers:
+                maneuver = ConjunctionManeuver(
+                    satellite_id=target_sat.id,
+                    debris_id="DEBRIS-COSMOS-2251-FRAG-89",
+                    burn_delta_v_mps=1.45,
+                    execution_time_s=round(self.sim_time_s, 1),
+                    pre_maneuver_miss_distance_km=2.1,
+                    post_maneuver_miss_distance_km=52.8,
+                    status="COMPLETED",
+                )
+                self.active_maneuvers.append(maneuver)
+                self.active_scenario.ai_actions_taken.append(
+                    f"Autonomous CAM ΔV burn (1.45 m/s) executed on {target_sat.id}. Post-burn miss distance: 52.8 km."
+                )
+
+        # 3. Check Mission Completion & Expiration
         still_pending = []
         for m in self.pending_missions:
             # If mission downlink completed
@@ -272,7 +324,7 @@ class ConstellationSimulator:
                 
         self.pending_missions = still_pending
         
-        # 3. Autonomous Re-Planning Trigger (every interval or if healthy satellite failed)
+        # 4. Autonomous Re-Planning Trigger (every interval or if healthy satellite failed)
         needs_replan = (self.sim_time_s - self.last_schedule_time_s) >= self.replan_interval_s
         for sat in self.satellites:
             if sat.health_status == HealthStatus.CRITICAL_FAULT and sat.active_mission_id:
@@ -281,7 +333,10 @@ class ConstellationSimulator:
         if needs_replan and self.pending_missions:
             self.replan_schedule()
             
-        # 4. Conjunction / Collision Risk Check
+        # 5. Intersatellite Optical Laser Mesh (ISL) Computation
+        self.isl_mesh = build_isl_mesh(self.satellites, self.ground_stations)
+            
+        # 6. Conjunction / Collision Risk Check
         if self.tick % 10 == 0:
             self.collision_alerts = evaluate_conjunctions(
                 satellites=self.satellites,
@@ -290,7 +345,7 @@ class ConstellationSimulator:
                 time_step_s=45.0,
             )
             
-        # 5. Build Summary Metrics
+        # 7. Build Summary Metrics
         total_m = len(self.completed_missions) + len(self.pending_missions)
         comp_m = len([m for m in self.completed_missions if m.status == MissionStatus.COMPLETED])
         succ_rate = (comp_m / max(1, len(self.completed_missions))) * 100.0 if self.completed_missions else 100.0
@@ -304,6 +359,8 @@ class ConstellationSimulator:
             "active_anomalies": len([s for s in self.satellites if s.health_status != HealthStatus.NOMINAL]),
             "collision_warnings": len(self.collision_alerts),
             "sim_speed": f"{self.speed_multiplier}x",
+            "active_isl_links": self.isl_mesh.active_links_count if self.isl_mesh else 0,
+            "isl_avg_latency_ms": self.isl_mesh.average_latency_ms if self.isl_mesh else 0.0,
         }
         
         iso_str = datetime.datetime.fromtimestamp(1776250000 + self.sim_time_s, tz=datetime.timezone.utc).isoformat()
@@ -321,7 +378,131 @@ class ConstellationSimulator:
             recent_explanations=self.recent_explanations,
             collision_alerts=self.collision_alerts[:5],
             metrics_summary=metrics,
+            isl_mesh=self.isl_mesh,
+            active_scenario=self.active_scenario,
+            active_maneuvers=self.active_maneuvers,
         )
+
+    def trigger_scenario(self, scenario_type: ScenarioType):
+        """Activates a complex extreme space mission scenario."""
+        self.active_maneuvers.clear()
+        
+        if scenario_type == ScenarioType.SOLAR_STORM:
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.SOLAR_STORM,
+                title="Coronal Mass Ejection (CME) Geomagnetic Storm",
+                description="Severe solar energetic particle flare inducing +14°C thermal surge, reaction wheel plasma drag, and 45% solar array degradation.",
+                severity="CRITICAL",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    "Solar storm detected via multivariate anomaly score spike.",
+                    "Autonomous power-shedding: Non-critical sensors powered down.",
+                    "Battery lookahead floor adjusted to 35% safe reserve margin.",
+                ],
+                affected_satellite_ids=[s.id for s in self.satellites],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.DEBRIS_CONJUNCTION:
+            target_sat = "SAT-04"
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.DEBRIS_CONJUNCTION,
+                title="Orbital Debris Cloud & Conjunction Evasion",
+                description="High-velocity orbital fragmentation debris (COSMOS-2251 fragment) intersecting orbital Plane 1 at 14.8 km/s relative velocity.",
+                severity="CRITICAL",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    f"Predicted close approach TCA = {round(self.sim_time_s + 180, 1)}s on {target_sat}.",
+                    "Miss distance calculated: 2.1 km (violates 25 km safety perimeter).",
+                    "Collision AI computing optimal prograde avoidance ΔV impulse burn.",
+                ],
+                affected_satellite_ids=[target_sat],
+            )
+
+        elif scenario_type == ScenarioType.GROUND_BLACKOUT:
+            # Deactivate polar stations
+            for gs in self.ground_stations:
+                if gs.id in ["GS-SVALBARD", "GS-MCMURDO"]:
+                    gs.is_active = False
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.GROUND_BLACKOUT,
+                title="Global Polar Ground Station Network Blackout",
+                description="Power outage and uplink station downtime at Svalbard and McMurdo stations. High-priority imagery must be rerouted via ISL optical mesh.",
+                severity="HIGH",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    "GS-SVALBARD and GS-MCMURDO telemetry signals lost.",
+                    "Dynamic Multi-Agent Auction re-negotiating downlink slots.",
+                    "ISL Optical Laser Mesh activated to relay polar payload packets to GS-HAWAII and GS-SINGAPORE.",
+                ],
+                affected_satellite_ids=[s.id for s in self.satellites],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.DISASTER_SURGE:
+            disaster_missions = get_scenario_disaster_missions(self.sim_time_s)
+            self.pending_missions.extend(disaster_missions)
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.DISASTER_SURGE,
+                title="Emergency Natural Disaster Reconnaissance Surge",
+                description="Simultaneous tsunami, megafire, and earthquake events trigger 5 emergent Priority 5 observation requests.",
+                severity="CRITICAL",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    "5 emergent P5 disaster missions ingested into scheduler queue.",
+                    "Google OR-Tools CP-SAT triggered for rapid constellation re-optimization.",
+                    "Low-priority commercial surveys preempted to guarantee emergency response coverage.",
+                ],
+                affected_satellite_ids=[s.id for s in self.satellites],
+            )
+            self.replan_schedule()
+
+    def reset_scenario(self):
+        """Restores constellation to nominal baseline."""
+        # Reactivate all ground stations
+        for gs in self.ground_stations:
+            gs.is_active = True
+        self.active_scenario = ScenarioState()
+        self.active_maneuvers.clear()
+        self.replan_schedule()
+
+    def dispatch_custom_target(self, req: TargetDispatchRequest) -> MissionRequest:
+        """Instantiates a point-and-click target request into the live constellation queue."""
+        from app.core.schemas import GeodeticLocation
+        m_id = f"MIS-DISPATCH-{len(self.pending_missions) + len(self.completed_missions) + 1:03d}"
+        
+        # Energy and data size based on sensor type
+        energy_wh = 16.0
+        data_gb = req.data_size_gb
+        if req.sensor_type == SensorType.SAR_RADAR:
+            energy_wh = 24.0
+        elif req.sensor_type == SensorType.HYPERSPECTRAL:
+            energy_wh = 20.0
+            data_gb *= 1.4
+            
+        m = MissionRequest(
+            id=m_id,
+            name=f"[{req.sensor_type.value}] {req.name}",
+            target_location=GeodeticLocation(lat=req.lat, lon=req.lon, alt=0.0),
+            priority=req.priority,
+            reward=req.priority * 60.0 + 50.0,
+            deadline_s=self.sim_time_s + req.deadline_offset_s,
+            duration_s=25.0,
+            data_size_gb=round(data_gb, 1),
+            energy_cost_wh=round(energy_wh, 1),
+            status=MissionStatus.PENDING,
+            created_at_s=self.sim_time_s,
+        )
+        self.add_mission(m)
+        return m
 
     def inject_fault(self, sat_id: str, fault_type: str):
         """Injects synthetic telemetry fault into a satellite."""
@@ -367,6 +548,9 @@ class ConstellationSimulator:
         self.fault_overrides.clear()
         self.recent_explanations.clear()
         self.collision_alerts.clear()
+        self.active_maneuvers.clear()
+        self.active_scenario = ScenarioState()
+        self.isl_mesh = build_isl_mesh(self.satellites, self.ground_stations)
         self.replan_schedule()
 
 
