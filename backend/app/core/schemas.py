@@ -385,3 +385,130 @@ class AgentHealingAction(BaseModel):
     status: str
     details: str
     timestamp_iso: str
+
+
+# ==========================================
+# Next-Gen AI & Modern Multi-Task Schemas
+# ==========================================
+
+class CrossAttentionPredictionRequest(BaseModel):
+    satellite_id: str
+    mission_id: Optional[str] = None
+    priority: int = 4
+    battery_soc: float = 0.85
+    max_elevation_deg: float = 65.0
+    slew_penalty: float = 0.0
+    health_status: str = "NOMINAL"
+    storage_headroom: float = 0.90
+    is_sunlit: bool = True
+    deadline_slack_ratio: float = 0.80
+    energy_cost_ratio: float = 0.02
+    duration_s_ratio: float = 0.50
+    cloud_cover_prob: float = 0.10
+    solar_flux_index: float = 1.0
+
+
+class MultiTaskPrediction(BaseModel):
+    valuation_score: float = Field(..., description="Continuous CP-SAT valuation score [0, 100]")
+    win_probability: float = Field(..., description="Probability of winning assignment [0.0, 1.0]")
+    estimated_latency_s: float = Field(..., description="Estimated end-to-end ISL/downlink latency in seconds")
+    estimated_energy_wh: float = Field(..., description="Projected energy consumption in Watt-hours")
+
+
+class AttentionWeightEntry(BaseModel):
+    source_feature: str
+    target_feature: str
+    weight: float
+
+
+class CrossAttentionPredictionResponse(BaseModel):
+    satellite_id: str
+    mission_id: Optional[str] = None
+    predictions: MultiTaskPrediction
+    attention_matrix: List[List[float]] = []
+    satellite_feature_names: List[str] = []
+    mission_feature_names: List[str] = []
+    top_attended_features: List[AttentionWeightEntry] = []
+    model_architecture: str
+    inference_time_ms: float
+
+
+class FineTuningMetricHistory(BaseModel):
+    epoch: int
+    train_loss: float
+    val_loss: float
+    top1_agreement_pct: float
+    mae: float
+    r2_score: float
+    learning_rate: float
+
+
+class FineTuningStatusResponse(BaseModel):
+    is_training: bool
+    current_epoch: int
+    total_epochs: int
+    active_model_name: str
+    model_hash: str
+    dataset_sample_count: int
+    latest_metrics: Dict[str, float] = {}
+    loss_history: List[FineTuningMetricHistory] = []
+    last_trained_utc: Optional[str] = None
+    scheduler_type: str = "CosineAnnealingWarmRestarts"
+
+
+class FineTuningTriggerRequest(BaseModel):
+    epochs: int = 40
+    batch_size: int = 32
+    learning_rate: float = 0.0015
+    num_scenarios: int = 60
+    missions_per_scenario: int = 5
+    augment_geomagnetic: bool = True
+    augment_cloud_cover: bool = True
+
+
+class FineTuningTriggerResponse(BaseModel):
+    status: str
+    message: str
+    epochs_requested: int
+    dataset_size: int
+    model_path: str
+
+
+class PINNBatteryThermalRequest(BaseModel):
+    initial_soc: float = 0.85
+    battery_temp_c: float = 20.0
+    payload_active: bool = False
+    is_sunlit: bool = True
+    solar_flux_w_m2: float = 1361.0
+    duration_minutes: float = 90.0
+    time_step_s: float = 30.0
+
+
+class PINNTrajectoryPoint(BaseModel):
+    time_min: float
+    soc: float
+    battery_temp_c: float
+    solar_power_w: float
+    thermal_radiation_w: float
+    degradation_rate: float
+
+
+class PINNBatteryThermalResponse(BaseModel):
+    duration_minutes: float
+    min_projected_soc: float
+    max_projected_temp_c: float
+    final_soc: float
+    final_temp_c: float
+    trajectory: List[PINNTrajectoryPoint]
+    physics_residual_norm: float
+    confidence_score: float
+
+
+class HybridMissionQARequest(BaseModel):
+    query: str
+    top_k: int = 5
+    satellite_filter: Optional[str] = None
+    min_severity: Optional[str] = None  # "ALL", "NOMINAL", "DEGRADED", "CRITICAL_FAULT"
+    dense_weight: float = 0.6
+    bm25_weight: float = 0.4
+

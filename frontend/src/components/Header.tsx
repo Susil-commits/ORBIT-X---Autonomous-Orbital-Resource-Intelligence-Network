@@ -18,6 +18,7 @@ import {
   Globe,
   Database,
   Sparkles,
+  Brain,
   ShieldCheck,
   CheckCircle2,
   Loader2,
@@ -40,6 +41,7 @@ export const Header: React.FC = () => {
     setShowDispatchModal,
     setShowISLModal,
     setShowRAGDrawer,
+    setShowAILabModal,
     triggerAgentHealing,
     fetchISSVerification,
     exportDossier,
@@ -242,6 +244,16 @@ export const Header: React.FC = () => {
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
+
+          {/* AI Lab & Fine-Tuning Studio */}
+          <button
+            onClick={() => setShowAILabModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 border border-cyan-400/50 text-cyan-300 text-xs font-mono hover:from-cyan-500/30 hover:to-indigo-500/30 transition shadow-sm font-semibold hover:border-cyan-300"
+            title="Open Neural Cross-Attention, PINN, and Fine-Tuning Studio"
+          >
+            <Brain className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span>AI Lab</span>
+          </button>
 
           {/* Mission AI Copilot Button */}
           <button

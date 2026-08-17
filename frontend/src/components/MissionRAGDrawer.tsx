@@ -39,10 +39,10 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:8000/api/ai/mission/ask', {
+      const response = await fetch('http://localhost:8000/api/ai/mission/hybrid_ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: queryText, top_k: 4 }),
+        body: JSON.stringify({ query: queryText, top_k: 5, dense_weight: 0.6, bm25_weight: 0.4 }),
       });
       if (!response.ok) {
         throw new Error(`API error ${response.status}: ${response.statusText}`);
@@ -50,8 +50,8 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
       const data: MissionQAResponse = await response.json();
       setQaResult(data);
     } catch (err: any) {
-      console.error('RAG QA failed:', err);
-      setError(err.message || 'Failed to query mission history engine.');
+      console.error('Hybrid RAG QA failed:', err);
+      setError(err.message || 'Failed to query hybrid mission history engine.');
     } finally {
       setIsLoading(false);
     }

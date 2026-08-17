@@ -19,6 +19,7 @@ interface SimulationStore {
   showDispatchModal: boolean;
   showISLModal: boolean;
   showRAGDrawer: boolean;
+  showAILabModal: boolean;
   constellationSource: 'synthetic' | 'celestrak_real';
   dispatchCoordinates: { lat: number; lon: number } | null;
   activeExplanation: DecisionExplanation | null;
@@ -39,6 +40,7 @@ interface SimulationStore {
   setShowDispatchModal: (show: boolean) => void;
   setShowISLModal: (show: boolean) => void;
   setShowRAGDrawer: (show: boolean) => void;
+  setShowAILabModal: (show: boolean) => void;
   setDispatchCoordinates: (coords: { lat: number; lon: number } | null) => void;
   setIsConnected: (connected: boolean) => void;
   
@@ -60,6 +62,11 @@ interface SimulationStore {
   dispatchTarget: (req: TargetDispatchRequest) => Promise<void>;
   triggerAgentHealing: () => Promise<any>;
   fetchISSVerification: () => Promise<any>;
+  fetchCrossAttentionPrediction: (req: any) => Promise<any>;
+  fetchFineTuningStatus: () => Promise<any>;
+  triggerFineTuning: (req?: any) => Promise<any>;
+  fetchPINNBatteryThermal: (req: any) => Promise<any>;
+  askHybridMissionQA: (req: any) => Promise<any>;
   exportDossier: () => void;
 }
 
@@ -76,6 +83,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   showDispatchModal: false,
   showISLModal: false,
   showRAGDrawer: false,
+  showAILabModal: false,
   constellationSource: 'synthetic',
   dispatchCoordinates: null,
   activeExplanation: null,
@@ -98,6 +106,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   setShowDispatchModal: (show) => set({ showDispatchModal: show }),
   setShowISLModal: (show) => set({ showISLModal: show }),
   setShowRAGDrawer: (show) => set({ showRAGDrawer: show }),
+  setShowAILabModal: (show) => set({ showAILabModal: show }),
   setDispatchCoordinates: (coords) => set({ dispatchCoordinates: coords }),
   setIsConnected: (connected) => set({ isConnected: connected }),
 
@@ -287,6 +296,72 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       return await res.json();
     } catch (e) {
       console.error('Failed to fetch ISS verification', e);
+      return null;
+    }
+  },
+
+  fetchCrossAttentionPrediction: async (req: any) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/cross_attention/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to fetch cross-attention prediction', e);
+      return null;
+    }
+  },
+
+  fetchFineTuningStatus: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/finetune/status`);
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to fetch fine-tuning status', e);
+      return null;
+    }
+  },
+
+  triggerFineTuning: async (req: any = {}) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/finetune/trigger`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to trigger fine-tuning', e);
+      return null;
+    }
+  },
+
+  fetchPINNBatteryThermal: async (req: any) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/pinn/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to fetch PINN prediction', e);
+      return null;
+    }
+  },
+
+  askHybridMissionQA: async (req: any) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/mission/hybrid_ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to execute hybrid RAG QA', e);
       return null;
     }
   },

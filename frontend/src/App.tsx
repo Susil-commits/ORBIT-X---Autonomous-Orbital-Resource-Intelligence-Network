@@ -15,6 +15,7 @@ import { ScenarioDirectorModal } from './components/ScenarioDirectorModal';
 import { TargetDispatchModal } from './components/TargetDispatchModal';
 import { ISLNetworkHUD } from './components/ISLNetworkHUD';
 import { MissionRAGDrawer } from './components/MissionRAGDrawer';
+import { AILabModal } from './components/AILabModal';
 
 export const App: React.FC = () => {
   // Establish real-time WebSocket connection to backend
@@ -78,6 +79,9 @@ export const App: React.FC = () => {
 
       {/* Grounded Decision History RAG Drawer */}
       <MissionRAGDrawer isOpen={showRAGDrawer} onClose={() => setShowRAGDrawer(false)} />
+
+      {/* Neural AI Lab & Fine-Tuning Studio */}
+      <AILabModal />
     </div>
   );
 };

@@ -318,3 +318,130 @@ export interface AgentHealingAction {
   details: string;
   timestamp_iso: string;
 }
+
+// ----------------------------------------------------
+// Next-Gen Cross-Attention, Multi-Task & PINN Types
+// ----------------------------------------------------
+
+export interface CrossAttentionPredictionRequest {
+  satellite_id: string;
+  mission_id?: string;
+  priority: number;
+  battery_soc: number;
+  max_elevation_deg: number;
+  slew_penalty: number;
+  health_status: string;
+  storage_headroom: number;
+  is_sunlit: boolean;
+  deadline_slack_ratio: number;
+  energy_cost_ratio: number;
+  duration_s_ratio: number;
+  cloud_cover_prob: number;
+  solar_flux_index: number;
+}
+
+export interface MultiTaskPrediction {
+  valuation_score: number;
+  win_probability: number;
+  estimated_latency_s: number;
+  estimated_energy_wh: number;
+}
+
+export interface AttentionWeightEntry {
+  source_feature: string;
+  target_feature: string;
+  weight: number;
+}
+
+export interface CrossAttentionPredictionResponse {
+  satellite_id: string;
+  mission_id?: string;
+  predictions: MultiTaskPrediction;
+  attention_matrix: number[][];
+  satellite_feature_names: string[];
+  mission_feature_names: string[];
+  top_attended_features: AttentionWeightEntry[];
+  model_architecture: string;
+  inference_time_ms: number;
+}
+
+export interface FineTuningMetricHistory {
+  epoch: number;
+  train_loss: number;
+  val_loss: number;
+  top1_agreement_pct: number;
+  mae: number;
+  r2_score: number;
+  learning_rate: number;
+}
+
+export interface FineTuningStatusResponse {
+  is_training: boolean;
+  current_epoch: number;
+  total_epochs: number;
+  active_model_name: string;
+  model_hash: string;
+  dataset_sample_count: number;
+  latest_metrics: Record<string, number>;
+  loss_history: FineTuningMetricHistory[];
+  last_trained_utc?: string;
+  scheduler_type: string;
+}
+
+export interface FineTuningTriggerRequest {
+  epochs: number;
+  batch_size: number;
+  learning_rate: number;
+  num_scenarios: number;
+  missions_per_scenario: number;
+  augment_geomagnetic: boolean;
+  augment_cloud_cover: boolean;
+}
+
+export interface FineTuningTriggerResponse {
+  status: string;
+  message: string;
+  epochs_requested: number;
+  dataset_size: number;
+  model_path: string;
+}
+
+export interface PINNBatteryThermalRequest {
+  initial_soc: number;
+  battery_temp_c: number;
+  payload_active: boolean;
+  is_sunlit: boolean;
+  solar_flux_w_m2: number;
+  duration_minutes: number;
+  time_step_s: number;
+}
+
+export interface PINNTrajectoryPoint {
+  time_min: number;
+  soc: number;
+  battery_temp_c: number;
+  solar_power_w: number;
+  thermal_radiation_w: number;
+  degradation_rate: number;
+}
+
+export interface PINNBatteryThermalResponse {
+  duration_minutes: number;
+  min_projected_soc: number;
+  max_projected_temp_c: number;
+  final_soc: number;
+  final_temp_c: number;
+  trajectory: PINNTrajectoryPoint[];
+  physics_residual_norm: number;
+  confidence_score: number;
+}
+
+export interface HybridMissionQARequest {
+  query: string;
+  top_k?: number;
+  satellite_filter?: string;
+  min_severity?: string;
+  dense_weight?: number;
+  bm25_weight?: number;
+}
+

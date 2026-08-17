@@ -139,6 +139,35 @@ class DecisionLogger:
         )
         self.events.append(event)
 
+    def log_event(
+        self,
+        event_type: str,
+        tick: int,
+        sim_time_s: float,
+        summary: str,
+        satellite_id: Optional[str] = None,
+        mission_id: Optional[str] = None,
+        target_name: Optional[str] = None,
+        severity: str = "INFO",
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        """Logs a generic operational decision event."""
+        rec_id = f"LOG-{uuid.uuid4().hex[:8]}"
+        payload = details or {}
+        payload["severity"] = severity
+        event = LoggedDecisionEvent(
+            record_id=rec_id,
+            tick=tick,
+            sim_time_s=sim_time_s,
+            event_type=event_type,
+            summary=summary,
+            mission_id=mission_id,
+            satellite_id=satellite_id,
+            target_name=target_name,
+            details=payload,
+        )
+        self.events.append(event)
+
     def log_anomaly(
         self,
         tick: int,
