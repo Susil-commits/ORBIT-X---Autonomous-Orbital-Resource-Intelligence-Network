@@ -40,6 +40,7 @@ from app.physics.isl_network import build_isl_mesh
 from app.intelligence.battery_model import compute_step_battery_update
 from app.intelligence.health_ai import get_health_ai
 from app.intelligence.optimizer import ConstellationOptimizer
+from app.intelligence.decision_logger import get_decision_logger
 from app.simulation.scenarios import (
     get_default_missions,
     generate_random_mission,
@@ -135,7 +136,9 @@ class ConstellationSimulator:
         self.last_schedule_time_s = self.sim_time_s
         
         # Apply assignments to pending missions
+        dec_logger = get_decision_logger()
         for exp in decision.assignments:
+            dec_logger.log_mission_assignment(self.tick, self.sim_time_s, exp)
             m = next((m for m in self.pending_missions if m.id == exp.mission_id), None)
             if m and exp.selected_satellite_id and exp.assigned_window:
                 m.assigned_satellite_id = exp.selected_satellite_id
@@ -370,6 +373,7 @@ class ConstellationSimulator:
             sim_time_s=round(self.sim_time_s, 1),
             wall_clock_iso=iso_str,
             speed_multiplier=self.speed_multiplier,
+            data_source=self.satellites[0].data_source if self.satellites else "synthetic",
             satellites=self.satellites,
             ground_stations=self.ground_stations,
             active_missions=[m for m in self.pending_missions if m.status == MissionStatus.IN_PROGRESS],
@@ -534,6 +538,12 @@ class ConstellationSimulator:
     def add_mission(self, mission: MissionRequest):
         """Appends a new dynamic mission and triggers re-optimization."""
         self.pending_missions.append(mission)
+        self.replan_schedule()
+
+    def switch_constellation_source(self, source: str):
+        """Switches between synthetic constellation and Celestrak real TLE constellation."""
+        self.satellites = create_initial_constellation(source=source)
+        self.isl_mesh = build_isl_mesh(self.satellites, self.ground_stations)
         self.replan_schedule()
 
     def reset(self):

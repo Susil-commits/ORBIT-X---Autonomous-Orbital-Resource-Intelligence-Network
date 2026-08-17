@@ -1,6 +1,8 @@
 import React from 'react';
 import { useConstellationSocket } from './hooks/useConstellationSocket';
+import { useSimulationStore } from './hooks/useSimulationStore';
 import { Header } from './components/Header';
+import { FlightDirectorCommentaryBar } from './components/FlightDirectorCommentaryBar';
 import { GlobeView3D } from './components/GlobeView3D';
 import { SatelliteList } from './components/SatelliteList';
 import { MissionQueue } from './components/MissionQueue';
@@ -12,15 +14,22 @@ import { MultiAgentModal } from './components/MultiAgentModal';
 import { ScenarioDirectorModal } from './components/ScenarioDirectorModal';
 import { TargetDispatchModal } from './components/TargetDispatchModal';
 import { ISLNetworkHUD } from './components/ISLNetworkHUD';
+import { MissionRAGDrawer } from './components/MissionRAGDrawer';
 
 export const App: React.FC = () => {
   // Establish real-time WebSocket connection to backend
   useConstellationSocket();
 
+  const showRAGDrawer = useSimulationStore((s) => s.showRAGDrawer);
+  const setShowRAGDrawer = useSimulationStore((s) => s.setShowRAGDrawer);
+
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none">
       {/* Top Header & Simulation Controls */}
       <Header />
+
+      {/* Flight Director Live Tactical Commentary Bar */}
+      <FlightDirectorCommentaryBar />
 
       {/* Main Workspace */}
       <div className="flex-1 flex overflow-hidden">
@@ -66,9 +75,11 @@ export const App: React.FC = () => {
 
       {/* Intersatellite Optical Laser Mesh Topology HUD */}
       <ISLNetworkHUD />
+
+      {/* Grounded Decision History RAG Drawer */}
+      <MissionRAGDrawer isOpen={showRAGDrawer} onClose={() => setShowRAGDrawer(false)} />
     </div>
   );
 };
 
 export default App;
-

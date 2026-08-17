@@ -1,0 +1,17 @@
+{
+  "trained_nn_hash": "4024f914888faf59bfe50eb48553b6ee6ff149db282cedc3467386faa4f7066d",
+  "base_value": 120.32553,
+  "feature_names": [
+    "priority_norm",
+    "battery_soc",
+    "elevation_norm",
+    "slew_penalty_norm",
+    "health_status_num",
+    "storage_headroom",
+    "is_sunlit",
+    "deadline_slack_ratio",
+    "energy_cost_ratio",
+    "duration_ratio"
+  ],
+  "num_distillation_samples": 127
+}

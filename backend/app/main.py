@@ -1,4 +1,4 @@
-"""FastAPI Application Entrypoint with WebSocket Streaming for ORBIT-X."""
+"""FastAPI Application Entrypoint with WebSocket Streaming, Async Redis & AI Intelligence for ORBIT-X."""
 
 import asyncio
 import json
@@ -7,6 +7,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Set
 
+from app.core.database import init_db
+from app.core.redis_client import redis_manager
 from app.simulation.simulator import get_simulator
 from app.api.routes_simulation import router as sim_router
 from app.api.routes_missions import router as missions_router
@@ -14,6 +16,8 @@ from app.api.routes_benchmarks import router as benchmarks_router
 from app.api.routes_multi_agent import router as multi_agent_router
 from app.api.routes_isl import router as isl_router
 from app.api.routes_scenarios import router as scenarios_router
+from app.api.routes_ai import router as ai_router
+from app.api.routes_constellation_data import router as constellation_data_router
 
 
 class ConnectionManager:
@@ -43,16 +47,23 @@ _sim_loop_task: asyncio.Task = None
 
 
 async def background_simulation_loop():
-    """Continuous simulation loop broadcasting ticks to WebSocket clients."""
+    """Continuous simulation loop broadcasting ticks to WebSocket clients and Redis."""
     sim = get_simulator()
     while True:
         try:
             if sim.is_running:
                 # Step simulation by 1 real second * speed_multiplier
                 tick_data = sim.step(dt_seconds=0.5)
-                # Broadcast to connected clients
+                dumped = tick_data.model_dump()
+                
+                # Broadcast to connected WebSocket clients
                 if ws_manager.active_connections:
-                    await ws_manager.broadcast_json(tick_data.model_dump())
+                    await ws_manager.broadcast_json(dumped)
+                    
+                # Publish to Redis channel asynchronously (non-blocking, fails safe)
+                await redis_manager.publish_event("constellation:ticks", dumped)
+                await redis_manager.set_json("constellation:latest_tick", dumped, expire_seconds=30)
+                
             await asyncio.sleep(0.1)  # 10 Hz ticker
         except asyncio.CancelledError:
             break
@@ -64,11 +75,21 @@ async def background_simulation_loop():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _sim_loop_task
+    # Initialize async database tables
+    try:
+        await init_db()
+    except Exception as e:
+        print(f"Warning: Database initialization skipped: {e}")
+        
+    # Connect async Redis
+    await redis_manager.connect()
+    
     # Start simulation loop in background
     _sim_loop_task = asyncio.create_task(background_simulation_loop())
     yield
     if _sim_loop_task:
         _sim_loop_task.cancel()
+    await redis_manager.close()
 
 
 app = FastAPI(
@@ -94,6 +115,8 @@ app.include_router(benchmarks_router)
 app.include_router(multi_agent_router)
 app.include_router(isl_router)
 app.include_router(scenarios_router)
+app.include_router(ai_router)
+app.include_router(constellation_data_router)
 
 
 @app.get("/")
@@ -103,22 +126,22 @@ async def root():
         "status": "ONLINE",
         "version": "2.0.0",
         "capabilities": [
-            "Keplerian Orbital Propagator with J2 Precession & Eclipse Geometry",
-            "Line-of-Sight Access & Ground-Station Elevation Model",
-            "Intersatellite Optical Laser Links (ISL) Mesh Network & Multi-Hop Relay Routing",
-            "Extreme Space Scenario Director (Solar Storm, Debris Conjunction, Ground Blackout, Disaster Surge)",
-            "Battery Energy Intelligence & Lookahead SoC Forecasting",
-            "Spacecraft Health AI (Isolation Forest Telemetry Anomaly Detection)",
+            "Real Celestrak TLE Orbital Propagation (Starlink, Planet, ISS) with Physical Ground-Truth Verification",
+            "PyTorch Neural Bid-Valuation Network (BidValueMLP) Imitating CP-SAT in Sub-Millisecond Preview",
+            "Distilled TreeSHAP Local Feature Explainability & SHA-256 Checkpoint Drift Detection",
+            "Grounded Decision History RAG (sentence-transformers) with Verified Record Citations & Honest Refusal",
+            "Local LLM Flight Director Tactical Commentary (Ollama) with Fact-Consistency Verifier",
+            "Official Model Context Protocol (MCP) Server with 5 Constellation Decision & Query Tools",
+            "Automated CI-Integrated Evaluation & Regression Scoring Harness",
+            "Self-Healing Continuous Verification Agent Loop",
+            "Strictly Async Redis State Caching & Event Pub/Sub",
+            "Async SQLAlchemy Database (PostgreSQL / SQLite switch)",
             "Google OR-Tools CP-SAT Constellation Mission Optimizer",
-            "Multi-Agent Cooperative Auction / Bidding Engine",
-            "Pairwise Conjunction & Collision-Risk (TCA) Assessment & Autonomous Avoidance",
-            "Interactive Point-and-Click 3D Target Dispatcher",
-            "Structured Decision Explainability Trails",
+            "Intersatellite Optical Laser Link (ISL) Mesh Network & Multi-Hop Relay Routing",
+            "Extreme Space Scenario Director (Solar Storm, Debris Conjunction, Ground Blackout, Disaster Surge)",
             "Real-time WebSocket Constellation Stream",
-            "Comparative Benchmarks (CP-SAT vs Greedy EDF vs Random)",
         ],
     }
-
 
 
 @app.websocket("/ws/constellation")
@@ -126,11 +149,9 @@ async def websocket_endpoint(websocket: WebSocket):
     await ws_manager.connect(websocket)
     sim = get_simulator()
     try:
-        # Send initial snapshot immediately upon connection
         init_tick = sim.step(dt_seconds=0.0)
         await websocket.send_text(json.dumps(init_tick.model_dump()))
         while True:
-            # Keep connection alive and listen for client messages
             msg = await websocket.receive_text()
             try:
                 cmd = json.loads(msg)

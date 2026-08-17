@@ -18,6 +18,8 @@ interface SimulationStore {
   showScenarioModal: boolean;
   showDispatchModal: boolean;
   showISLModal: boolean;
+  showRAGDrawer: boolean;
+  constellationSource: 'synthetic' | 'celestrak_real';
   dispatchCoordinates: { lat: number; lon: number } | null;
   activeExplanation: DecisionExplanation | null;
   benchmarkResults: BenchmarkResult[] | null;
@@ -36,6 +38,7 @@ interface SimulationStore {
   setShowScenarioModal: (show: boolean) => void;
   setShowDispatchModal: (show: boolean) => void;
   setShowISLModal: (show: boolean) => void;
+  setShowRAGDrawer: (show: boolean) => void;
   setDispatchCoordinates: (coords: { lat: number; lon: number } | null) => void;
   setIsConnected: (connected: boolean) => void;
   
@@ -45,6 +48,7 @@ interface SimulationStore {
   stepSim: () => Promise<void>;
   setSpeed: (speed: number) => Promise<void>;
   resetSim: () => Promise<void>;
+  switchConstellationSource: (source: 'synthetic' | 'celestrak_real') => Promise<void>;
   injectFault: (satId: string, faultType: string) => Promise<void>;
   clearFaults: (satId?: string) => Promise<void>;
   addRandomMission: () => Promise<void>;
@@ -54,6 +58,8 @@ interface SimulationStore {
   triggerScenario: (type: ScenarioType) => Promise<void>;
   resetScenario: () => Promise<void>;
   dispatchTarget: (req: TargetDispatchRequest) => Promise<void>;
+  triggerAgentHealing: () => Promise<any>;
+  fetchISSVerification: () => Promise<any>;
   exportDossier: () => void;
 }
 
@@ -69,6 +75,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   showScenarioModal: false,
   showDispatchModal: false,
   showISLModal: false,
+  showRAGDrawer: false,
+  constellationSource: 'synthetic',
   dispatchCoordinates: null,
   activeExplanation: null,
   benchmarkResults: null,
@@ -77,7 +85,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   isLoadingAuctions: false,
   isConnected: false,
 
-  setTickData: (data) => set({ tickData: data }),
+  setTickData: (data) => {
+    const src = (data.data_source as any) || (data.satellites?.[0]?.data_source as any) || 'synthetic';
+    set({ tickData: data, constellationSource: src });
+  },
   setSelectedSatelliteId: (id) => set({ selectedSatelliteId: id }),
   setSelectedMissionId: (id) => set({ selectedMissionId: id }),
   setShowExplainModal: (show) => set({ showExplainModal: show }),
@@ -86,6 +97,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   setShowScenarioModal: (show) => set({ showScenarioModal: show }),
   setShowDispatchModal: (show) => set({ showDispatchModal: show }),
   setShowISLModal: (show) => set({ showISLModal: show }),
+  setShowRAGDrawer: (show) => set({ showRAGDrawer: show }),
   setDispatchCoordinates: (coords) => set({ dispatchCoordinates: coords }),
   setIsConnected: (connected) => set({ isConnected: connected }),
 
@@ -107,7 +119,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   stepSim: async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/simulation/step`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/simulation/step?dt=1.0`, { method: 'POST' });
       const data = await res.json();
       set({ tickData: data });
     } catch (e) {
@@ -115,13 +127,13 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
 
-  setSpeed: async (speed) => {
+  setSpeed: async (speed: number) => {
     try {
-      await fetch(`${API_BASE}/api/simulation/speed`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ speed }),
-      });
+      await fetch(`${API_BASE}/api/simulation/speed?speed=${speed}`, { method: 'POST' });
+      const currentTick = get().tickData;
+      if (currentTick) {
+        set({ tickData: { ...currentTick, speed_multiplier: speed } });
+      }
     } catch (e) {
       console.error('Failed to set speed', e);
     }
@@ -129,8 +141,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   resetSim: async () => {
     try {
-      await fetch(`${API_BASE}/api/simulation/reset`, { method: 'POST' });
-      const res = await fetch(`${API_BASE}/api/simulation/state`);
+      const res = await fetch(`${API_BASE}/api/simulation/reset`, { method: 'POST' });
       const data = await res.json();
       set({ tickData: data });
     } catch (e) {
@@ -138,22 +149,32 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
 
-  injectFault: async (satId, faultType) => {
+  switchConstellationSource: async (source: 'synthetic' | 'celestrak_real') => {
     try {
-      await fetch(`${API_BASE}/api/simulation/inject_fault`, {
+      const res = await fetch(`${API_BASE}/api/constellation/switch_source?source=${source}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ satellite_id: satId, fault_type: faultType }),
+      });
+      if (!res.ok) throw new Error('Failed to switch constellation data source');
+      set({ constellationSource: source });
+    } catch (e) {
+      console.error('Failed to switch constellation source', e);
+    }
+  },
+
+  injectFault: async (satId: string, faultType: string) => {
+    try {
+      await fetch(`${API_BASE}/api/simulation/inject_fault?sat_id=${satId}&fault_type=${faultType}`, {
+        method: 'POST',
       });
     } catch (e) {
       console.error('Failed to inject fault', e);
     }
   },
 
-  clearFaults: async (satId) => {
+  clearFaults: async (satId?: string) => {
     try {
-      const url = satId 
-        ? `${API_BASE}/api/simulation/clear_faults?satellite_id=${satId}`
+      const url = satId
+        ? `${API_BASE}/api/simulation/clear_faults?sat_id=${satId}`
         : `${API_BASE}/api/simulation/clear_faults`;
       await fetch(url, { method: 'POST' });
     } catch (e) {
@@ -171,10 +192,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   fetchExplanation: async (missionId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/missions/${missionId}/explanation`);
+      const res = await fetch(`${API_BASE}/api/missions/explain/${missionId}`);
       if (res.ok) {
-        const exp = await res.json();
-        set({ activeExplanation: exp, showExplainModal: true });
+        const data = await res.json();
+        set({ activeExplanation: data, showExplainModal: true });
       }
     } catch (e) {
       console.error('Failed to fetch explanation', e);
@@ -184,11 +205,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   runBenchmarks: async () => {
     set({ isBenchmarking: true, showBenchmarkModal: true });
     try {
-      const res = await fetch(`${API_BASE}/api/benchmarks/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seed: 42, num_missions: 24, horizon_s: 5400 }),
-      });
+      const res = await fetch(`${API_BASE}/api/benchmarks/run`);
       const data = await res.json();
       set({ benchmarkResults: data, isBenchmarking: false });
     } catch (e) {
@@ -252,6 +269,28 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
 
+  triggerAgentHealing: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/agent/inspect_and_heal`, {
+        method: 'POST',
+      });
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to trigger self-healing agent', e);
+      return null;
+    }
+  },
+
+  fetchISSVerification: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/constellation/iss_verification`);
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to fetch ISS verification', e);
+      return null;
+    }
+  },
+
   exportDossier: () => {
     const tick = get().tickData;
     if (!tick) return;
@@ -260,6 +299,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       exported_at: new Date().toISOString(),
       sim_time_s: tick.sim_time_s,
       wall_clock_iso: tick.wall_clock_iso,
+      data_source: tick.data_source || 'synthetic',
       metrics: tick.metrics_summary,
       active_scenario: tick.active_scenario,
       active_maneuvers: tick.active_maneuvers,
@@ -267,6 +307,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       satellites: tick.satellites.map((s) => ({
         id: s.id,
         name: s.name,
+        norad_id: s.norad_id,
+        data_source: s.data_source,
         health: s.health_status,
         battery_soc_pct: Math.round(s.battery.soc * 100),
         storage_gb: s.onboard_storage_used_gb,

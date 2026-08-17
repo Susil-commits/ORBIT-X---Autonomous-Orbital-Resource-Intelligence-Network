@@ -1,0 +1,56 @@
+{
+  "run_id": "EVAL-20260817-062655",
+  "timestamp_iso": "2026-08-17T06:26:55.633654+00:00",
+  "overall_status": "PASS",
+  "metrics": [
+    {
+      "metric_name": "cpsat_completion_rate_pct",
+      "baseline_value": 16.7,
+      "current_value": 16.7,
+      "delta": 0.0,
+      "status": "PASS",
+      "threshold": 10.0
+    },
+    {
+      "metric_name": "cpsat_reward_yield",
+      "baseline_value": 1200.0,
+      "current_value": 1277.5,
+      "delta": 77.5,
+      "status": "PASS",
+      "threshold": 800.0
+    },
+    {
+      "metric_name": "nn_top1_agreement_rate_pct",
+      "baseline_value": 65.0,
+      "current_value": 100.0,
+      "delta": 35.0,
+      "status": "PASS",
+      "threshold": 55.0
+    },
+    {
+      "metric_name": "nn_mae_score",
+      "baseline_value": 22.0,
+      "current_value": 16.616,
+      "delta": -5.38,
+      "status": "PASS",
+      "threshold": 32.0
+    },
+    {
+      "metric_name": "shap_drift_flag",
+      "baseline_value": 0.0,
+      "current_value": 0.0,
+      "delta": 0.0,
+      "status": "PASS",
+      "threshold": 0.0
+    },
+    {
+      "metric_name": "leo_orbital_period_minutes",
+      "baseline_value": 95.6,
+      "current_value": 95.65,
+      "delta": 0.05,
+      "status": "PASS",
+      "threshold": 90.0
+    }
+  ],
+  "regressions": []
+}

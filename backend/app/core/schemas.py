@@ -1,4 +1,4 @@
-"""Pydantic v2 domain schemas for ORBIT-X."""
+"""Pydantic v2 domain schemas for ORBIT-X with AI/ML, Real TLE, and Explainability extensions."""
 
 from enum import Enum
 from typing import List, Optional, Dict, Any
@@ -71,6 +71,8 @@ class BatteryState(BaseModel):
 class SatelliteState(BaseModel):
     id: str
     name: str
+    norad_id: Optional[int] = None
+    data_source: str = "synthetic"  # "synthetic" | "celestrak_real"
     orbit_plane: int = 1
     keplerian: KeplerianElements
     position_eci: Position3D
@@ -191,14 +193,14 @@ class ISLLink(BaseModel):
     distance_km: float
     latency_ms: float
     throughput_gbps: float = 10.0
-    status: str = "ACTIVE"  # "ACTIVE", "OCCLUDED", "OUT_OF_RANGE"
+    status: str = "ACTIVE"
     is_in_use: bool = False
 
 
 class ISLRoute(BaseModel):
     source_sat_id: str
     target_gs_id: str
-    hops: List[str]  # e.g. ["SAT-01", "SAT-02", "GS-SVALBARD"]
+    hops: List[str]
     total_distance_km: float
     total_latency_ms: float
     bottleneck_throughput_gbps: float = 10.0
@@ -216,7 +218,7 @@ class ScenarioState(BaseModel):
     scenario_type: ScenarioType = ScenarioType.NOMINAL
     title: str = "Nominal Constellation Baseline"
     description: str = "All satellite payloads, solar arrays, attitude controllers, and ground downlinks operating within nominal envelope."
-    severity: str = "LOW"  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
+    severity: str = "LOW"
     is_active: bool = False
     activated_at_s: float = 0.0
     elapsed_s: float = 0.0
@@ -242,7 +244,7 @@ class ConjunctionManeuver(BaseModel):
     execution_time_s: float
     pre_maneuver_miss_distance_km: float
     post_maneuver_miss_distance_km: float
-    status: str = "COMPLETED"  # "PLANNED", "EXECUTING", "COMPLETED"
+    status: str = "COMPLETED"
 
 
 class ConstellationTick(BaseModel):
@@ -250,6 +252,7 @@ class ConstellationTick(BaseModel):
     sim_time_s: float
     wall_clock_iso: str
     speed_multiplier: float
+    data_source: str = "synthetic"  # "synthetic" | "celestrak_real"
     satellites: List[SatelliteState]
     ground_stations: List[GroundStation]
     active_missions: List[MissionRequest]
@@ -266,6 +269,7 @@ class ConstellationTick(BaseModel):
 class BenchmarkResult(BaseModel):
     scheduler_name: str
     seed: int
+    data_source: str = "synthetic"
     num_missions: int
     completed_missions: int
     completion_rate_pct: float
@@ -276,3 +280,108 @@ class BenchmarkResult(BaseModel):
     total_reward_yield: float
     avg_solve_time_ms: float
 
+
+# ==========================================
+# Neural Network & TreeSHAP Schemas
+# ==========================================
+
+class FeatureAttribution(BaseModel):
+    feature_name: str
+    feature_value: float
+    shap_value: float
+    contribution_direction: str  # "POSITIVE" | "NEGATIVE"
+    description: str
+
+
+class BidValuationExplanation(BaseModel):
+    predicted_bid_score: float
+    base_value: float
+    is_distilled: bool = True
+    model_hash: str
+    drift_detected: bool = False
+    feature_attributions: List[FeatureAttribution] = []
+
+
+class NeuralBidPreviewRequest(BaseModel):
+    satellite_id: str
+    priority: int = 4
+    battery_soc: float = 0.85
+    max_elevation_deg: float = 65.0
+    slew_penalty: float = 0.0
+    health_status: str = "NOMINAL"
+    storage_headroom: float = 0.90
+    is_sunlit: bool = True
+    deadline_slack_ratio: float = 0.80
+    energy_cost_ratio: float = 0.02
+    duration_s_ratio: float = 0.50
+
+
+class NeuralBidPreviewResponse(BaseModel):
+    satellite_id: str
+    predicted_bid_score: float
+    cpsat_agreement_prob: float
+    explanation: BidValuationExplanation
+
+
+# ==========================================
+# RAG & LLM Commentary Schemas
+# ==========================================
+
+class Citation(BaseModel):
+    record_id: str
+    tick: int
+    sim_time_s: float
+    event_type: str
+    summary: str
+    relevance_score: float
+
+
+class MissionQARequest(BaseModel):
+    query: str
+    top_k: int = 5
+
+
+class MissionQAResponse(BaseModel):
+    query: str
+    answer: str
+    grounded: bool
+    confidence_score: float
+    citations: List[Citation] = []
+    retrieved_records_count: int = 0
+
+
+class FlightDirectorCommentary(BaseModel):
+    commentary: str
+    event_type: str
+    sim_time_s: float
+    model_used: str  # e.g., "ollama:llama3.2" or "deterministic_template"
+    verified_factual: bool = True
+
+
+# ==========================================
+# Eval Harness & Agent Loop Schemas
+# ==========================================
+
+class EvalMetric(BaseModel):
+    metric_name: str
+    baseline_value: float
+    current_value: float
+    delta: float
+    status: str  # "PASS" | "WARN" | "FAIL"
+    threshold: float
+
+
+class EvalRunSummary(BaseModel):
+    run_id: str
+    timestamp_iso: str
+    overall_status: str  # "PASS" | "REGRESSION_DETECTED"
+    metrics: List[EvalMetric] = []
+    regressions: List[str] = []
+
+
+class AgentHealingAction(BaseModel):
+    action_type: str
+    triggered_by: str
+    status: str
+    details: str
+    timestamp_iso: str

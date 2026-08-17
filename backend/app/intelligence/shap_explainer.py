@@ -1,0 +1,221 @@
+"""Distilled TreeSHAP Explainability Engine for ORBIT-X.
+
+Trains a fast XGBoost tree surrogate on the Bid-Valuation Neural Network's predictions,
+computes exact TreeSHAP local feature attributions, and detects model checkpoint drift
+via SHA-256 hash matching.
+"""
+
+import os
+import json
+import hashlib
+from pathlib import Path
+from typing import Dict, Any, List, Optional, Tuple
+import numpy as np
+import xgboost as xgb
+import shap
+
+from app.core.config import settings
+from app.core.schemas import (
+    BidValuationExplanation,
+    FeatureAttribution,
+)
+from app.intelligence.bid_value_network import (
+    FEATURE_NAMES,
+    BidValuePredictor,
+    get_bid_value_predictor,
+)
+
+SURROGATE_MODEL_PATH = settings.SHAP_SURROGATE_PATH
+FEATURE_DESCRIPTIONS = {
+    "priority_norm": "Mission Priority Level (1=Lowest, 5=Emergency)",
+    "battery_soc": "Spacecraft Battery State-of-Charge (0-100%)",
+    "elevation_norm": "Maximum Target Line-of-Sight Elevation Angle",
+    "slew_penalty_norm": "Attitude Slew Transition & Reaction Wheel Settle Penalty",
+    "health_status_num": "Spacecraft Health State (Nominal vs Degraded vs Fault)",
+    "storage_headroom": "Payload Solid-State Storage Buffer Headroom",
+    "is_sunlit": "Direct Solar Array Illumination vs Eclipse Shadow",
+    "deadline_slack_ratio": "Simulation Time Remaining Before Mission Deadline",
+    "energy_cost_ratio": "Payload Energy Requirement Relative to Total Capacity",
+    "duration_ratio": "Imaging Pass Exposure Duration",
+}
+
+
+class DistilledTreeSHAPExplainer:
+    """
+    Surrogate-based TreeSHAP explainer for the neural bid valuation network.
+    """
+
+    def __init__(
+        self,
+        surrogate_path: Optional[Path] = None,
+        nn_predictor: Optional[BidValuePredictor] = None,
+    ):
+        self.surrogate_path = surrogate_path or SURROGATE_MODEL_PATH
+        self.predictor = nn_predictor or get_bid_value_predictor()
+        self.surrogate_model: Optional[xgb.XGBRegressor] = None
+        self.tree_explainer: Optional[shap.TreeExplainer] = None
+        self.trained_nn_hash: str = ""
+        self.base_value: float = 0.0
+        self.is_ready: bool = False
+        
+        self.load_or_distill()
+
+    def load_or_distill(self):
+        """Loads existing distilled surrogate or trains a fresh one if missing or outdated."""
+        if self.surrogate_path.exists():
+            try:
+                self.load_surrogate(self.surrogate_path)
+                return
+            except Exception as e:
+                print(f"Error loading surrogate: {e}. Re-distilling...")
+                
+        self.distill_surrogate()
+
+    def distill_surrogate(
+        self,
+        data_path: Optional[Path] = None,
+        n_estimators: int = 40,
+        max_depth: int = 4,
+    ):
+        """
+        Distills an XGBoost regressor surrogate model directly from the neural network's predictions.
+        """
+        if data_path is None:
+            data_path = settings.DATA_PATH / "cpsat_training_data.json"
+            
+        if not data_path.exists():
+            # Generate synthetic feature domain grid if dataset not found
+            np.random.seed(42)
+            X_domain = np.random.uniform(0.0, 1.0, size=(200, len(FEATURE_NAMES))).astype(np.float32)
+        else:
+            with open(data_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+            X_domain = np.array([s["features"] for s in payload.get("samples", [])], dtype=np.float32)
+            
+        if len(X_domain) < 20:
+            X_domain = np.random.uniform(0.0, 1.0, size=(200, len(FEATURE_NAMES))).astype(np.float32)
+            
+        # Get neural network predictions on this feature domain
+        y_nn = self.predictor.predict_batch(X_domain)
+        
+        # Fit XGBoost surrogate
+        reg = xgb.XGBRegressor(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            learning_rate=0.1,
+            random_state=42,
+            objective="reg:squarederror",
+        )
+        reg.fit(X_domain, y_nn)
+        
+        self.surrogate_model = reg
+        self.tree_explainer = shap.TreeExplainer(reg)
+        exp_val = self.tree_explainer.expected_value
+        self.base_value = float(np.ravel(exp_val)[0]) if hasattr(exp_val, "__iter__") else float(exp_val)
+        self.trained_nn_hash = self.predictor.model_hash
+        self.is_ready = True
+        
+        # Save surrogate model and metadata
+        self.surrogate_path.parent.mkdir(parents=True, exist_ok=True)
+        reg.save_model(str(self.surrogate_path.with_suffix(".json")))
+        
+        meta = {
+            "trained_nn_hash": self.trained_nn_hash,
+            "base_value": self.base_value,
+            "feature_names": FEATURE_NAMES,
+            "num_distillation_samples": len(X_domain),
+        }
+        with open(self.surrogate_path.with_suffix(".meta.json"), "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+            
+        print(f"Distilled XGBoost TreeSHAP surrogate saved (Base Value: {self.base_value:.2f}, NN Hash: {self.trained_nn_hash[:12]}...)")
+
+    def load_surrogate(self, path: Path):
+        """Loads the XGBoost surrogate and metadata."""
+        json_model_path = path.with_suffix(".json")
+        meta_path = path.with_suffix(".meta.json")
+        
+        if not (json_model_path.exists() and meta_path.exists()):
+            raise FileNotFoundError("Surrogate model files missing.")
+            
+        with open(meta_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+            
+        self.trained_nn_hash = meta.get("trained_nn_hash", "")
+        self.base_value = float(meta.get("base_value", 0.0))
+        
+        reg = xgb.XGBRegressor()
+        reg.load_model(str(json_model_path))
+        self.surrogate_model = reg
+        self.tree_explainer = shap.TreeExplainer(reg)
+        self.is_ready = True
+
+    def check_drift(self) -> bool:
+        """
+        Checks if current neural network checkpoint hash matches the surrogate's trained hash.
+        Returns True if drift is detected (hashes don't match).
+        """
+        current_hash = self.predictor.model_hash
+        return (current_hash != self.trained_nn_hash) and (self.trained_nn_hash != "")
+
+    def explain_features(self, features: np.ndarray) -> BidValuationExplanation:
+        """
+        Computes local TreeSHAP feature attributions for a candidate feature vector.
+        """
+        if not self.is_ready or self.tree_explainer is None:
+            self.distill_surrogate()
+            
+        drift_detected = self.check_drift()
+        nn_prediction = self.predictor.predict_single(features)
+        
+        # Compute exact TreeSHAP values
+        X = features.reshape(1, -1)
+        shap_vals = self.tree_explainer.shap_values(X)[0]
+        
+        attributions: List[FeatureAttribution] = []
+        for feat_name, feat_val, s_val in zip(FEATURE_NAMES, features, shap_vals):
+            direction = "POSITIVE" if s_val >= 0 else "NEGATIVE"
+            desc = FEATURE_DESCRIPTIONS.get(feat_name, feat_name)
+            attributions.append(
+                FeatureAttribution(
+                    feature_name=feat_name,
+                    feature_value=float(feat_val),
+                    shap_value=round(float(s_val), 2),
+                    contribution_direction=direction,
+                    description=desc,
+                )
+            )
+            
+        # Sort by absolute SHAP contribution descending
+        attributions.sort(key=lambda a: abs(a.shap_value), reverse=True)
+        
+        return BidValuationExplanation(
+            predicted_bid_score=round(nn_prediction, 2),
+            base_value=round(self.base_value, 2),
+            is_distilled=True,
+            model_hash=self.predictor.model_hash,
+            drift_detected=drift_detected,
+            feature_attributions=attributions,
+        )
+
+
+_global_explainer: Optional[DistilledTreeSHAPExplainer] = None
+
+
+def get_shap_explainer() -> DistilledTreeSHAPExplainer:
+    global _global_explainer
+    if _global_explainer is None:
+        _global_explainer = DistilledTreeSHAPExplainer()
+    return _global_explainer
+
+
+if __name__ == "__main__":
+    explainer = get_shap_explainer()
+    sample_feat = np.array([0.8, 0.95, 0.75, 0.0, 1.0, 0.85, 1.0, 0.5, 0.02, 0.5], dtype=np.float32)
+    res = explainer.explain_features(sample_feat)
+    print(f"Predicted Bid: {res.predicted_bid_score}")
+    print(f"Base Value:    {res.base_value}")
+    print(f"Drift Flag:    {res.drift_detected}")
+    print(f"Top 3 SHAP Features:")
+    for a in res.feature_attributions[:3]:
+        print(f"  {a.feature_name}: {a.shap_value:+.2f} ({a.contribution_direction}) - {a.description}")

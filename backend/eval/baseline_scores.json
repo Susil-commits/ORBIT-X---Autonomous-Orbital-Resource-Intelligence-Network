@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "created_at_utc": "2026-08-17T06:00:00Z",
+  "baselines": {
+    "cpsat_completion_rate_pct": {
+      "target": 16.7,
+      "min_allowable": 10.0,
+      "description": "Percentage of global mission requests scheduled within benchmark horizon by CP-SAT"
+    },
+    "cpsat_reward_yield": {
+      "target": 1200.0,
+      "min_allowable": 800.0,
+      "description": "Total priority-weighted reward yielded by CP-SAT"
+    },
+    "nn_top1_agreement_rate_pct": {
+      "target": 65.0,
+      "min_allowable": 55.0,
+      "description": "Neural network top-1 candidate agreement rate with CP-SAT optimal assignments"
+    },
+    "nn_mae_score": {
+      "target": 22.0,
+      "max_allowable": 32.0,
+      "description": "Mean absolute error between neural network bid prediction and CP-SAT target valuation"
+    },
+    "iss_orbital_period_minutes": {
+      "target": 92.68,
+      "min_allowable": 91.5,
+      "max_allowable": 93.8,
+      "description": "Physical ground-truth orbital period for ISS (NORAD 25544)"
+    },
+    "shap_drift_flag": {
+      "target": false,
+      "must_equal": false,
+      "description": "TreeSHAP surrogate model weight hash alignment flag"
+    }
+  }
+}

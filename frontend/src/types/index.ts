@@ -50,6 +50,8 @@ export interface BatteryState {
 export interface SatelliteState {
   id: string;
   name: string;
+  norad_id?: number | null;
+  data_source?: 'synthetic' | 'celestrak_real' | string;
   orbit_plane: number;
   keplerian: KeplerianElements;
   position_eci: Position3D;
@@ -205,6 +207,7 @@ export interface ConstellationTick {
   sim_time_s: number;
   wall_clock_iso: string;
   speed_multiplier: number;
+  data_source?: 'synthetic' | 'celestrak_real' | string;
   satellites: SatelliteState[];
   ground_stations: GroundStation[];
   active_missions: MissionRequest[];
@@ -252,4 +255,66 @@ export interface AuctionResult {
   all_bids: AgentBid[];
   conflict_resolved: boolean;
   rationale: string;
+}
+
+// ----------------------------------------------------
+// New AI, Neural, TreeSHAP & RAG Types
+// ----------------------------------------------------
+
+export interface FeatureAttribution {
+  feature_name: string;
+  feature_value: number;
+  shap_value: number;
+  contribution_direction: 'POSITIVE' | 'NEGATIVE';
+  description: string;
+}
+
+export interface TreeSHAPExplanation {
+  predicted_bid_score: number;
+  base_value: number;
+  is_distilled: boolean;
+  feature_attributions: FeatureAttribution[];
+}
+
+export interface NeuralBidPreviewResponse {
+  satellite_id: string;
+  predicted_bid_score: number;
+  cpsat_agreement_prob: number;
+  explanation: TreeSHAPExplanation;
+}
+
+export interface MissionCitation {
+  log_id: string;
+  timestamp_iso: string;
+  event_type: string;
+  satellite_id?: string | null;
+  mission_id?: string | null;
+  summary: string;
+}
+
+export interface MissionQAResponse {
+  query: string;
+  answer: string;
+  grounded: boolean;
+  confidence_score: number;
+  citations: MissionCitation[];
+  solver_metrics?: Record<string, any>;
+}
+
+export interface FlightDirectorCommentary {
+  commentary_id: string;
+  timestamp_s: number;
+  event_type: string;
+  commentary: string;
+  verified_factual: boolean;
+  llm_latency_ms: number;
+  model_used: string;
+}
+
+export interface AgentHealingAction {
+  action_type: string;
+  triggered_by: string;
+  status: string;
+  details: string;
+  timestamp_iso: string;
 }
