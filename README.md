@@ -21,7 +21,7 @@
 
 ---
 
-## 🎯 Executive Summary & Recruiter Overview
+## 🎯 Executive Summary & Overview
 
 **ORBIT-X** is an end-to-end autonomous orbital resource allocation and simulation platform engineered for next-generation Low Earth Orbit (LEO) satellite constellations (e.g., Starlink, PlanetScope, Earth-observation clusters).
 
