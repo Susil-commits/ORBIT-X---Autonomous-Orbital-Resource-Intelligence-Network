@@ -1,6 +1,6 @@
 {
-  "run_id": "EVAL-20260817-085711",
-  "timestamp_iso": "2026-08-17T08:57:11.792698+00:00",
+  "run_id": "EVAL-20260818-120213",
+  "timestamp_iso": "2026-08-18T12:02:13.061189+00:00",
   "overall_status": "PASS",
   "metrics": [
     {
@@ -22,16 +22,16 @@
     {
       "metric_name": "nn_top1_agreement_rate_pct",
       "baseline_value": 65.0,
-      "current_value": 100.0,
-      "delta": 35.0,
+      "current_value": 83.33,
+      "delta": 18.33,
       "status": "PASS",
       "threshold": 55.0
     },
     {
       "metric_name": "nn_mae_score",
       "baseline_value": 22.0,
-      "current_value": 16.616,
-      "delta": -5.38,
+      "current_value": 15.769,
+      "delta": -6.23,
       "status": "PASS",
       "threshold": 32.0
     },

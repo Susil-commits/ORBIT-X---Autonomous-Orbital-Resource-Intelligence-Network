@@ -22,7 +22,7 @@ from app.simulation.benchmark import run_benchmark_comparison
 from app.intelligence.bid_value_network import get_bid_value_predictor
 from app.intelligence.shap_explainer import get_shap_explainer
 from app.physics.orbit_propagator import compute_orbital_period_minutes, create_initial_constellation
-from training.train_bid_network import evaluate_model
+from training.train_bid_network import evaluate_model, get_train_test_split
 from training.collect_cpsat_labels import DATASET_FILE
 
 EVAL_DIR = Path(__file__).resolve().parent
@@ -99,14 +99,14 @@ def run_full_evaluation() -> Tuple[EvalRunSummary, bool]:
     # ----------------------------------------------------
     # 2. Neural Network Evaluation
     # ----------------------------------------------------
-    print("\n[2/4] Evaluating Neural Network (BidValueMLP) against CP-SAT...")
+    print("\n[2/4] Evaluating Neural Network (BidValueMLP) against CP-SAT on Heldout Test Split...")
     predictor = get_bid_value_predictor()
     
     test_samples = []
     if DATASET_FILE.exists():
         with open(DATASET_FILE, "r", encoding="utf-8") as f:
             all_samples = json.load(f).get("samples", [])
-            test_samples = all_samples[int(0.8 * len(all_samples)):]
+            _, test_samples = get_train_test_split(all_samples, test_ratio=0.2, seed=42)
             
     nn_results = evaluate_model(predictor.model, test_samples)
     

@@ -1,6 +1,6 @@
-# ORBIT-X Next-Gen Modern AI, Fine-Tuning & Intelligence Architecture Walkthrough
+# ORBIT-X Modern AI, Fine-Tuning & Intelligence Architecture Walkthrough
 
-We have upgraded **ORBIT-X** with state-of-the-art AI concepts, modern deep learning architectures, physics-informed neural surrogates, high-contention multi-distribution datasets, and an interactive **AI Lab & Fine-Tuning Studio** in the frontend.
+We have enhanced **ORBIT-X** with state-of-the-art AI concepts, modern deep learning architectures, high-fidelity physics ODE simulations, high-contention multi-distribution datasets, and an interactive **AI Lab & Fine-Tuning Studio** in the frontend.
 
 ---
 
@@ -33,10 +33,11 @@ We have upgraded **ORBIT-X** with state-of-the-art AI concepts, modern deep lear
 - Multi-Task loss balancing ($\mathcal{L}_{total} = \mathcal{L}_{huber} + 0.8 \mathcal{L}_{bce} + 0.05 \mathcal{L}_{mse}$).
 - Validation metrics tracked: Top-1 Agreement Rate (%), MAE, $R^2$ Score, Win Classification Accuracy (%), with best validation checkpoint export and SHA-256 hash logging.
 
-### D. Physics-Informed Neural Network (PINN) for Battery & Thermal Dynamics
+### D. Physics-Based Battery & Stefan-Boltzmann Thermal ODE Simulator
 - File: [pinn_battery_thermal.py](file:///c:/Users/nayak/OneDrive/Desktop/Projects/AIML/ORBITX/backend/app/intelligence/pinn_battery_thermal.py)
-- Models Stefan-Boltzmann radiative cooling ($\epsilon \sigma A_{rad} T^4$), solar array harvesting, and Arrhenius battery degradation rate.
-- Computes multi-step ahead battery State-of-Charge and thermal trajectories with physics residual guarantees ($\text{Residual} < 0.001$).
+- **`ThermalPhysicsSimulator`**:
+  - Models Stefan-Boltzmann radiative cooling ($\epsilon \sigma A (T^4 - T_{space}^4)$), solar array harvesting, and Arrhenius battery degradation rate.
+  - Computes multi-step ahead battery State-of-Charge and thermal trajectories with numerical conservation residual tracking and dynamic confidence scoring.
 
 ### E. Hybrid Dense + BM25 RAG & Mission QA Engine
 - File: [hybrid_mission_rag.py](file:///c:/Users/nayak/OneDrive/Desktop/Projects/AIML/ORBITX/backend/app/intelligence/hybrid_mission_rag.py)
@@ -48,7 +49,7 @@ We have upgraded **ORBIT-X** with state-of-the-art AI concepts, modern deep lear
 - Modern Glassmorphism studio with 4 interactive tabs:
   1. **Cross-Attention & Multi-Task Policy**: Interactive feature sliders, live valuation score, win probability gauge, and authentic $[10 \times 8]$ Attention Heatmap.
   2. **Supervised Fine-Tuning Studio**: Live training loss curves, Cosine Annealing learning rate schedule, performance KPI cards, and "Trigger Fine-Tuning" execution panel.
-  3. **PINN Battery & Thermal Simulator**: Interactive solar flux and initial SoC sliders with dynamic 60-minute forward trajectory charts.
+  3. **Battery & Thermal Simulator**: Interactive solar flux and initial SoC sliders with dynamic 60-minute forward trajectory charts.
   4. **Model Checkpoint & Drift Hub**: Real-time SHA-256 model hash verification, TreeSHAP surrogate alignment, and dataset registry.
 
 ---
@@ -82,12 +83,12 @@ tests/test_shap_distillation.py ...               [PASS]
 =================================================================
       ORBIT-X AUTOMATED EVALUATION & REGRESSION HARNESS       
 =================================================================
-[1/4] CP-SAT Scheduler Benchmark:        PASS
-[2/4] Neural Network Agreement:          100.0% (PASS)
+[1/4] CP-SAT Scheduler Benchmark:        PASS (Completion: 16.7%, Reward: 1277.5)
+[2/4] Neural Network Agreement:          83.3% Top-1 Agreement (MAE: 15.77) [PASS]
 [3/4] TreeSHAP Surrogate Alignment:      Drift Detected: False (PASS)
 [4/4] Keplerian Orbital Physics:         Period: 95.65 min (PASS)
 =================================================================
-EVALUATION HARNESS RESULT: PASS (All 6 Gates Passed Cleanly)
+EVALUATION HARNESS RESULT: PASS (All 6 Benchmark & Policy Gates Passed Cleanly)
 =================================================================
 ```
 

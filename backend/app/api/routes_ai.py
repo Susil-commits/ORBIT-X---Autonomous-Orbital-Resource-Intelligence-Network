@@ -1,4 +1,4 @@
-"""FastAPI Router for ORBIT-X Neural Intelligence, Cross-Attention, PINN, Fine-Tuning & RAG QA."""
+"""FastAPI Router for ORBIT-X Neural Intelligence, Cross-Attention, Thermal & Battery Physics, Fine-Tuning & RAG QA."""
 
 import json
 from pathlib import Path
@@ -35,34 +35,37 @@ from app.intelligence.cross_attention_network import (
     SATELLITE_FEATURE_NAMES,
     MISSION_FEATURE_NAMES,
 )
-from app.intelligence.pinn_battery_thermal import get_pinn_model
+from app.intelligence.pinn_battery_thermal import (
+    get_thermal_physics_simulator,
+    get_pinn_model,
+)
 from app.intelligence.bid_value_network import extract_features
 from training.advanced_dataset_generator import extract_mission_features, ADVANCED_DATASET_FILE
 from training.train_advanced_fine_tuning import (
     train_cross_attention_network,
     FINETUNE_STATUS_FILE,
 )
+from eval.run_eval import run_full_evaluation, REPORT_FILE
 
-router = APIRouter(prefix="/api/ai", tags=["AI & Intelligence"])
+router = APIRouter(prefix="/ai", tags=["Neural Intelligence & AI Lab"])
 
 
-@router.post("/mission/ask", response_model=MissionQAResponse)
-async def ask_mission_decision_history(req: MissionQARequest):
+@router.post("/qa", response_model=MissionQAResponse)
+async def ask_mission_qa(req: MissionQARequest):
     """
-    RAG QA over ORBIT-X logged mission assignments, solver rationale, and anomaly telemetry.
-    Answers are grounded strictly in verifiable operational logs with source citations.
+    Asks the Dense RAG QA engine grounded questions regarding historical constellation decisions.
     """
     qa = get_mission_qa_engine()
     return qa.ask(req.query, top_k=req.top_k)
 
 
-@router.post("/mission/hybrid_ask", response_model=MissionQAResponse)
-async def ask_hybrid_decision_history(req: HybridMissionQARequest):
+@router.post("/hybrid-rag/qa", response_model=MissionQAResponse)
+async def ask_hybrid_rag(req: HybridMissionQARequest):
     """
-    Next-Gen Hybrid Dense + BM25 RAG query with Reciprocal Rank Fusion and metadata filtering.
+    Executes Hybrid Dense (Sentence-Transformers) + Sparse (BM25) RRF retrieval QA.
     """
-    h_qa = get_hybrid_mission_qa_engine()
-    return h_qa.ask(
+    hybrid_engine = get_hybrid_mission_qa_engine()
+    return hybrid_engine.ask(
         query=req.query,
         top_k=req.top_k,
         satellite_filter=req.satellite_filter,
@@ -151,11 +154,11 @@ async def predict_cross_attention(req: CrossAttentionPredictionRequest):
 @router.post("/pinn/predict", response_model=PINNBatteryThermalResponse)
 async def predict_pinn_battery_thermal(req: PINNBatteryThermalRequest):
     """
-    Executes Physics-Informed Neural Network (PINN) battery electrochemical discharge
-    and radiative thermal equilibrium trajectory simulation.
+    Executes High-Fidelity Physics ODE battery electrochemical discharge
+    and Stefan-Boltzmann radiative thermal equilibrium trajectory simulation.
     """
-    pinn = get_pinn_model()
-    return pinn.simulate_trajectory(req)
+    simulator = get_thermal_physics_simulator()
+    return simulator.simulate_trajectory(req)
 
 
 @router.get("/finetune/status", response_model=FineTuningStatusResponse)

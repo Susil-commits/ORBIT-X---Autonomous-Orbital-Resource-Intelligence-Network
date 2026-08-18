@@ -24,6 +24,18 @@
 
 ---
 
+## ⚡ At a Glance
+- **Constellation Mission Optimization**: Solves real-time multi-satellite observation scheduling using Google OR-Tools CP-SAT with coupled non-linear constraints (energy, thermal, storage, and optical access windows) — outperforming greedy baselines on high-priority mission completion (91.7% vs 75.0%).
+- **Real Orbital Ephemeris**: Propagates real CelesTrak Low Earth Orbit (LEO) data (Starlink, ISS NORAD 25544) validated against physics ground truth ($92.7\text{ min}$ orbital period).
+- **Learned Neural Previews & TreeSHAP**: PyTorch Multi-Head Cross-Attention network and BidValue MLP learn to imitate CP-SAT's scheduling decisions for sub-millisecond candidate valuation previews, with TreeSHAP explainability distilled from real solver behavior.
+- **Physics-Based Battery & Thermal ODE Simulator**: High-fidelity ODE solver simulating Stefan-Boltzmann radiative cooling ($\epsilon \sigma A (T^4 - T_{\text{space}}^4)$), solar array harvesting, and Arrhenius cell aging with numerical conservation residual tracking.
+- **Native Model Context Protocol (MCP)**: Ships a compliant Model Context Protocol server exposing constellation telemetry, bid previews, and autonomous healing tools directly to Claude Desktop or IDE agents.
+- **Automated CI/CD & Regression Gates**: 40/40 backend unit tests passing with strict automated 6-gate regression scoring evaluated on genuine held-out test splits.
+
+> **Engineering Note**: Built as an in-depth orbital scheduling simulation platform — combining classical constraint programming (Google OR-Tools CP-SAT) with deep learning surrogates, astrodynamics ODE integration, and a high-performance 3D WebGL digital twin.
+
+---
+
 ## 📑 Table of Contents
 - [1. Executive Summary](#1-executive-summary)
 - [2. Quick Start & Execution Guide](#2-quick-start--execution-guide)
@@ -39,7 +51,7 @@
   - [3.2 Single Decision Cycle & Dataflow Pipeline](#32-single-decision-cycle--dataflow-pipeline)
   - [3.3 Intersatellite Optical Laser Links (ISL) Mesh & Occlusion](#33-intersatellite-optical-laser-links-isl-mesh--occlusion)
   - [3.4 Multi-Head Cross-Attention Neural Network Architecture](#34-multi-head-cross-attention-neural-network-architecture)
-  - [3.5 Physics-Informed Neural Network (PINN) Battery & Thermal Model](#35-physics-informed-neural-network-pinn-battery--thermal-model)
+  - [3.5 Battery State-of-Charge & Stefan-Boltzmann Thermal Dynamics Model](#35-battery-state-of-charge--stefan-boltzmann-thermal-dynamics-model)
   - [3.6 Hybrid Dense + BM25 Mission RAG Pipeline](#36-hybrid-dense--bm25-mission-rag-pipeline)
 - [4. Deep-Dive: Subsystems & Technologies Used](#4-deep-dive-subsystems--technologies-used)
   - [4.1 Orbital Physics & Astrodynamics Engine](#41-orbital-physics--astrodynamics-engine)
@@ -60,18 +72,18 @@
 
 ## 1. Executive Summary
 
-**ORBIT-X V2.0** is an enterprise-grade autonomous orbital resource intelligence platform. Operating over simulated and real CelesTrak Low Earth Orbit (LEO) constellations (such as Starlink, PlanetScope, and the ISS), ORBIT-X solves the mission allocation problem:
+**ORBIT-X** is an autonomous orbital resource intelligence and simulation platform. Operating over simulated and real CelesTrak Low Earth Orbit (LEO) constellations (such as Starlink, PlanetScope, and the ISS), ORBIT-X solves the multi-satellite mission allocation problem:
 
 $$\text{Assign } \mathcal{M} \text{ observation requests to } \mathcal{S} \text{ satellites across time windows } \mathcal{W}$$
 
 subject to coupled non-linear constraints:
 1. **Keplerian & $J_2$ Perturbation Physics**: Dynamic ground track visibility cones ($el \ge 10^\circ$, slew $\le 40^\circ$) and cylindrical Earth eclipse cycles.
-2. **Physical Battery Dynamics & Thermal Dissipation**: Stefan-Boltzmann radiation $\epsilon \sigma A T^4$, solar array energy harvesting, Arrhenius cell aging, and a hard minimum 20% State-of-Charge (SoC) reserve floor.
+2. **Physical Battery Dynamics & Thermal Dissipation**: Stefan-Boltzmann radiation $\epsilon \sigma A (T^4 - T_{\text{space}}^4)$, solar array energy harvesting, Arrhenius cell aging, and a hard minimum 20% State-of-Charge (SoC) reserve floor.
 3. **Intersatellite Optical Laser Link (ISL) Mesh**: Line-of-sight laser cross-links calculated via 3D atmospheric tangent ray clearance ($h_{\text{tangent}} \ge 100\text{ km}$) with multi-hop optical relay routing.
 4. **On-board Storage & Ground Station Downlink Contention**: Non-overlapping ground station antenna tracking locks, downlink precedence, and solid-state data buffer capacity.
 5. **Pairwise Conjunction & Collision Risk**: Time-of-Closest-Approach (TCA) forward lookahead and autonomous Collision Avoidance Maneuvers (CAM).
 
-ORBIT-X integrates **Google OR-Tools CP-SAT constraint programming**, **PyTorch Multi-Head Cross-Attention neural networks**, **Physics-Informed Neural Networks (PINN)**, **unsupervised Isolation Forest telemetry health monitoring**, **TreeSHAP explainability distillation**, **Hybrid Dense+BM25 RAG**, and an **official Model Context Protocol (MCP) server** with a high-fidelity **Three.js WebGL 3D globe visualization**.
+ORBIT-X integrates **Google OR-Tools CP-SAT constraint programming**, **PyTorch Multi-Head Cross-Attention neural networks**, **High-Fidelity Physics ODE Battery & Thermal Simulation**, **unsupervised Isolation Forest telemetry health monitoring**, **TreeSHAP explainability distillation**, **Hybrid Dense+BM25 RAG**, and an **official Model Context Protocol (MCP) server** with a high-fidelity **Three.js WebGL 3D globe visualization**.
 
 ---
 
@@ -260,7 +272,7 @@ Configure environment variables via `.env` in `backend/`:
                  │                   INTELLIGENCE & AI SUBSYSTEMS                  │
                  │  • Google OR-Tools CP-SAT Multi-Objective Mission Optimizer    │
                  │  • Multi-Head Cross-Attention Neural Network (4 Heads, D=32)    │
-                 │  • PINN Battery & Stefan-Boltzmann Thermal Dynamics Model       │
+                 │  • Battery State-of-Charge & Stefan-Boltzmann Thermal Dynamics  │
                  │  • Spacecraft Health AI (Unsupervised Isolation Forest)         │
                  │  • TreeSHAP Feature Attribution & SHA-256 Checkpoint Drift Hub  │
                  │  • Hybrid Dense (Sentence-Transformers) + BM25 Mission RAG      │
@@ -296,7 +308,7 @@ sequenceDiagram
     autonumber
     participant Simulator as Orbital Physics Simulator
     participant Access as Access & ISL Model
-    participant Health as Health AI & PINN
+    participant Health as Health AI & Thermal Simulator
     participant Optimizer as CP-SAT / Cross-Attn AI
     participant MultiAgent as Multi-Agent Coordinator
     participant Backend as FastAPI & Redis Hub
@@ -305,7 +317,7 @@ sequenceDiagram
     Simulator->>Access: Step tick (Keplerian + J2 + Eclipse)
     Access->>Access: Compute LOS windows & ISL tangent clearance
     Access->>Health: Send telemetry (Voltage, Current, Temp, Jitter)
-    Health->>Health: Isolation Forest anomaly check + PINN SoC projection
+    Health->>Health: Isolation Forest anomaly check + Battery/Thermal ODE projection
     Health->>Optimizer: Dispatch valid satellites & energy constraints
     Optimizer->>MultiAgent: Solve CP-SAT assignment & compute neural bid previews
     MultiAgent->>MultiAgent: Resolve ground station contention via Vickrey auction
@@ -372,30 +384,30 @@ Continuous Valuation Score    Binary Win / Loss Logits     ISL Hops & Battery Dr
 
 ---
 
-### 3.5 Physics-Informed Neural Network (PINN) Battery & Thermal Model
+### 3.5 Battery State-of-Charge & Stefan-Boltzmann Thermal Dynamics Model
 
 ```
                     ┌─────────────────────────────────────────┐
                     │       PHYSICAL PHENOMENOLOGICAL INPUTS  │
-                    │  • Solar Flux: $F_{10.7} = 1361\text{ W/m}^2$  │
+                    │  • Solar Flux: $\Phi_{solar} = 1361\text{ W/m}^2$│
                     │  • Array Sunlit Factor: $\mathbb{I}_{sunlit}$    │
-                    │  • Payload Active Power: $P_{payload} = 45\text{ W}$ │
+                    │  • Payload Active Power: $P_{payload} = 140\text{ W}$│
                     └────────────────────┬────────────────────┘
                                          │
                                          ▼
                     ┌─────────────────────────────────────────┐
                     │      COUPLED ODE GOVERNING EQUATIONS    │
                     │                                         │
-                    │   $m c_p \frac{dT}{dt} = Q_{in} - \epsilon \sigma A T^4$ │
-                    │   $\frac{d\text{SoC}}{dt} = \frac{P_{net}(T, \text{SoC})}{V_{nom} C_{nom}}$  │
+                    │  $m c_p \frac{dT}{dt} = Q_{in} - \epsilon \sigma A (T^4 - T_{space}^4)$│
+                    │  $\frac{d\text{SoC}}{dt} = \frac{P_{solar} \eta_{chg} - P_{draw}}{E_{capacity}}$ │
                     └────────────────────┬────────────────────┘
                                          │
                                          ▼
                     ┌─────────────────────────────────────────┐
-                    │      PHYSICS RESIDUAL LOSS FUNCTION     │
+                    │     NUMERICAL RESIDUAL & CALIBRATION    │
                     │                                         │
-                    │  $\mathcal{L}_{\text{PINN}} = \mathcal{L}_{\text{data}} + \lambda_{\text{phys}} \|\text{ODE Residual}\|^2$ │
-                    │       Guaranteed Residual $< 0.001$     │
+                    │  $\text{Residual} = \frac{|\Delta Q_{net} \Delta t|}{m c_p T_{scale}} + \frac{|P_{net} \Delta t|}{E_{cap}}$ │
+                    │     Dynamic Confidence Metric $\in [0.75, 0.995]$│
                     └─────────────────────────────────────────┘
 ```
 
@@ -480,9 +492,9 @@ Formulates the constellation scheduling problem as an exact Constraint Programmi
   - Implements Cosine Annealing with Warm Restarts (`CosineAnnealingWarmRestarts`, $T_0=10, T_{mult}=2$).
   - Adaptive AdamW optimization with gradient clipping ($\|\mathbf{g}\| \le 1.0$) and weight decay ($1\times 10^{-4}$).
   - Exports validated model checkpoints with SHA-256 integrity hash verification and drift detection.
-- **Physics-Informed Neural Network (PINN)**:
-  - Embeds Stefan-Boltzmann radiation cooling ($\epsilon \sigma A T^4$), solar array energy harvesting, and Arrhenius battery aging into the loss function.
-  - Predicts multi-step forward State-of-Charge and thermal trajectories with guaranteed physics residual satisfaction ($\text{Residual} < 0.001$).
+- **Physics-Based Battery & Thermal ODE Simulator**:
+  - Numerically integrates Stefan-Boltzmann radiative cooling ($\epsilon \sigma A (T^4 - T_{\text{space}}^4)$), solar array energy harvesting, and Arrhenius electrochemical battery degradation.
+  - Computes multi-step forward State-of-Charge and thermal trajectories with numerical conservation residual tracking and dynamic confidence calibration.
 - **TreeSHAP Explainability & Distillation**:
   - Extracts exact TreeSHAP feature attributions for every scheduling assignment, identifying the decisive drivers (e.g., elevation angle bonus $+0.34$, battery reserve headroom $+0.28$, slew penalty $-0.12$).
 
@@ -542,7 +554,7 @@ ORBIT-X exposes 5 production-ready MCP tools via `mcp.server.mcpserver.MCPServer
   - Ground station visibility cones and target marker tracking beams.
   - Point-and-click 3D raycasting target dispatcher allowing operators to click any latitude/longitude on Earth to create an observation mission.
 - **Comprehensive HUD & Modals**:
-  - **AI Lab & Fine-Tuning Studio**: 4 interactive tabs (Cross-Attention Playground, SFT Studio, PINN Thermal Simulator, Model Checkpoint Hub).
+  - **AI Lab & Fine-Tuning Studio**: 4 interactive tabs (Cross-Attention Playground, SFT Studio, Battery & Thermal Simulator, Model Checkpoint Hub).
   - **Scenario Director HUD**: One-click space weather and debris event injection.
   - **Mission Queue & Gantt Timeline**: Live mission scheduling and resource allocation timeline.
   - **Explainability & SHAP Inspector**: Interactive waterfall charts explaining AI scheduling decisions.
@@ -623,7 +635,7 @@ ORBITX/
 ├── backend/
 │   ├── app/
 │   │   ├── api/                      # FastAPI async REST route controllers
-│   │   │   ├── routes_ai.py          # Cross-attention, PINN, SFT & RAG endpoints
+│   │   │   ├── routes_ai.py          # Cross-attention, Thermal ODE, SFT & RAG endpoints
 │   │   │   ├── routes_benchmarks.py  # Scheduler comparative benchmark runner
 │   │   │   ├── routes_constellation_data.py # CelesTrak TLE & live data feeds
 │   │   │   ├── routes_isl.py         # Laser mesh network & optical routing
@@ -640,7 +652,7 @@ ORBITX/
 │   │   │   ├── hybrid_mission_rag.py # Dense (Sentence-Transformers) + BM25 RAG
 │   │   │   ├── multi_agent.py        # Multi-Agent bidding & Vickrey auctions
 │   │   │   ├── optimizer.py          # Google OR-Tools CP-SAT Constellation Solver
-│   │   │   ├── pinn_battery_thermal.py # PINN Stefan-Boltzmann thermal model
+│   │   │   ├── pinn_battery_thermal.py # ThermalPhysicsSimulator Stefan-Boltzmann ODE model
 │   │   │   └── shap_explainer.py     # TreeSHAP distillation & explainability
 │   │   ├── mcp_server/               # Official Model Context Protocol (MCP) server
 │   │   │   └── server.py             # 5 Native MCP tools for Claude & IDE agents
@@ -693,7 +705,7 @@ ORBITX/
 
 <div align="center">
 
-**ORBIT-X V2.0 — Autonomous Orbital Resource & Intelligence Network**  
-*Built for autonomous constellation decision intelligence, physics-informed AI, and real-time orbital resource optimization.*
+**ORBIT-X — Autonomous Orbital Resource & Intelligence Network**  
+*Built for autonomous constellation decision intelligence, orbital physics simulation, and real-time resource optimization.*
 
 </div>

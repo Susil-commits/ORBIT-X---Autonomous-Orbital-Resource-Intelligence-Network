@@ -92,6 +92,28 @@ def evaluate_model(
     }
 
 
+def get_train_test_split(
+    samples: List[Dict[str, Any]],
+    test_ratio: float = 0.2,
+    seed: int = 42,
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Deterministically splits samples into train and test partitions by unique mission_id.
+    Ensures zero data leakage across missions and strictly consistent splits between training and evaluation.
+    """
+    mission_ids = sorted(list({s.get("mission_id") for s in samples if s.get("mission_id")}))
+    rng = random.Random(seed)
+    rng.shuffle(mission_ids)
+    
+    split_idx = int((1.0 - test_ratio) * len(mission_ids))
+    train_m_ids = set(mission_ids[:split_idx])
+    test_m_ids = set(mission_ids[split_idx:])
+    
+    train_samples = [s for s in samples if s.get("mission_id") in train_m_ids]
+    test_samples = [s for s in samples if s.get("mission_id") in test_m_ids]
+    return train_samples, test_samples
+
+
 def train_bid_network(
     data_path: Optional[Path] = None,
     output_model_path: Optional[Path] = None,
@@ -118,17 +140,8 @@ def train_bid_network(
         
     print(f"Loaded {len(samples)} samples from {data_path}")
     
-    # 80/20 train/test split by mission
-    mission_ids = list({s.get("mission_id") for s in samples if s.get("mission_id")})
-    random.seed(42)
-    random.shuffle(mission_ids)
-    
-    split_idx = int(0.8 * len(mission_ids))
-    train_m_ids = set(mission_ids[:split_idx])
-    test_m_ids = set(mission_ids[split_idx:])
-    
-    train_samples = [s for s in samples if s.get("mission_id") in train_m_ids]
-    test_samples = [s for s in samples if s.get("mission_id") in test_m_ids]
+    # Genuine 80/20 train/test split by mission
+    train_samples, test_samples = get_train_test_split(samples, test_ratio=0.2, seed=42)
     
     print(f"Train samples: {len(train_samples)}, Test samples: {len(test_samples)}")
     

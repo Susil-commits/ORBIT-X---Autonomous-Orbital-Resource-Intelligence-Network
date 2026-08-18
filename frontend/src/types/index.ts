@@ -320,7 +320,7 @@ export interface AgentHealingAction {
 }
 
 // ----------------------------------------------------
-// Next-Gen Cross-Attention, Multi-Task & PINN Types
+// Next-Gen Cross-Attention, Multi-Task & Battery/Thermal ODE Types
 // ----------------------------------------------------
 
 export interface CrossAttentionPredictionRequest {
@@ -435,6 +435,11 @@ export interface PINNBatteryThermalResponse {
   physics_residual_norm: number;
   confidence_score: number;
 }
+
+// Clean semantic type aliases
+export type BatteryThermalRequest = PINNBatteryThermalRequest;
+export type BatteryThermalTrajectoryPoint = PINNTrajectoryPoint;
+export type BatteryThermalResponse = PINNBatteryThermalResponse;
 
 export interface HybridMissionQARequest {
   query: string;

@@ -162,7 +162,7 @@ export const AILabModal: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Multi-Head Cross-Attention Transformer • Physics-Informed Neural Network (PINN) • Hybrid Dense+BM25 RAG
+                Multi-Head Cross-Attention Transformer • Stefan-Boltzmann Thermal ODE • Hybrid Dense+BM25 RAG
               </p>
             </div>
           </div>
@@ -210,7 +210,7 @@ export const AILabModal: React.FC = () => {
             }`}
           >
             <Flame className="w-4 h-4 text-amber-400" />
-            PINN Battery & Thermal Dynamics
+            Battery & Stefan-Boltzmann Thermal Dynamics
           </button>
 
           <button
@@ -600,7 +600,7 @@ export const AILabModal: React.FC = () => {
           )}
 
           {/* ========================================================= */}
-          {/* TAB 3: PINN BATTERY & THERMAL DYNAMICS */}
+          {/* TAB 3: BATTERY & STEFAN-BOLTZMANN THERMAL DYNAMICS */}
           {/* ========================================================= */}
           {activeTab === 'pinn' && (
             <div className="space-y-6">
@@ -669,13 +669,13 @@ export const AILabModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* PINN Trajectory Visualizer */}
+              {/* Trajectory Visualizer */}
               <div className="p-5 bg-slate-950/70 rounded-xl border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Flame className="w-4 h-4 text-amber-400" />
                     <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono">
-                      PINN 60-Minute Forward Trajectory (Stefan-Boltzmann Thermal & Electrochemical SoC)
+                      60-Minute Forward Trajectory (Stefan-Boltzmann Thermal & Electrochemical SoC ODE)
                     </h3>
                   </div>
                   <span className="text-xs font-mono text-emerald-400 bg-emerald-950/40 px-2.5 py-0.5 rounded border border-emerald-800/60">

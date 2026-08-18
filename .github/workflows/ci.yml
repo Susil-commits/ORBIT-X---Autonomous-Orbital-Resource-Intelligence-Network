@@ -28,6 +28,15 @@ jobs:
         run: |
           uv sync --project backend --python 3.12
 
+      - name: Cache Hugging Face Models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: ${{ runner.os }}-hf-all-MiniLM-L6-v2-${{ hashFiles('backend/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-hf-all-MiniLM-L6-v2-
+            ${{ runner.os }}-hf-
+
       - name: Run Backend Unit Tests (Pytest)
         run: |
           uv run --project backend pytest backend/tests -v
