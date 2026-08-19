@@ -139,29 +139,56 @@ app.include_router(ai_router)
 app.include_router(constellation_data_router)
 
 
-@app.get("/")
-async def root():
-    return {
-        "system": "ORBIT-X",
-        "status": "ONLINE",
-        "version": "2.0.0",
-        "capabilities": [
-            "Real Celestrak TLE Orbital Propagation (Starlink, Planet, ISS) with Physical Ground-Truth Verification",
-            "PyTorch Neural Bid-Valuation Network (BidValueMLP) Imitating CP-SAT in Sub-Millisecond Preview",
-            "Distilled TreeSHAP Local Feature Explainability & SHA-256 Checkpoint Drift Detection",
-            "Grounded Decision History RAG (sentence-transformers) with Verified Record Citations & Honest Refusal",
-            "Local LLM Flight Director Tactical Commentary (Ollama) with Fact-Consistency Verifier",
-            "Official Model Context Protocol (MCP) Server with 5 Constellation Decision & Query Tools",
-            "Automated CI-Integrated Evaluation & Regression Scoring Harness",
-            "Self-Healing Continuous Verification Agent Loop",
-            "Strictly Async Redis State Caching & Event Pub/Sub",
-            "Async SQLAlchemy Database (PostgreSQL / SQLite switch)",
-            "Google OR-Tools CP-SAT Constellation Mission Optimizer",
-            "Intersatellite Optical Laser Link (ISL) Mesh Network & Multi-Hop Relay Routing",
-            "Extreme Space Scenario Director (Solar Storm, Debris Conjunction, Ground Blackout, Disaster Surge)",
-            "Real-time WebSocket Constellation Stream",
-        ],
-    }
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Check for compiled frontend distribution
+frontend_dist_path = Path(__file__).resolve().parent.parent / "frontend_dist"
+if not frontend_dist_path.exists():
+    frontend_dist_path = Path("/app/frontend_dist")
+
+if frontend_dist_path.exists() and (frontend_dist_path / "index.html").exists():
+    assets_path = frontend_dist_path / "assets"
+    if assets_path.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_path)), name="static_assets")
+
+    @app.get("/")
+    async def serve_root():
+        return FileResponse(frontend_dist_path / "index.html")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json") or full_path.startswith("ws/"):
+            return None
+        file_target = frontend_dist_path / full_path
+        if file_target.is_file():
+            return FileResponse(file_target)
+        return FileResponse(frontend_dist_path / "index.html")
+else:
+    @app.get("/")
+    async def root():
+        return {
+            "system": "ORBIT-X",
+            "status": "ONLINE",
+            "version": "2.0.0",
+            "capabilities": [
+                "Real Celestrak TLE Orbital Propagation (Starlink, Planet, ISS) with Physical Ground-Truth Verification",
+                "PyTorch Neural Bid-Valuation Network (BidValueMLP) Imitating CP-SAT in Sub-Millisecond Preview",
+                "Distilled TreeSHAP Local Feature Explainability & SHA-256 Checkpoint Drift Detection",
+                "Grounded Decision History RAG (sentence-transformers) with Verified Record Citations & Honest Refusal",
+                "Local LLM Flight Director Tactical Commentary (Ollama) with Fact-Consistency Verifier",
+                "Official Model Context Protocol (MCP) Server with 5 Constellation Decision & Query Tools",
+                "Automated CI-Integrated Evaluation & Regression Scoring Harness",
+                "Self-Healing Continuous Verification Agent Loop",
+                "Strictly Async Redis State Caching & Event Pub/Sub",
+                "Async SQLAlchemy Database (PostgreSQL / SQLite switch)",
+                "Google OR-Tools CP-SAT Constellation Mission Optimizer",
+                "Intersatellite Optical Laser Link (ISL) Mesh Network & Multi-Hop Relay Routing",
+                "Extreme Space Scenario Director (Solar Storm, Debris Conjunction, Ground Blackout, Disaster Surge)",
+                "Real-time WebSocket Constellation Stream",
+            ],
+        }
 
 
 @app.websocket("/ws/constellation")

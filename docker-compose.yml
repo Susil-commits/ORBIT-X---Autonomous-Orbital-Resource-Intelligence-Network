@@ -1,4 +1,25 @@
 services:
+  orbitx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orbitx-unified
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://orbitx:orbitx_password@postgres:5432/orbitx_db
+      - ALLOWED_ORIGINS=http://localhost:8000,http://localhost:5173,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/models:/app/models
+
   postgres:
     image: postgres:16-alpine
     container_name: orbitx-postgres
@@ -30,39 +51,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: orbitx-backend
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-orbitx}:${POSTGRES_PASSWORD:-orbitx_password}@postgres:5432/${POSTGRES_DB:-orbitx_db}
-      - REDIS_URL=redis://redis:6379/0
-      - OLLAMA_URL=http://host.docker.internal:11434
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./backend/data:/app/data
-      - ./backend/models:/app/models
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: orbitx-frontend
-    restart: unless-stopped
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
 
 volumes:
   postgres_data:

@@ -337,20 +337,20 @@ npm run dev
 
 ---
 
-### Option B: One-Click Docker Compose Deployment
+### Option B: One-Click Unified Docker Deployment
 
-Lightweight multi-stage container orchestration with isolated networks and minimal footprint:
+Run the complete full-stack platform (Astrodynamics physics engine, Google CP-SAT solver, and 3D WebGL Digital Twin HUD) in a single unified container:
 
+```bash
+# Pull and run the single unified container package
+docker run -p 8000:8000 ghcr.io/susil-commits/orbit-x---autonomous-orbital-resource-intelligence-network:latest
+```
+Or orchestrate with Redis and PostgreSQL backing stores:
 ```bash
 docker compose up --build
 ```
-
-| Container Service | Host Port | Function |
-| :--- | :---: | :--- |
-| **`orbitx-frontend`** | `5173` | Production Nginx web server with Three.js 3D HUD |
-| **`orbitx-backend`** | `8000` | FastAPI ASGI application, WebSocket broadcaster & CP-SAT solver |
-| **`orbitx-redis`** | `6379` | Sub-second hot state cache & Pub/Sub event bus |
-| **`orbitx-postgres`** | `5432` | Async relational database for telemetry and schedules |
+- 🌐 **Unified Digital Twin & API**: `http://localhost:8000`
+- 📡 **10 Hz Telemetry WebSocket**: `ws://localhost:8000/ws/constellation`
 
 ---
 
