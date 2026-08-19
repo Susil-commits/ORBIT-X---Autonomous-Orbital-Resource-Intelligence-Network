@@ -516,6 +516,128 @@ class ConstellationSimulator:
             )
             self.replan_schedule()
 
+        elif scenario_type == ScenarioType.SATELLITE_FAILURE:
+            failed_sat = "SAT-02"
+            for s in self.satellites:
+                if s.id == failed_sat:
+                    s.health_status = HealthStatus.CRITICAL_FAULT
+                    s.telemetry.anomaly_score = 0.98
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.SATELLITE_FAILURE,
+                title="Total Spacecraft Bus Failure",
+                description=f"Critical flight computer lockup and total power bus loss on {failed_sat}.",
+                severity="CRITICAL",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    f"Health AI confirmed loss of heartbeat on {failed_sat}.",
+                    f"Active missions assigned to {failed_sat} immediately cancelled and re-queued.",
+                    "Constellation dynamic re-plan reassigned pending imaging passes to adjacent orbital planes.",
+                ],
+                affected_satellite_ids=[failed_sat],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.ISL_FAILURE:
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.ISL_FAILURE,
+                title="Intersatellite Optical Laser Mesh Transponder Disruption",
+                description="Cross-plane optical beam misalignment causing complete drop of intersatellite mesh routing.",
+                severity="HIGH",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    "ISL link occlusion and pointing error alarms triggered.",
+                    "Routing engine switched to direct-to-ground store-and-forward mode.",
+                    "Downlink contention solver re-weighted to prioritize local ground contact passes.",
+                ],
+                affected_satellite_ids=[s.id for s in self.satellites],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.BATTERY_DEGRADATION:
+            degraded_sat = "SAT-05"
+            for s in self.satellites:
+                if s.id == degraded_sat:
+                    s.battery.soc = 0.28
+                    s.health_status = HealthStatus.DEGRADED
+                    s.telemetry.anomaly_score = 0.65
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.BATTERY_DEGRADATION,
+                title="Accelerated Battery Cell Impedance Degradation",
+                description=f"Battery cell degradation on {degraded_sat} dropping effective capacity and raising minimum SoC floor.",
+                severity="MEDIUM",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    f"Health AI flagged anomalous voltage sag during eclipse on {degraded_sat}.",
+                    "SoC floor raised to 30% for high-drain SAR and hyperspectral imaging tasks.",
+                    "Scheduler shifted heavy payload tasks to sibling satellites with >80% battery reserve.",
+                ],
+                affected_satellite_ids=[degraded_sat],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.THERMAL_OVERLOAD:
+            hot_sat = "SAT-01"
+            self.inject_fault(hot_sat, "BATTERY_THERMAL_RUNAWAY")
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.THERMAL_OVERLOAD,
+                title="Spacecraft Radiator Thermal Overload",
+                description=f"Optical radiator degradation on {hot_sat} causing core temperatures to exceed +65°C.",
+                severity="HIGH",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    f"Thermal AI detected Stefan-Boltzmann radiative cooling deficit on {hot_sat}.",
+                    "Payload duty cycle throttled to 20% to prevent electronic component damage.",
+                    "Automated re-planner transferred observation tasks to nominal nodes.",
+                ],
+                affected_satellite_ids=[hot_sat],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.STALE_TLE:
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.STALE_TLE,
+                title="Outdated Two-Line Element (TLE) Ephemeris Drift",
+                description="Ground tracking uplink failure resulted in orbital propagation using 14-day expired TLE data.",
+                severity="MEDIUM",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    "TLE pipeline detected epoch expiration (>7 days).",
+                    "Activated local validated TLE disk cache and SGP4 perturbation correction.",
+                    "Enlarged observation pointing elevation margin from 10.0° to 14.5° to account for in-track drift.",
+                ],
+                affected_satellite_ids=[s.id for s in self.satellites],
+            )
+            self.replan_schedule()
+
+        elif scenario_type == ScenarioType.GPS_DEGRADATION:
+            self.active_scenario = ScenarioState(
+                scenario_type=ScenarioType.GPS_DEGRADATION,
+                title="GNSS Telemetry Jitter & Position Uncertainty",
+                description="Spacecraft GNSS receiver multipath interference causing orbital state covariance dilation.",
+                severity="MEDIUM",
+                is_active=True,
+                activated_at_s=self.sim_time_s,
+                elapsed_s=0.0,
+                ai_actions_taken=[
+                    "State estimator engaged Extended Kalman Filter (EKF) with J2 physics constraints.",
+                    "Conjunction safety miss distance threshold increased from 5.0 km to 15.0 km.",
+                    "Continuous observation timeline validated against relaxed access bounds.",
+                ],
+                affected_satellite_ids=[s.id for s in self.satellites],
+            )
+            self.replan_schedule()
+
+
     def reset_scenario(self):
         """Restores constellation to nominal baseline."""
         # Reactivate all ground stations

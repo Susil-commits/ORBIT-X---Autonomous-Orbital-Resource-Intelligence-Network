@@ -185,6 +185,13 @@ class ScenarioType(str, Enum):
     DEBRIS_CONJUNCTION = "DEBRIS_CONJUNCTION"
     GROUND_BLACKOUT = "GROUND_BLACKOUT"
     DISASTER_SURGE = "DISASTER_SURGE"
+    SATELLITE_FAILURE = "SATELLITE_FAILURE"
+    ISL_FAILURE = "ISL_FAILURE"
+    BATTERY_DEGRADATION = "BATTERY_DEGRADATION"
+    THERMAL_OVERLOAD = "THERMAL_OVERLOAD"
+    STALE_TLE = "STALE_TLE"
+    GPS_DEGRADATION = "GPS_DEGRADATION"
+
 
 
 class ISLLink(BaseModel):
@@ -279,6 +286,10 @@ class BenchmarkResult(BaseModel):
     ground_station_utilization_pct: float
     total_reward_yield: float
     avg_solve_time_ms: float
+    constraint_violations: int = 0
+    neural_regret: float = 0.0
+    objective_value: float = 0.0
+
 
 
 # ==========================================

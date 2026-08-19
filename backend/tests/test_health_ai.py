@@ -38,3 +38,17 @@ def test_severe_fault_telemetry():
     score, status = health_ai.evaluate_telemetry(fault_frame)
     assert score > 0.70
     assert status in [HealthStatus.DEGRADED, HealthStatus.CRITICAL_FAULT]
+
+
+def test_synthetic_fault_evaluation_metrics():
+    """Validates Precision, Recall, F1 and False Alarm Rate on multi-fault space dataset."""
+    health_ai = get_health_ai()
+    metrics = health_ai.evaluate_synthetic_faults(num_nominal=500, num_anomalies_per_type=25)
+    
+    assert metrics["precision"] > 0.70
+    assert metrics["recall"] > 0.75
+    assert metrics["f1_score"] > 0.70
+    assert metrics["false_alarm_rate_pct"] < 10.0
+    assert "THERMAL_RUNAWAY" in metrics["per_fault_recall_pct"]
+    assert "VOLTAGE_BROWNOUT" in metrics["per_fault_recall_pct"]
+

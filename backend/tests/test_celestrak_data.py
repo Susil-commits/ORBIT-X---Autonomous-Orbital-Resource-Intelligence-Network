@@ -43,3 +43,27 @@ def test_real_constellation_loading():
     # Check physical period of first satellite (~90-100 min)
     period = compute_orbital_period_minutes(sats[0].keplerian.semi_major_axis_km)
     assert 90.0 <= period <= 105.0
+
+
+def test_tle_pipeline_manager_caching_and_checksum(tmp_path):
+    """Tests TLE pipeline manager local caching, SHA-256 calculation and fallback."""
+    from app.physics.tle_pipeline import TLEPipelineManager
+    
+    manager = TLEPipelineManager(cache_dir=tmp_path)
+    sample_tle = "1 25544U 98067A   24080.51888495  .00014389  00000+0  26388-3 0  9997\n2 25544  51.6425 208.6185 0005086  94.6181 265.5562 15.49842884444456"
+    checksum = manager.compute_checksum(sample_tle)
+    assert len(checksum) == 64  # SHA-256
+    
+    # Test packaging
+    parsed = manager._parse_and_package(
+        raw_tle=sample_tle,
+        group="stations",
+        source_url="https://celestrak.org",
+        target_count=1,
+        source_type="test_mock",
+    )
+    assert parsed["data_source"] == "celestrak_real"
+    assert parsed["checksum_sha256"] == checksum
+    assert len(parsed["satellites"]) == 1
+    assert parsed["satellites"][0]["norad_id"] == 25544
+

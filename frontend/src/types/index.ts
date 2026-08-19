@@ -2,7 +2,19 @@ export type HealthStatus = 'NOMINAL' | 'DEGRADED' | 'CRITICAL_FAULT';
 export type MissionStatus = 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 export type WindowType = 'IMAGING' | 'DOWNLINK';
 export type SensorType = 'OPTICAL_RGB' | 'SAR_RADAR' | 'THERMAL_IR' | 'HYPERSPECTRAL';
-export type ScenarioType = 'NOMINAL' | 'SOLAR_STORM' | 'DEBRIS_CONJUNCTION' | 'GROUND_BLACKOUT' | 'DISASTER_SURGE';
+export type ScenarioType =
+  | 'NOMINAL'
+  | 'SOLAR_STORM'
+  | 'DEBRIS_CONJUNCTION'
+  | 'GROUND_BLACKOUT'
+  | 'DISASTER_SURGE'
+  | 'SATELLITE_FAILURE'
+  | 'ISL_FAILURE'
+  | 'BATTERY_DEGRADATION'
+  | 'THERMAL_OVERLOAD'
+  | 'STALE_TLE'
+  | 'GPS_DEGRADATION';
+
 
 export interface Position3D {
   x: number;
@@ -224,6 +236,7 @@ export interface ConstellationTick {
 export interface BenchmarkResult {
   scheduler_name: string;
   seed: number;
+  data_source?: string;
   num_missions: number;
   completed_missions: number;
   completion_rate_pct: number;
@@ -233,7 +246,11 @@ export interface BenchmarkResult {
   ground_station_utilization_pct: number;
   total_reward_yield: number;
   avg_solve_time_ms: number;
+  constraint_violations?: number;
+  neural_regret?: number;
+  objective_value?: number;
 }
+
 
 export interface AgentBid {
   satellite_id: string;

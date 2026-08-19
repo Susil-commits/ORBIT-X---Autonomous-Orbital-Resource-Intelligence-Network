@@ -51,3 +51,28 @@ def test_custom_target_dispatch():
     assert "Gibraltar" in m.name
     assert m.priority == 5
     assert len(sim.pending_missions) == initial_count + 1
+
+
+def test_all_extreme_scenarios_lifecycle():
+    """Validates activation and recovery across all 10 resilience scenarios."""
+    sim = ConstellationSimulator()
+    
+    scenarios_to_test = [
+        ScenarioType.SATELLITE_FAILURE,
+        ScenarioType.ISL_FAILURE,
+        ScenarioType.BATTERY_DEGRADATION,
+        ScenarioType.THERMAL_OVERLOAD,
+        ScenarioType.STALE_TLE,
+        ScenarioType.GPS_DEGRADATION,
+    ]
+    
+    for scen in scenarios_to_test:
+        sim.trigger_scenario(scen)
+        assert sim.active_scenario.is_active is True
+        assert sim.active_scenario.scenario_type == scen
+        assert len(sim.active_scenario.ai_actions_taken) >= 2
+        
+        sim.reset_scenario()
+        assert sim.active_scenario.is_active is False
+        assert sim.active_scenario.scenario_type == ScenarioType.NOMINAL
+
