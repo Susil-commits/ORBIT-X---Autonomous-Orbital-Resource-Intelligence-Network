@@ -1,11 +1,13 @@
 """FastAPI Router for ORBIT-X Neural Intelligence, Cross-Attention, Thermal & Battery Physics, Fine-Tuning & RAG QA."""
 
+import os
 import json
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Header, Depends, Request
 from typing import Dict, Any, List, Optional
 import numpy as np
 
+from app.core.limiter import limiter
 from app.core.schemas import (
     MissionQARequest,
     MissionQAResponse,
@@ -48,6 +50,22 @@ from training.train_advanced_fine_tuning import (
 from eval.run_eval import run_full_evaluation, REPORT_FILE
 
 router = APIRouter(prefix="/ai", tags=["Neural Intelligence & AI Lab"])
+
+
+def verify_admin_access(x_admin_secret: Optional[str] = Header(None, alias="X-Admin-Secret")) -> bool:
+    """
+    Validates admin secret authorization for compute-heavy AI operations (e.g. fine-tuning, self-healing).
+    If ADMIN_SECRET_KEY is configured in the environment, verifies that X-Admin-Secret matches.
+    If ADMIN_SECRET_KEY is not set (default local demo/dev mode), access is permitted.
+    """
+    admin_secret = os.getenv("ADMIN_SECRET_KEY", "")
+    if admin_secret:
+        if not x_admin_secret or x_admin_secret != admin_secret:
+            raise HTTPException(
+                status_code=403,
+                detail="Invalid or missing X-Admin-Secret header. Admin authorization required for compute-heavy AI operations.",
+            )
+    return True
 
 
 @router.post("/qa", response_model=MissionQAResponse)
@@ -205,9 +223,17 @@ async def get_finetuning_status():
 
 
 @router.post("/finetune/trigger", response_model=FineTuningTriggerResponse)
-async def trigger_fine_tuning(req: FineTuningTriggerRequest, background_tasks: BackgroundTasks):
+@limiter.limit("5/minute")
+async def trigger_fine_tuning(
+    request: Request,
+    req: FineTuningTriggerRequest,
+    background_tasks: BackgroundTasks,
+    _auth: bool = Depends(verify_admin_access),
+):
     """
     Triggers supervised multi-task fine-tuning of the Constellation Cross-Attention Network.
+    Protected by X-Admin-Secret header authentication when ADMIN_SECRET_KEY is configured
+    and rate-limited to 5 requests per minute.
     """
     def run_training_job():
         train_cross_attention_network(
@@ -252,10 +278,16 @@ async def get_shap_explainer_status():
 
 
 @router.post("/agent/inspect_and_heal", response_model=Dict[str, Any])
-async def trigger_agent_self_healing():
+@limiter.limit("10/minute")
+async def trigger_agent_self_healing(
+    request: Request,
+    _auth: bool = Depends(verify_admin_access),
+):
     """
     Runs the self-healing agent loop: checks drift and eval regressions,
     and automatically triggers surrogate re-distillation if needed.
+    Protected by X-Admin-Secret header authentication when ADMIN_SECRET_KEY is configured
+    and rate-limited to 10 requests per minute.
     """
     agent = get_self_healing_agent()
     status, action = agent.inspect_and_heal()

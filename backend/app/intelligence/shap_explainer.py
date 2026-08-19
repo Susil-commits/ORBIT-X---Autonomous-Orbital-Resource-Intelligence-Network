@@ -65,7 +65,9 @@ class DistilledTreeSHAPExplainer:
         if self.surrogate_path.exists():
             try:
                 self.load_surrogate(self.surrogate_path)
-                return
+                if not self.check_drift():
+                    return
+                print("Model drift detected (NN hash changed). Re-distilling surrogate...")
             except Exception as e:
                 print(f"Error loading surrogate: {e}. Re-distilling...")
                 

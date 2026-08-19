@@ -23,7 +23,7 @@ class FaultRequest(BaseModel):
 async def get_state():
     """Fetches the current constellation state snapshot."""
     sim = get_simulator()
-    return sim.step(dt_seconds=0.0)
+    return await sim.step_async(dt_seconds=0.0)
 
 
 @router.post("/start")
@@ -46,7 +46,7 @@ async def pause_sim():
 async def step_sim(dt_seconds: float = 1.0):
     """Executes a single simulation step."""
     sim = get_simulator()
-    return sim.step(dt_seconds=dt_seconds)
+    return await sim.step_async(dt_seconds=dt_seconds)
 
 
 @router.post("/speed")

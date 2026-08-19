@@ -13,13 +13,13 @@
       "description": "Total priority-weighted reward yielded by CP-SAT"
     },
     "nn_top1_agreement_rate_pct": {
-      "target": 65.0,
-      "min_allowable": 55.0,
+      "target": 75.0,
+      "min_allowable": 68.0,
       "description": "Neural network top-1 candidate agreement rate with CP-SAT optimal assignments"
     },
     "nn_mae_score": {
-      "target": 22.0,
-      "max_allowable": 32.0,
+      "target": 18.0,
+      "max_allowable": 25.0,
       "description": "Mean absolute error between neural network bid prediction and CP-SAT target valuation"
     },
     "iss_orbital_period_minutes": {

@@ -151,9 +151,10 @@ def train_bid_network(
     torch.manual_seed(42)
     model = BidValueMLP(input_dim=len(FEATURE_NAMES))
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-5)
     criterion = nn.MSELoss()
     
-    print(f"Training BidValueMLP for {epochs} epochs...")
+    print(f"Training BidValueMLP for {epochs} epochs with Cosine Annealing...")
     model.train()
     for epoch in range(1, epochs + 1):
         epoch_loss = 0.0
@@ -162,12 +163,14 @@ def train_bid_network(
             preds = model(X_b).squeeze(-1)
             loss = criterion(preds, y_b)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             epoch_loss += loss.item() * len(X_b)
             
+        scheduler.step()
         epoch_loss /= len(train_dataset)
         if epoch % 20 == 0 or epoch == epochs:
-            print(f"  Epoch {epoch:03d}/{epochs} - Train MSE Loss: {epoch_loss:.4f}")
+            print(f"  Epoch {epoch:03d}/{epochs} - Train MSE Loss: {epoch_loss:.4f} (LR: {scheduler.get_last_lr()[0]:.6f})")
             
     # Evaluation on holdout test set
     metrics = evaluate_model(model, test_samples)

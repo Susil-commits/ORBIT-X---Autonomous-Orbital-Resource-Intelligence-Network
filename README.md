@@ -32,10 +32,11 @@ ORBIT-X addresses this challenge by pairing **exact constraint programming (Goog
 ### 💡 Key Technical Highlights & Measurable Outcomes
 - **+16.7% Higher Mission Success Rate**: Exact CP-SAT global optimization completes **91.7% of all requests** and **100.0% of emergency high-priority (P4/P5) requests** compared to 75.0% / 77.8% from greedy heuristics.
 - **+33.9% Revenue Lift ($4,620 vs $3,450)**: Multi-objective objective formulation co-optimizes target priority, elevation quality, slew agility, and energy headroom.
-- **Sub-15ms Global Scheduling & Sub-2ms Neural Previews**: Scalable CP-SAT formulation executes in $\sim 12.5\text{ ms}$, while a distilled PyTorch Cross-Attention MLP delivers sub-millisecond valuation previews for real-time edge bidding.
+- **Sub-15ms Global Scheduling & Sub-2ms Neural Previews**: Scalable CP-SAT formulation executes in $\sim 12.5\text{ ms}$, while a distilled PyTorch Cross-Attention network delivers sub-millisecond valuation previews for real-time edge bidding (**84.6% top-1 agreement on held-out mission scenarios**, providing fast pre-filtering while authoritative schedules come from CP-SAT).
+- **Non-Blocking Systems Architecture & Rate Limiting**: Background continuous scheduling offloads multi-second CP-SAT solving via `asyncio.to_thread`, keeping the 10 Hz WebSocket telemetry stream responsive without event-loop stutter, while `slowapi` protects compute-heavy training and benchmark endpoints.
 - **Physics Ground-Truth Validation**: Real CelesTrak ephemeris propagation validated against orbital mechanics ground truth ($95.65\text{ min}$ period, SGP4 drift $<6.6\text{ m}$) with Stefan-Boltzmann radiative cooling ODEs.
 - **100% Transparent Explainability**: Every scheduling decision provides TreeSHAP feature attributions and attention weight heatmaps detailing exact operational drivers.
-- **Production-Ready & Fully Tested**: 40/40 backend unit/integration tests passing with an automated 6-gate CI/CD regression verification harness.
+- **Production-Ready & Fully Tested**: 45 backend unit/integration tests passing with an automated 6-gate CI/CD regression verification harness.
 
 ---
 
@@ -236,6 +237,11 @@ Formulates the constellation observation allocation problem as an exact Constrai
   * Projects into 32-dimensional token embeddings across 4 cross-attention heads.
   * Multi-task heads: continuous valuation regression (Huber Loss), assignment win probability (BCE Loss), and ISL latency overhead (MSE Loss).
 * **Supervised Fine-Tuning (SFT)**: Implements Cosine Annealing with Warm Restarts (`CosineAnnealingWarmRestarts`), gradient clipping ($\|\mathbf{g}\| \le 1.0$), and SHA-256 model checkpoint verification.
+* **Imitation Learning & Scaled Optimization**:
+  * The neural network is trained as a fast surrogate to approximate CP-SAT candidate bidding in sub-millisecond edge scenarios.
+  * Scaled scenario dataset generation to **250 diverse constellation scenarios** with Cosine Annealing learning rate scheduling.
+  * Evaluated on a strictly held-out mission split (`get_train_test_split` partitioned by unique `mission_id` to prevent data leakage), the model achieves **84.6% top-1 agreement** (target 75.0% / minimum 68.0% baseline, MAE 18.9).
+  * This architecture delivers the ideal dual-mode balance: neural inference runs in **sub-2ms** for instant candidate pre-filtering and operator HUD previews, while the authoritative constellation schedule is always solved and committed by the exact CP-SAT solver.
 
 ---
 
@@ -367,7 +373,7 @@ uv run python eval/run_eval.py
       ORBIT-X AUTOMATED EVALUATION & REGRESSION HARNESS       
 =================================================================
 [1/4] CP-SAT Scheduler Benchmark:        PASS (Reward: 1277.5)
-[2/4] Neural Network Agreement:          100.0% (PASS)
+[2/4] Neural Network Agreement:          84.6% (PASS - Held-Out Split)
 [3/4] TreeSHAP Surrogate Alignment:      Drift Detected: False (PASS)
 [4/4] Keplerian Orbital Physics:         Period: 95.65 min (PASS)
 =================================================================

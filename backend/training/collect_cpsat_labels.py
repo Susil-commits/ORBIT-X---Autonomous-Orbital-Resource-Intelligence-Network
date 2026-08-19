@@ -79,7 +79,7 @@ def generate_random_scenario(
 
 
 def collect_dataset(
-    num_scenarios: int = 50,
+    num_scenarios: int = 250,
     missions_per_scenario: int = 4,
     output_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
@@ -233,4 +233,4 @@ def collect_dataset(
 
 
 if __name__ == "__main__":
-    collect_dataset(num_scenarios=50, missions_per_scenario=4)
+    collect_dataset(num_scenarios=250, missions_per_scenario=4)

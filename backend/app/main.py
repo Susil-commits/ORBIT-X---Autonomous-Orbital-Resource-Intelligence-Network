@@ -1,5 +1,4 @@
-"""FastAPI Application Entrypoint with WebSocket Streaming, Async Redis & AI Intelligence for ORBIT-X."""
-
+import os
 import asyncio
 import json
 from contextlib import asynccontextmanager
@@ -7,8 +6,12 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Set
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from app.core.database import init_db
 from app.core.redis_client import redis_manager
+from app.core.limiter import limiter
 from app.simulation.simulator import get_simulator
 from app.api.routes_simulation import router as sim_router
 from app.api.routes_missions import router as missions_router
@@ -52,8 +55,8 @@ async def background_simulation_loop():
     while True:
         try:
             if sim.is_running:
-                # Step simulation by 1 real second * speed_multiplier
-                tick_data = sim.step(dt_seconds=0.5)
+                # Step simulation asynchronously with non-blocking CP-SAT thread offload
+                tick_data = await sim.step_async(dt_seconds=0.5)
                 dumped = tick_data.model_dump()
                 
                 # Broadcast to connected WebSocket clients
@@ -99,10 +102,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS Configuration
+# Rate Limiter Setup
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS Configuration with environment variable override and safe localhost defaults
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+if allowed_origins_env:
+    allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+else:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:8000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -156,7 +176,7 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 cmd = json.loads(msg)
                 if cmd.get("action") == "step":
-                    tick = sim.step(dt_seconds=cmd.get("dt", 1.0))
+                    tick = await sim.step_async(dt_seconds=cmd.get("dt", 1.0))
                     await websocket.send_text(json.dumps(tick.model_dump()))
             except Exception:
                 pass

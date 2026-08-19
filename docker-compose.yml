@@ -6,15 +6,15 @@ services:
     container_name: orbitx-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: orbitx_db
-      POSTGRES_USER: orbitx
-      POSTGRES_PASSWORD: orbitx_password
+      POSTGRES_DB: ${POSTGRES_DB:-orbitx_db}
+      POSTGRES_USER: ${POSTGRES_USER:-orbitx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orbitx_password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U orbitx -d orbitx_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-orbitx} -d ${POSTGRES_DB:-orbitx_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -42,9 +42,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://orbitx:orbitx_password@postgres:5432/orbitx_db
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-orbitx}:${POSTGRES_PASSWORD:-orbitx_password}@postgres:5432/${POSTGRES_DB:-orbitx_db}
       - REDIS_URL=redis://redis:6379/0
       - OLLAMA_URL=http://host.docker.internal:11434
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
     depends_on:
       postgres:
         condition: service_healthy

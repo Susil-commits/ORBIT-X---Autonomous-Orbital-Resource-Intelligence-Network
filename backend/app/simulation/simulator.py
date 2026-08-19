@@ -1,5 +1,6 @@
 """Constellation Digital Twin & Time-Stepped Simulation Engine with ISL Mesh & Scenario AI."""
 
+import asyncio
 import time
 import math
 import datetime
@@ -79,11 +80,8 @@ class ConstellationSimulator:
         self.isl_mesh = build_isl_mesh(self.satellites, self.ground_stations)
         self.replan_schedule()
 
-    def replan_schedule(self):
-        """Runs the CP-SAT optimizer to generate or update constellation schedule."""
-        if not self.pending_missions:
-            return
-            
+    def _compute_candidate_windows(self) -> Tuple[Dict[str, Dict[str, List[AccessWindow]]], Dict[str, Dict[str, List[AccessWindow]]]]:
+        """Computes candidate imaging and downlink access windows for current pending missions."""
         # 1. Compute candidate imaging windows for all pending missions
         imaging_windows_map: Dict[str, Dict[str, List[AccessWindow]]] = {}
         for m in self.pending_missions:
@@ -121,17 +119,10 @@ class ConstellationSimulator:
                 )
                 downlink_windows_map[sat.id][gs.id] = dl_wins
 
-        # 3. Solve CP-SAT
-        decision = self.optimizer.solve(
-            current_tick=self.tick,
-            sim_time_s=self.sim_time_s,
-            missions=self.pending_missions,
-            satellites=self.satellites,
-            ground_stations=self.ground_stations,
-            imaging_windows_map=imaging_windows_map,
-            downlink_windows_map=downlink_windows_map,
-        )
-        
+        return imaging_windows_map, downlink_windows_map
+
+    def _apply_decision(self, decision: ScheduleDecision):
+        """Applies CP-SAT solver assignments to pending missions and decision logger."""
         self.recent_explanations = decision.assignments
         self.last_schedule_time_s = self.sim_time_s
         
@@ -150,8 +141,46 @@ class ConstellationSimulator:
                     m.downlink_start_s = exp.downlink_window.start_time_s
                     m.downlink_end_s = exp.downlink_window.end_time_s
 
-    def step(self, dt_seconds: float = 1.0) -> ConstellationTick:
-        """Advances constellation physics, telemetry, health AI, and task execution by dt_seconds."""
+    def replan_schedule(self):
+        """Runs the CP-SAT optimizer synchronously to generate or update constellation schedule."""
+        if not self.pending_missions:
+            return
+            
+        imaging_windows_map, downlink_windows_map = self._compute_candidate_windows()
+        decision = self.optimizer.solve(
+            current_tick=self.tick,
+            sim_time_s=self.sim_time_s,
+            missions=self.pending_missions,
+            satellites=self.satellites,
+            ground_stations=self.ground_stations,
+            imaging_windows_map=imaging_windows_map,
+            downlink_windows_map=downlink_windows_map,
+        )
+        self._apply_decision(decision)
+
+    async def replan_schedule_async(self):
+        """
+        Runs the CP-SAT optimizer in a worker thread via asyncio.to_thread
+        to ensure the FastAPI event loop and 10 Hz ticker remain fully non-blocking.
+        """
+        if not self.pending_missions:
+            return
+            
+        imaging_windows_map, downlink_windows_map = self._compute_candidate_windows()
+        decision = await asyncio.to_thread(
+            self.optimizer.solve,
+            current_tick=self.tick,
+            sim_time_s=self.sim_time_s,
+            missions=self.pending_missions,
+            satellites=self.satellites,
+            ground_stations=self.ground_stations,
+            imaging_windows_map=imaging_windows_map,
+            downlink_windows_map=downlink_windows_map,
+        )
+        self._apply_decision(decision)
+
+    def _step_physics_and_telemetry(self, dt_seconds: float = 1.0) -> bool:
+        """Advances constellation orbital physics, telemetry, health AI, and checks if replanning is due."""
         eff_dt = dt_seconds * self.speed_multiplier
         self.sim_time_s += eff_dt
         self.tick += 1
@@ -326,20 +355,21 @@ class ConstellationSimulator:
                 still_pending.append(m)
                 
         self.pending_missions = still_pending
-        
-        # 4. Autonomous Re-Planning Trigger (every interval or if healthy satellite failed)
+            
+        # 4. Check if re-planning is triggered
         needs_replan = (self.sim_time_s - self.last_schedule_time_s) >= self.replan_interval_s
         for sat in self.satellites:
             if sat.health_status == HealthStatus.CRITICAL_FAULT and sat.active_mission_id:
                 needs_replan = True
                 
-        if needs_replan and self.pending_missions:
-            self.replan_schedule()
-            
-        # 5. Intersatellite Optical Laser Mesh (ISL) Computation
+        return needs_replan
+
+    def _build_tick_result(self) -> ConstellationTick:
+        """Computes ISL mesh, evaluates conjunctions, and packages the current ConstellationTick payload."""
+        # 1. Intersatellite Optical Laser Mesh (ISL) Computation
         self.isl_mesh = build_isl_mesh(self.satellites, self.ground_stations)
             
-        # 6. Conjunction / Collision Risk Check
+        # 2. Conjunction / Collision Risk Check
         if self.tick % 10 == 0:
             self.collision_alerts = evaluate_conjunctions(
                 satellites=self.satellites,
@@ -348,7 +378,7 @@ class ConstellationSimulator:
                 time_step_s=45.0,
             )
             
-        # 7. Build Summary Metrics
+        # 3. Build Summary Metrics
         total_m = len(self.completed_missions) + len(self.pending_missions)
         comp_m = len([m for m in self.completed_missions if m.status == MissionStatus.COMPLETED])
         succ_rate = (comp_m / max(1, len(self.completed_missions))) * 100.0 if self.completed_missions else 100.0
@@ -386,6 +416,23 @@ class ConstellationSimulator:
             active_scenario=self.active_scenario,
             active_maneuvers=self.active_maneuvers,
         )
+
+    def step(self, dt_seconds: float = 1.0) -> ConstellationTick:
+        """Advances constellation physics, telemetry, and runs synchronous replan if due."""
+        needs_replan = self._step_physics_and_telemetry(dt_seconds)
+        if needs_replan and self.pending_missions:
+            self.replan_schedule()
+        return self._build_tick_result()
+
+    async def step_async(self, dt_seconds: float = 1.0) -> ConstellationTick:
+        """
+        Advances constellation physics, telemetry, and runs asynchronous CP-SAT replan via worker thread.
+        Guarantees that the shared asyncio event loop remains 100% responsive.
+        """
+        needs_replan = self._step_physics_and_telemetry(dt_seconds)
+        if needs_replan and self.pending_missions:
+            await self.replan_schedule_async()
+        return self._build_tick_result()
 
     def trigger_scenario(self, scenario_type: ScenarioType):
         """Activates a complex extreme space mission scenario."""

@@ -1,6 +1,6 @@
 {
-  "trained_nn_hash": "4024f914888faf59bfe50eb48553b6ee6ff149db282cedc3467386faa4f7066d",
-  "base_value": 120.32553,
+  "trained_nn_hash": "010635da6e28f0689656ba3bac2e35bfbb64f0fb77601042955591c2aed1d2e6",
+  "base_value": 148.39825,
   "feature_names": [
     "priority_norm",
     "battery_soc",
@@ -13,5 +13,5 @@
     "energy_cost_ratio",
     "duration_ratio"
   ],
-  "num_distillation_samples": 127
+  "num_distillation_samples": 445
 }
