@@ -3,47 +3,47 @@
     {
       "constellation_size": 12,
       "actual_satellites_created": 12,
-      "generation_time_ms": 0.74,
-      "avg_propagation_step_ms": 0.35,
-      "isl_mesh_calc_ms": 1.17,
+      "generation_time_ms": 0.82,
+      "avg_propagation_step_ms": 0.33,
+      "isl_mesh_calc_ms": 1.26,
       "isl_active_links": 2,
-      "propagation_throughput_sats_per_sec": 34285.7
+      "propagation_throughput_sats_per_sec": 36363.6
     },
     {
       "constellation_size": 50,
       "actual_satellites_created": 50,
-      "generation_time_ms": 1.95,
-      "avg_propagation_step_ms": 1.39,
-      "isl_mesh_calc_ms": 12.95,
+      "generation_time_ms": 2.12,
+      "avg_propagation_step_ms": 1.36,
+      "isl_mesh_calc_ms": 14.98,
       "isl_active_links": 106,
-      "propagation_throughput_sats_per_sec": 35971.2
+      "propagation_throughput_sats_per_sec": 36764.7
     },
     {
       "constellation_size": 100,
       "actual_satellites_created": 100,
-      "generation_time_ms": 3.76,
-      "avg_propagation_step_ms": 2.62,
-      "isl_mesh_calc_ms": 46.73,
+      "generation_time_ms": 4.01,
+      "avg_propagation_step_ms": 2.66,
+      "isl_mesh_calc_ms": 49.25,
       "isl_active_links": 636,
-      "propagation_throughput_sats_per_sec": 38167.9
+      "propagation_throughput_sats_per_sec": 37594.0
     },
     {
       "constellation_size": 500,
       "actual_satellites_created": 500,
-      "generation_time_ms": 19.01,
-      "avg_propagation_step_ms": 13.32,
-      "isl_mesh_calc_ms": 62.53,
+      "generation_time_ms": 20.01,
+      "avg_propagation_step_ms": 13.73,
+      "isl_mesh_calc_ms": 66.23,
       "isl_active_links": 762,
-      "propagation_throughput_sats_per_sec": 37537.5
+      "propagation_throughput_sats_per_sec": 36416.6
     },
     {
       "constellation_size": 1000,
       "actual_satellites_created": 1000,
-      "generation_time_ms": 49.95,
-      "avg_propagation_step_ms": 28.88,
-      "isl_mesh_calc_ms": 70.49,
+      "generation_time_ms": 39.52,
+      "avg_propagation_step_ms": 29.84,
+      "isl_mesh_calc_ms": 73.24,
       "isl_active_links": 781,
-      "propagation_throughput_sats_per_sec": 34626.0
+      "propagation_throughput_sats_per_sec": 33512.1
     }
   ]
 }

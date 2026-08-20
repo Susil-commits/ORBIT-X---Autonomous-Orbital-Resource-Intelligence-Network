@@ -150,9 +150,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   resetSim: async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/simulation/reset`, { method: 'POST' });
-      const data = await res.json();
-      set({ tickData: data });
+      await fetch(`${API_BASE}/api/simulation/reset`, { method: 'POST' });
+      // Don't assign the reset status response to tickData — it's not a ConstellationTick.
+      // The WebSocket will push the fresh tick automatically.
     } catch (e) {
       console.error('Failed to reset simulation', e);
     }
@@ -354,7 +354,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   askHybridMissionQA: async (req: any) => {
     try {
-      const res = await fetch(`${API_BASE}/api/ai/mission/hybrid_ask`, {
+      const res = await fetch(`${API_BASE}/api/ai/hybrid-rag/qa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),

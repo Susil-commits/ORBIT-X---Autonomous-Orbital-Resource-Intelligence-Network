@@ -23,10 +23,23 @@ class MultiSeedBenchmarkRequest(BaseModel):
     num_missions: int = 24
 
 
+@router.get("/run", response_model=List[BenchmarkResult])
+@limiter.limit("20/minute")
+async def run_benchmark_get(request: Request, seed: int = 42, num_missions: int = 24, horizon_s: float = 5400.0):
+    """GET handler for benchmark run (called by frontend with no body). Executes comparative evaluation across all 6 authoritative schedulers."""
+    results = await asyncio.to_thread(
+        run_benchmark_comparison,
+        seed=seed,
+        num_missions=num_missions,
+        horizon_s=horizon_s,
+    )
+    return results
+
+
 @router.post("/run", response_model=List[BenchmarkResult])
 @limiter.limit("20/minute")
 async def run_benchmark(request: Request, req: BenchmarkRunRequest):
-    """Executes comparative evaluation across all 6 authoritative schedulers off the main event loop."""
+    """POST handler for benchmark run with body. Executes comparative evaluation across all 6 authoritative schedulers off the main event loop."""
     results = await asyncio.to_thread(
         run_benchmark_comparison,
         seed=req.seed,
@@ -46,4 +59,3 @@ async def run_multi_seed(request: Request, req: MultiSeedBenchmarkRequest):
         num_missions=req.num_missions,
     )
     return summary
-

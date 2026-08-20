@@ -2,8 +2,11 @@ import os
 import asyncio
 import json
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from pathlib import Path
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import Set
 
 from slowapi import _rate_limit_exceeded_handler
@@ -139,10 +142,6 @@ app.include_router(ai_router)
 app.include_router(constellation_data_router)
 
 
-from pathlib import Path
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
 # Check for compiled frontend distribution
 frontend_dist_path = Path(__file__).resolve().parent.parent / "frontend_dist"
 if not frontend_dist_path.exists():
@@ -159,8 +158,12 @@ if frontend_dist_path.exists() and (frontend_dist_path / "index.html").exists():
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json") or full_path.startswith("ws/"):
-            return None
+        # API, docs, WebSocket, and OpenAPI paths must NOT be intercepted by the SPA catch-all.
+        # Returning None here previously caused a 200 with a null body; raise 404 instead
+        # so FastAPI can correctly route to the registered API handlers.
+        api_prefixes = ("api/", "docs", "openapi.json", "ws/", "redoc")
+        if any(full_path.startswith(p) for p in api_prefixes):
+            raise HTTPException(status_code=404, detail="Not Found")
         file_target = frontend_dist_path / full_path
         if file_target.is_file():
             return FileResponse(file_target)

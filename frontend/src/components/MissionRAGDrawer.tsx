@@ -39,7 +39,7 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:8000/api/ai/mission/hybrid_ask', {
+      const response = await fetch('http://localhost:8000/api/ai/hybrid-rag/qa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: queryText, top_k: 5, dense_weight: 0.6, bm25_weight: 0.4 }),
@@ -195,7 +195,7 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
                         <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-bold text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded text-[11px] border border-cyan-800/50">
-                              [{cit.log_id}]
+                              [{cit.record_id}]
                             </span>
                             <span className="font-mono text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
                               {cit.event_type}
@@ -203,7 +203,8 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
                           </div>
                           <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500">
                             <Clock className="w-3 h-3" />
-                            <span>{new Date(cit.timestamp_iso).toLocaleTimeString()}</span>
+                            <span>T+{cit.sim_time_s.toFixed(0)}s</span>
+                            <span className="text-cyan-600 ml-1">({(cit.relevance_score * 100).toFixed(0)}% rel.)</span>
                           </div>
                         </div>
                         <p className="text-xs text-slate-300 font-mono">

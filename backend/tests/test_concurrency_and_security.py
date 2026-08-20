@@ -67,8 +67,8 @@ def test_rate_limiting_enforcement():
     from app.main import app
 
     client = TestClient(app)
-    # /ai/agent/inspect_and_heal is rate-limited to 10/minute
-    responses = [client.post("/ai/agent/inspect_and_heal") for _ in range(15)]
+    # /api/ai/agent/inspect_and_heal is rate-limited to 10/minute
+    responses = [client.post("/api/ai/agent/inspect_and_heal") for _ in range(15)]
     status_codes = [r.status_code for r in responses]
     assert 429 in status_codes
 

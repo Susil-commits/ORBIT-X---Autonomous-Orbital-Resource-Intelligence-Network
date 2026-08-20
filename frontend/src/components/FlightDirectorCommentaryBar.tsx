@@ -10,12 +10,10 @@ export const FlightDirectorCommentaryBar: React.FC<FlightDirectorCommentaryBarPr
   activeCommentary,
 }) => {
   const [commentary, setCommentary] = useState<FlightDirectorCommentary>({
-    commentary_id: 'COMM-INIT',
-    timestamp_s: 0.0,
     event_type: 'CONSTELLATION_STATE',
     commentary: 'FLIGHT-DIR: Constellation nominal. 12 spacecraft propagating under J2 gravitation. Neural auction valuation active.',
     verified_factual: true,
-    llm_latency_ms: 12.4,
+    sim_time_s: 0.0,
     model_used: 'deterministic-verified-template',
   });
 

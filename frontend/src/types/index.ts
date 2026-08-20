@@ -301,12 +301,12 @@ export interface NeuralBidPreviewResponse {
 }
 
 export interface MissionCitation {
-  log_id: string;
-  timestamp_iso: string;
+  record_id: string;
+  tick: number;
+  sim_time_s: number;
   event_type: string;
-  satellite_id?: string | null;
-  mission_id?: string | null;
   summary: string;
+  relevance_score: number;
 }
 
 export interface MissionQAResponse {
@@ -315,17 +315,15 @@ export interface MissionQAResponse {
   grounded: boolean;
   confidence_score: number;
   citations: MissionCitation[];
-  solver_metrics?: Record<string, any>;
+  retrieved_records_count: number;
 }
 
 export interface FlightDirectorCommentary {
-  commentary_id: string;
-  timestamp_s: number;
-  event_type: string;
   commentary: string;
-  verified_factual: boolean;
-  llm_latency_ms: number;
+  event_type: string;
+  sim_time_s: number;
   model_used: string;
+  verified_factual: boolean;
 }
 
 export interface AgentHealingAction {

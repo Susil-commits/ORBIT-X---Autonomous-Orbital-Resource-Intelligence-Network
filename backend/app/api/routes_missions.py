@@ -44,6 +44,16 @@ async def dispatch_target(req: TargetDispatchRequest):
     return mission
 
 
+@router.get("/explain/{mission_id}", response_model=DecisionExplanation)
+async def get_mission_explanation_alias(mission_id: str):
+    """Alias route for explainability (matches frontend path /api/missions/explain/{mission_id})."""
+    sim = get_simulator()
+    for exp in sim.recent_explanations:
+        if exp.mission_id == mission_id:
+            return exp
+    raise HTTPException(status_code=404, detail=f"Explanation for mission {mission_id} not found")
+
+
 @router.get("/{mission_id}/explanation", response_model=DecisionExplanation)
 async def get_mission_explanation(mission_id: str):
     """Retrieves detailed explainability reasoning and candidate evaluations for a mission."""
@@ -52,4 +62,3 @@ async def get_mission_explanation(mission_id: str):
         if exp.mission_id == mission_id:
             return exp
     raise HTTPException(status_code=404, detail=f"Explanation for mission {mission_id} not found")
-

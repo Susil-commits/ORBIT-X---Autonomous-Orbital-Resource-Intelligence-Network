@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSimulationStore } from '../hooks/useSimulationStore';
 import type {
   CrossAttentionPredictionResponse,
@@ -59,16 +59,7 @@ export const AILabModal: React.FC = () => {
   const [pinnSolarFlux, setPinnSolarFlux] = useState<number>(1361.0);
   const [pinnData, setPinnData] = useState<PINNBatteryThermalResponse | null>(null);
 
-  // Load initial data on open
-  useEffect(() => {
-    if (!showAILabModal) return;
-
-    loadCrossAttention();
-    loadFinetuneStatus();
-    loadPINN();
-  }, [showAILabModal, selectedSatId, priority, batterySoc, maxElevationDeg, slewPenalty, cloudCoverProb, solarFluxIndex]);
-
-  const loadCrossAttention = async () => {
+  const loadCrossAttention = useCallback(async () => {
     try {
       const res = await fetchCrossAttentionPrediction({
         satellite_id: selectedSatId,
@@ -89,18 +80,18 @@ export const AILabModal: React.FC = () => {
     } catch (e) {
       console.error('Failed to load cross-attention prediction', e);
     }
-  };
+  }, [fetchCrossAttentionPrediction, selectedSatId, priority, batterySoc, maxElevationDeg, slewPenalty, cloudCoverProb, solarFluxIndex]);
 
-  const loadFinetuneStatus = async () => {
+  const loadFinetuneStatus = useCallback(async () => {
     try {
       const res = await fetchFineTuningStatus();
       if (res) setFinetuneStatus(res);
     } catch (e) {
       console.error('Failed to load fine-tuning status', e);
     }
-  };
+  }, [fetchFineTuningStatus]);
 
-  const loadPINN = async () => {
+  const loadPINN = useCallback(async () => {
     try {
       const res = await fetchPINNBatteryThermal({
         initial_soc: pinnInitialSoc,
@@ -115,7 +106,16 @@ export const AILabModal: React.FC = () => {
     } catch (e) {
       console.error('Failed to load PINN data', e);
     }
-  };
+  }, [fetchPINNBatteryThermal, pinnInitialSoc, pinnTempC, pinnPayloadActive, pinnSolarFlux]);
+
+  // Load initial data on open
+  useEffect(() => {
+    if (!showAILabModal) return;
+
+    loadCrossAttention();
+    loadFinetuneStatus();
+    loadPINN();
+  }, [showAILabModal, loadCrossAttention, loadFinetuneStatus, loadPINN]);
 
   const handleStartTraining = async () => {
     setIsTrainingJobRunning(true);

@@ -49,7 +49,7 @@ from training.train_advanced_fine_tuning import (
 )
 from eval.run_eval import run_full_evaluation, REPORT_FILE
 
-router = APIRouter(prefix="/ai", tags=["Neural Intelligence & AI Lab"])
+router = APIRouter(prefix="/api/ai", tags=["Neural Intelligence & AI Lab"])
 
 
 def verify_admin_access(x_admin_secret: Optional[str] = Header(None, alias="X-Admin-Secret")) -> bool:
