@@ -62,13 +62,29 @@ def test_verify_admin_access_enforced():
 
 
 def test_rate_limiting_enforcement():
-    """Verifies that slowapi rate limits excessive burst requests with HTTP 429."""
+    """Verifies that slowapi rate limits excessive burst requests with HTTP 429.
+
+    Mocks run_full_evaluation so each inspect_and_heal call returns instantly —
+    the test only verifies the rate-limiter fires HTTP 429, not the healing logic.
+    """
+    import datetime
+    from unittest.mock import patch
     from fastapi.testclient import TestClient
     from app.main import app
+    from app.core.schemas import EvalRunSummary
 
-    client = TestClient(app)
-    # /api/ai/agent/inspect_and_heal is rate-limited to 10/minute
-    responses = [client.post("/api/ai/agent/inspect_and_heal") for _ in range(15)]
-    status_codes = [r.status_code for r in responses]
-    assert 429 in status_codes
+    _fast_summary = EvalRunSummary(
+        run_id="EVAL-MOCK",
+        timestamp_iso=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        overall_status="PASS",
+        metrics=[],
+        regressions=[],
+    )
+
+    with patch("app.intelligence.agent_loop.run_full_evaluation", return_value=(_fast_summary, False)):
+        client = TestClient(app)
+        # /api/ai/agent/inspect_and_heal is rate-limited to 10/minute
+        responses = [client.post("/api/ai/agent/inspect_and_heal") for _ in range(15)]
+        status_codes = [r.status_code for r in responses]
+        assert 429 in status_codes
 
