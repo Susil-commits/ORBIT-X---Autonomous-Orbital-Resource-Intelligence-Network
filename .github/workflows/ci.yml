@@ -92,8 +92,10 @@ jobs:
           docker compose config
 
       - name: Prepare Lowercase Image Name (Single Package)
+        id: prep
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "unified_image=ghcr.io/${REPO_LOWER}" >> $GITHUB_OUTPUT
           echo "UNIFIED_IMAGE=ghcr.io/${REPO_LOWER}" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry (GHCR)
@@ -111,5 +113,5 @@ jobs:
           file: ./Dockerfile
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: |
-            ${{ env.UNIFIED_IMAGE }}:latest
-            ${{ env.UNIFIED_IMAGE }}:${{ github.sha }}
+            ${{ steps.prep.outputs.unified_image }}:latest
+            ${{ steps.prep.outputs.unified_image }}:${{ github.sha }}
