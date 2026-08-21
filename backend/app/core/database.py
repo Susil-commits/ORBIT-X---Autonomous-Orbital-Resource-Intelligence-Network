@@ -1,7 +1,8 @@
 """Async SQLAlchemy Database Engine for ORBIT-X.
 
 Supports seamless switching between PostgreSQL (asyncpg) and SQLite (aiosqlite)
-via DATABASE_URL environment variable.
+via DATABASE_URL environment variable. Includes models for Decision Logs, Evaluation Runs,
+Users, and Immutable Audit Logs.
 """
 
 import json
@@ -74,6 +75,21 @@ class EvalRunRecord(Base):
     timestamp_iso = Column(String(64))
     metrics_json = Column(Text, default="[]")
     regressions_json = Column(Text, default="[]")
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+
+class AuditLogRecord(Base):
+    """Immutable audit trail of all security and mission-critical actions."""
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    audit_id = Column(String(64), unique=True, index=True)
+    actor = Column(String(64), nullable=False, index=True)      # WHO (e.g. operator-42, system)
+    action = Column(String(64), nullable=False, index=True)     # WHAT (e.g. EMERGENCY_REPLAN, MISSION_DISPATCH)
+    target = Column(String(128), nullable=True, index=True)     # TARGET (e.g. mission=M-101, sat=SAT-004)
+    result = Column(String(32), nullable=False)                 # RESULT (SUCCESS, FAILED, DENIED)
+    timestamp_utc = Column(String(64), nullable=False)          # WHEN
+    details_json = Column(Text, default="{}")
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
 
 

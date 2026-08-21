@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: orbitx
+  labels:
+    name: orbitx
+    environment: production

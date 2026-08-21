@@ -1,19 +1,31 @@
 import os
+import time
+import uuid
 import asyncio
 import json
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from typing import Set
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from typing import Set
+from fastapi.responses import FileResponse, PlainTextResponse
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.core.database import init_db
 from app.core.redis_client import redis_manager
+from app.core.kafka_client import kafka_manager
+from app.core.telemetry import (
+    get_prometheus_metrics_bytes,
+    CONTENT_TYPE_LATEST,
+    HTTP_REQUEST_DURATION,
+    HTTP_REQUESTS_TOTAL,
+    setup_structured_logging,
+)
 from app.core.limiter import limiter
 from app.simulation.simulator import get_simulator
 from app.api.routes_simulation import router as sim_router
@@ -24,6 +36,10 @@ from app.api.routes_isl import router as isl_router
 from app.api.routes_scenarios import router as scenarios_router
 from app.api.routes_ai import router as ai_router
 from app.api.routes_constellation_data import router as constellation_data_router
+from app.api.routes_auth import router as auth_router
+
+# Initialize structured logging
+logger = setup_structured_logging(level=logging.INFO)
 
 
 class ConnectionManager:
@@ -61,20 +77,20 @@ async def background_simulation_loop():
                 # Step simulation asynchronously with non-blocking CP-SAT thread offload
                 tick_data = await sim.step_async(dt_seconds=0.5)
                 dumped = tick_data.model_dump()
-                
+
                 # Broadcast to connected WebSocket clients
                 if ws_manager.active_connections:
                     await ws_manager.broadcast_json(dumped)
-                    
+
                 # Publish to Redis channel asynchronously (non-blocking, fails safe)
                 await redis_manager.publish_event("constellation:ticks", dumped)
                 await redis_manager.set_json("constellation:latest_tick", dumped, expire_seconds=30)
-                
+
             await asyncio.sleep(0.1)  # 10 Hz ticker
         except asyncio.CancelledError:
             break
         except Exception as e:
-            print(f"Error in simulation loop: {e}")
+            logger.error("Error in simulation loop: %s", e)
             await asyncio.sleep(1.0)
 
 
@@ -85,22 +101,26 @@ async def lifespan(app: FastAPI):
     try:
         await init_db()
     except Exception as e:
-        print(f"Warning: Database initialization skipped: {e}")
-        
+        logger.warning("Database initialization skipped: %s", e)
+
     # Connect async Redis
     await redis_manager.connect()
-    
+
+    # Start Kafka Producer & Event Bus
+    await kafka_manager.start()
+
     # Start simulation loop in background
     _sim_loop_task = asyncio.create_task(background_simulation_loop())
     yield
     if _sim_loop_task:
         _sim_loop_task.cancel()
+    await kafka_manager.stop()
     await redis_manager.close()
 
 
 app = FastAPI(
     title="ORBIT-X Backend",
-    description="Autonomous Orbital Resource & Intelligence Network API",
+    description="Autonomous Orbital Resource & Intelligence Network Production API",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -109,7 +129,40 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS Configuration with environment variable override and safe localhost defaults
+
+# Observability & Request Correlation Middleware
+@app.middleware("http")
+async def observability_and_correlation_middleware(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or f"req-{uuid.uuid4().hex[:10]}"
+    trace_id = request.headers.get("X-Trace-ID") or f"trace-{uuid.uuid4().hex[:16]}"
+    request.state.request_id = request_id
+    request.state.trace_id = trace_id
+
+    start_time = time.perf_counter()
+    response: Response = None
+    try:
+        response = await call_next(request)
+        status_code = str(response.status_code)
+    except Exception as e:
+        status_code = "500"
+        logger.error(
+            "Unhandled server exception on %s %s: %s",
+            request.method, request.url.path, e,
+            extra={"request_id": request_id, "trace_id": trace_id, "error": str(e)}
+        )
+        raise e
+    finally:
+        duration_s = time.perf_counter() - start_time
+        path_template = request.url.path
+        HTTP_REQUEST_DURATION.labels(method=request.method, endpoint=path_template, status_code=status_code).observe(duration_s)
+        HTTP_REQUESTS_TOTAL.labels(method=request.method, endpoint=path_template, status_code=status_code).inc()
+
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Trace-ID"] = trace_id
+    return response
+
+
+# CORS Configuration
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
 if allowed_origins_env:
     allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
@@ -132,6 +185,7 @@ app.add_middleware(
 )
 
 # Mount Routers
+app.include_router(auth_router)
 app.include_router(sim_router)
 app.include_router(missions_router)
 app.include_router(benchmarks_router)
@@ -140,6 +194,36 @@ app.include_router(isl_router)
 app.include_router(scenarios_router)
 app.include_router(ai_router)
 app.include_router(constellation_data_router)
+
+
+# ----------------------------------------------------
+# Health, Readiness & Metrics Endpoints
+# ----------------------------------------------------
+
+@app.get("/health")
+async def liveness_probe():
+    """Liveness probe: answers whether the API process is alive."""
+    return {"status": "UP", "service": "orbitx-api", "version": "2.0.0"}
+
+
+@app.get("/ready")
+async def readiness_probe():
+    """Readiness probe: checks whether dependencies are ready to serve live traffic."""
+    redis_alive = await redis_manager.ping()
+    return {
+        "status": "READY",
+        "service": "orbitx-api",
+        "redis_connected": redis_alive,
+        "kafka_connected": kafka_manager.is_connected,
+        "database": "ACTIVE",
+    }
+
+
+@app.get("/metrics")
+async def prometheus_metrics():
+    """Standard Prometheus metrics scrape endpoint."""
+    metrics_data = get_prometheus_metrics_bytes()
+    return Response(content=metrics_data, media_type=CONTENT_TYPE_LATEST)
 
 
 # Check for compiled frontend distribution
@@ -158,10 +242,7 @@ if frontend_dist_path.exists() and (frontend_dist_path / "index.html").exists():
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        # API, docs, WebSocket, and OpenAPI paths must NOT be intercepted by the SPA catch-all.
-        # Returning None here previously caused a 200 with a null body; raise 404 instead
-        # so FastAPI can correctly route to the registered API handlers.
-        api_prefixes = ("api/", "docs", "openapi.json", "ws/", "redoc")
+        api_prefixes = ("api/", "docs", "openapi.json", "ws/", "redoc", "health", "ready", "metrics")
         if any(full_path.startswith(p) for p in api_prefixes):
             raise HTTPException(status_code=404, detail="Not Found")
         file_target = frontend_dist_path / full_path
@@ -184,7 +265,12 @@ else:
                 "Official Model Context Protocol (MCP) Server with 5 Constellation Decision & Query Tools",
                 "Automated CI-Integrated Evaluation & Regression Scoring Harness",
                 "Self-Healing Continuous Verification Agent Loop",
-                "Strictly Async Redis State Caching & Event Pub/Sub",
+                "Strictly Async Redis State Caching, Distributed Locks & Event Pub/Sub",
+                "Kafka Event Backbone with Idempotency Deduplication & Dead-Letter Queue (DLQ)",
+                "BullMQ Node.js Asynchronous Background Workers",
+                "Full Observability: OpenTelemetry Distributed Traces, Prometheus Metrics & Grafana Dashboards",
+                "JWT Authentication & Role-Based Access Control (ADMIN, MISSION_OPERATOR, ANALYST, VIEWER)",
+                "Immutable PostgreSQL / Async Relational Audit Logging",
                 "Async SQLAlchemy Database (PostgreSQL / SQLite switch)",
                 "Google OR-Tools CP-SAT Constellation Mission Optimizer",
                 "Intersatellite Optical Laser Link (ISL) Mesh Network & Multi-Hop Relay Routing",

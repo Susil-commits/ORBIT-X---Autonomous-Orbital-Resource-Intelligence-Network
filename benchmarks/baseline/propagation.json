@@ -1,0 +1,37 @@
+{
+  "benchmark": "Orbital Propagation Throughput",
+  "scales_tested": [
+    {
+      "constellation_size": 12,
+      "avg_step_duration_ms": 0.24,
+      "p95_step_duration_ms": 0.24,
+      "throughput_sats_per_sec": 50731.4
+    },
+    {
+      "constellation_size": 50,
+      "avg_step_duration_ms": 0.97,
+      "p95_step_duration_ms": 1.01,
+      "throughput_sats_per_sec": 51319.9
+    },
+    {
+      "constellation_size": 100,
+      "avg_step_duration_ms": 1.97,
+      "p95_step_duration_ms": 2.03,
+      "throughput_sats_per_sec": 50817.9
+    },
+    {
+      "constellation_size": 500,
+      "avg_step_duration_ms": 10.09,
+      "p95_step_duration_ms": 10.25,
+      "throughput_sats_per_sec": 49547.1
+    },
+    {
+      "constellation_size": 1000,
+      "avg_step_duration_ms": 21.84,
+      "p95_step_duration_ms": 27.34,
+      "throughput_sats_per_sec": 45791.4
+    }
+  ],
+  "max_tested_constellation": 1000,
+  "timestamp_utc": "2026-08-21T06:05:10Z"
+}

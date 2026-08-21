@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orbitx-config
+  namespace: orbitx
+data:
+  REDIS_URL: "redis://orbitx-redis-service:6379/0"
+  KAFKA_BOOTSTRAP_SERVERS: "orbitx-kafka-service:9092"
+  ALLOWED_ORIGINS: "*"
+  PROMETHEUS_METRICS_ENABLED: "true"
+  OPENTELEMETRY_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://orbitx-otel-collector:4317"
+  WORKER_PORT: "4000"

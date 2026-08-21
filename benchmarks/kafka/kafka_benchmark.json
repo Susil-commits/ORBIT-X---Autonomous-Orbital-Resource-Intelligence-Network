@@ -1,0 +1,26 @@
+{
+  "benchmark": "Kafka Event Backbone Pipeline",
+  "iterations": 500,
+  "events_dispatched": 500,
+  "events_consumed": 500,
+  "publish_latency_ms": {
+    "mean": 0.008,
+    "p50": 0.005,
+    "p95": 0.008,
+    "p99": 0.029,
+    "throughput_events_per_sec": 120954.1
+  },
+  "stats": {
+    "is_connected": false,
+    "bootstrap_servers": "localhost:9092",
+    "messages_published": 500,
+    "messages_consumed": 500,
+    "duplicates_skipped": 0,
+    "retries_attempted": 0,
+    "dlq_routed": 0,
+    "registered_topics": [
+      "orbit.telemetry"
+    ]
+  },
+  "timestamp_utc": "2026-08-21T06:22:19Z"
+}

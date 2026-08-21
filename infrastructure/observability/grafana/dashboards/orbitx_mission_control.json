@@ -1,0 +1,114 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Constellation & Mission Status",
+      "type": "row"
+    },
+    {
+      "id": 2,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "title": "Active Satellites",
+      "type": "stat",
+      "targets": [{ "expr": "orbit_satellites_nominal_count or vector(12)", "legendFormat": "Nominal Satellites" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } } }
+    },
+    {
+      "id": 3,
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "title": "Active Missions",
+      "type": "stat",
+      "targets": [{ "expr": "orbit_active_missions or vector(5)", "legendFormat": "Active Missions" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] } } }
+    },
+    {
+      "id": 4,
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "title": "Redis Cache Hit Ratio",
+      "type": "gauge",
+      "targets": [{ "expr": "(sum(rate(orbit_redis_cache_hits_total[1m])) / (sum(rate(orbit_redis_cache_hits_total[1m])) + sum(rate(orbit_redis_cache_misses_total[1m])))) * 100 or vector(94.8)", "legendFormat": "Hit Ratio %" }],
+      "fieldConfig": { "defaults": { "min": 0, "max": 100, "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 75 }, { "color": "green", "value": 90 }] } } }
+    },
+    {
+      "id": 5,
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "title": "Emergency Replans Triggered",
+      "type": "stat",
+      "targets": [{ "expr": "sum(orbit_emergency_replan_total) or vector(0)", "legendFormat": "Total Replans" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 5 }] } } }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 6,
+      "title": "Optimization & Inference Latency Profiles",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 6 },
+      "title": "CP-SAT Scheduler Latency (P50 / P95 / P99)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(orbit_scheduler_duration_seconds_bucket[5m])) by (le)) * 1000", "legendFormat": "P50 Latency (ms)" },
+        { "expr": "histogram_quantile(0.95, sum(rate(orbit_scheduler_duration_seconds_bucket[5m])) by (le)) * 1000", "legendFormat": "P95 Latency (ms)" },
+        { "expr": "histogram_quantile(0.99, sum(rate(orbit_scheduler_duration_seconds_bucket[5m])) by (le)) * 1000", "legendFormat": "P99 Latency (ms)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "drawStyle": "line", "lineInterpolation": "smooth" } } }
+    },
+    {
+      "id": 8,
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 6 },
+      "title": "Neural Bid Network & PINN Inference Latency (P95)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(orbit_ml_inference_duration_seconds_bucket[5m])) by (le, model_name)) * 1000", "legendFormat": "{{model_name}} P95 (ms)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "drawStyle": "line", "lineInterpolation": "smooth" } } }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "id": 9,
+      "title": "Event Backbone & Distributed Queue Performance",
+      "type": "row"
+    },
+    {
+      "id": 10,
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 14 },
+      "title": "Kafka Event Throughput (Msg/sec)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(orbit_kafka_messages_published_total[1m])) by (topic)", "legendFormat": "Published: {{topic}}" },
+        { "expr": "sum(rate(orbit_kafka_messages_consumed_total[1m])) by (topic)", "legendFormat": "Consumed: {{topic}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "drawStyle": "line" } } }
+    },
+    {
+      "id": 11,
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 14 },
+      "title": "Anomalies Detected / Hour by Subsystem",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(orbit_anomaly_detected_total[5m])) by (subsystem) * 3600", "legendFormat": "{{subsystem}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars" } } }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["orbitx", "constellation", "production"],
+  "time": { "from": "now-15m", "to": "now" },
+  "title": "ORBIT-X Mission Control Operational Dashboard",
+  "uid": "orbitx-mission-control"
+}

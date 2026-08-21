@@ -11,11 +11,12 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-Async%20ASGI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Google OR-Tools](https://img.shields.io/badge/Google%20OR--Tools-CP--SAT%20Solver-4285F4?style=flat-square&logo=google&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-Cross--Attention%20Net-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
-![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Isolation%20Forest-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
-![React 18](https://img.shields.io/badge/React%2018-Three.js%20WebGL-61DAFB?style=flat-square&logo=react&logoColor=black)
-![Redis](https://img.shields.io/badge/Redis%207-Async%20Hot%20Cache-DC382D?style=flat-square&logo=redis&logoColor=white)
-![MCP Protocol](https://img.shields.io/badge/MCP-Protocol%201.0-8A2BE2?style=flat-square)
-![PyTest](https://img.shields.io/badge/PyTest-55%2F55%20PASS-2ea44f?style=flat-square&logo=pytest&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis%207-Distributed%20Cache%20%26%20Locks-DC382D?style=flat-square&logo=redis&logoColor=white)
+![Kafka](https://img.shields.io/badge/Apache%20Kafka-Event%20Backbone-231F20?style=flat-square&logo=apachekafka&logoColor=white)
+![BullMQ](https://img.shields.io/badge/BullMQ-Background%20Workers-FF5722?style=flat-square)
+![Docker & K8s](https://img.shields.io/badge/Orchestration-Docker%20%7C%20Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
+![Observability](https://img.shields.io/badge/Observability-OTel%20%7C%20Prometheus%20%7C%20Grafana-F46800?style=flat-square&logo=prometheus&logoColor=white)
+![PyTest](https://img.shields.io/badge/Tests-79%2F79%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)
 
 </div>
 

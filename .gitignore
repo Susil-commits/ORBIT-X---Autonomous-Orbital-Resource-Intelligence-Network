@@ -28,12 +28,18 @@ env.bak/
 venv.bak/
 .pytest_cache/
 
-# Node / Frontend
+# Node / Frontend / Workers
 node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
+workers/node_modules/
 *.local
+
+# Database & SQLite
+*.db
+*.sqlite
+*.sqlite3
 
 # IDE & OS
 .vscode/
@@ -49,3 +55,4 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+

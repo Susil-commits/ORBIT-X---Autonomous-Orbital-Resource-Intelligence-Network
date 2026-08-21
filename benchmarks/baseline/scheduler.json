@@ -1,0 +1,21 @@
+{
+  "benchmark": "CP-SAT Constellation Scheduler",
+  "iterations": 5,
+  "missions_per_run": 24,
+  "success_rate_pct": 100.0,
+  "latency_ms": {
+    "mean": 21688.24,
+    "std": 180.59,
+    "p50": 21734.88,
+    "p95": 21914.98,
+    "p99": 21948.27,
+    "min": 21414.53,
+    "max": 21956.6
+  },
+  "throughput_runs_per_sec": 0.05,
+  "memory_mb": {
+    "current": 0.2,
+    "peak": 1.12
+  },
+  "timestamp_utc": "2026-08-21T06:05:09Z"
+}

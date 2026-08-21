@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orbitx-worker
+  namespace: orbitx
+  labels:
+    app: orbitx-worker
+    tier: background
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orbitx-worker
+  template:
+    metadata:
+      labels:
+        app: orbitx-worker
+    spec:
+      containers:
+        - name: worker
+          image: orbitx-workers:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000
+              name: http-metrics
+          envFrom:
+            - configMapRef:
+                name: orbitx-config
+            - secretRef:
+                name: orbitx-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orbitx-worker-service
+  namespace: orbitx
+  labels:
+    app: orbitx-worker
+spec:
+  type: ClusterIP
+  selector:
+    app: orbitx-worker
+  ports:
+    - port: 4000
+      targetPort: 4000
+      name: http-metrics

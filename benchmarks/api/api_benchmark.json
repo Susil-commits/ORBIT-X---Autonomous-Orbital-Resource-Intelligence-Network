@@ -1,0 +1,20 @@
+{
+  "benchmark": "REST API Endpoint Latency",
+  "health_probe_latency_ms": {
+    "iterations": 100,
+    "mean": 0.87,
+    "p50": 0.843,
+    "p95": 1.021,
+    "p99": 1.138,
+    "throughput_req_per_sec": 1149.5
+  },
+  "mission_creation_latency_ms": {
+    "iterations": 50,
+    "mean": 4124.977,
+    "p50": 4120.788,
+    "p95": 6457.562,
+    "p99": 6695.188,
+    "throughput_req_per_sec": 0.2
+  },
+  "timestamp_utc": "2026-08-21T06:22:16Z"
+}

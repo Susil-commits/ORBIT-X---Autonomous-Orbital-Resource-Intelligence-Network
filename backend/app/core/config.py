@@ -19,8 +19,18 @@ try:
             f"sqlite+aiosqlite:///{BASE_DIR / 'orbitx.db'}"
         )
 
-        # Redis URL for pub/sub & caching
+        # Redis URL for state caching, distributed locks & pub/sub
         REDIS_URL: str = "redis://localhost:6379/0"
+
+        # Kafka Configuration
+        KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
+        KAFKA_GROUP_ID: str = "orbitx-cluster"
+        KAFKA_CLIENT_ID: str = "orbitx-backend"
+
+        # Security & JWT RBAC
+        JWT_SECRET_KEY: str = "orbitx-dev-secret-key-32-chars-long-min!"
+        JWT_ALGORITHM: str = "HS256"
+        JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
         # Local LLM Ollama URL
         OLLAMA_URL: str = "http://localhost:11434"
@@ -28,6 +38,11 @@ try:
 
         # Embedding Model for RAG
         EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+
+        # Observability & Monitoring
+        PROMETHEUS_METRICS_ENABLED: bool = True
+        OPENTELEMETRY_ENABLED: bool = True
+        OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4317"
 
         # Paths
         DATA_PATH: Path = DATA_DIR
@@ -42,7 +57,6 @@ try:
             extra = "ignore"
 
 except ImportError:
-    # Fallback to plain BaseModel with manual os.getenv for environments without pydantic-settings
     from pydantic import BaseModel
 
     class Settings(BaseModel):  # type: ignore[no-redef]
@@ -55,9 +69,21 @@ except ImportError:
         )
 
         REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        KAFKA_BOOTSTRAP_SERVERS: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+        KAFKA_GROUP_ID: str = os.getenv("KAFKA_GROUP_ID", "orbitx-cluster")
+        KAFKA_CLIENT_ID: str = os.getenv("KAFKA_CLIENT_ID", "orbitx-backend")
+
+        JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "orbitx-dev-secret-key-32-chars-long-min!")
+        JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+        JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
         OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
         OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2")
         EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+
+        PROMETHEUS_METRICS_ENABLED: bool = True
+        OPENTELEMETRY_ENABLED: bool = True
+        OTEL_EXPORTER_OTLP_ENDPOINT: str = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
 
         DATA_PATH: Path = DATA_DIR
         MODELS_PATH: Path = MODELS_DIR

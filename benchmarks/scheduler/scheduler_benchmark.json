@@ -1,0 +1,23 @@
+{
+  "benchmark": "CP-SAT Optimizer & PyTorch Neural Surrogate",
+  "cpsat_scheduler_latency_ms": {
+    "iterations": 3,
+    "missions_per_run": 24,
+    "mean": 3515.97,
+    "p50": 3510.34,
+    "p95": 3550.44
+  },
+  "neural_surrogate_single_inference_ms": {
+    "mean": 0.078,
+    "p50": 0.073,
+    "p95": 0.078,
+    "throughput_inferences_per_sec": 12798.2
+  },
+  "neural_surrogate_batch64_inference_ms": {
+    "mean": 0.128,
+    "p50": 0.106,
+    "p95": 0.123,
+    "effective_throughput_inferences_per_sec": 498881.4
+  },
+  "timestamp_utc": "2026-08-21T06:22:29Z"
+}

@@ -1,0 +1,18 @@
+{
+  "benchmark": "Neural Bid-Valuation Model (BidValueMLP)",
+  "single_item_inference_ms": {
+    "mean": 0.079,
+    "p50": 0.075,
+    "p95": 0.089,
+    "p99": 0.14,
+    "throughput_inferences_per_sec": 12666.1
+  },
+  "batch_64_inference_ms": {
+    "mean": 0.148,
+    "p50": 0.109,
+    "p95": 0.192,
+    "p99": 0.249,
+    "effective_throughput_inferences_per_sec": 432929.7
+  },
+  "timestamp_utc": "2026-08-21T06:05:10Z"
+}
