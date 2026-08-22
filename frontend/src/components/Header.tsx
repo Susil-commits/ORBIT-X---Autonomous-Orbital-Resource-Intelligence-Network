@@ -6,7 +6,6 @@ import {
   FastForward,
   RotateCcw,
   BarChart3,
-  Users,
   Zap,
   ShieldAlert,
   Wifi,
@@ -18,7 +17,6 @@ import {
   Globe,
   Database,
   Sparkles,
-  Brain,
   ShieldCheck,
   CheckCircle2,
   Loader2,
@@ -38,12 +36,10 @@ export const Header: React.FC = () => {
     resetSim,
     switchConstellationSource,
     runBenchmarks,
-    fetchAuctions,
     setShowScenarioModal,
     setShowDispatchModal,
     setShowISLModal,
     setShowRAGDrawer,
-    setShowAILabModal,
     triggerAgentHealing,
     fetchISSVerification,
     exportDossier,
@@ -115,7 +111,7 @@ export const Header: React.FC = () => {
                 ORBIT-X
               </h1>
               <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
-                Autonomous Constellation Network V2.0
+                AI Decision Intelligence Console
               </span>
             </div>
             
@@ -249,16 +245,6 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* AI Lab & Fine-Tuning Studio */}
-          <button
-            onClick={() => setShowAILabModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 border border-cyan-400/50 text-cyan-300 text-xs font-mono hover:from-cyan-500/30 hover:to-indigo-500/30 transition shadow-sm font-semibold hover:border-cyan-300"
-            title="Open Neural Cross-Attention, Battery & Thermal ODE, and Fine-Tuning Studio"
-          >
-            <Brain className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span>AI Lab</span>
-          </button>
-
           {/* Mission AI Copilot Button */}
           <button
             onClick={() => setShowRAGDrawer(true)}
@@ -314,15 +300,6 @@ export const Header: React.FC = () => {
           >
             <Target className="w-3.5 h-3.5" />
             Dispatch
-          </button>
-
-          <button
-            onClick={fetchAuctions}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-xs font-mono hover:bg-indigo-600/30 transition shadow-sm"
-            title="Multi-Agent Auction Ledger"
-          >
-            <Users className="w-3.5 h-3.5" />
-            Auctions
           </button>
 
           <button
@@ -421,18 +398,6 @@ export const Header: React.FC = () => {
             <Globe className="w-3.5 h-3.5 text-slate-400" />
             <span>Simulation (Digital Twin)</span>
             <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">Eval</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('ailab')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
-              activeTab === 'ailab'
-                ? 'bg-indigo-500/30 border border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
-            }`}
-          >
-            <Brain className="w-3.5 h-3.5 text-indigo-400" />
-            <span>AI Lab & Models</span>
           </button>
         </nav>
 

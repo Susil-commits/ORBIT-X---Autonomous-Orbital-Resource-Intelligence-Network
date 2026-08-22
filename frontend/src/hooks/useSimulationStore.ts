@@ -28,8 +28,8 @@ interface SimulationStore {
   auctionResults: AuctionResult[] | null;
   isLoadingAuctions: boolean;
   isConnected: boolean;
-  activeTab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation' | 'ailab';
-  setActiveTab: (tab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation' | 'ailab') => void;
+  activeTab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation';
+  setActiveTab: (tab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation') => void;
   
   // Modal Setters
   setTickData: (data: ConstellationTick) => void;

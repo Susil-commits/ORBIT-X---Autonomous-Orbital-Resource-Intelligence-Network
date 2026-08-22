@@ -2,7 +2,6 @@ import React from 'react';
 import { useConstellationSocket } from './hooks/useConstellationSocket';
 import { useSimulationStore } from './hooks/useSimulationStore';
 import { Header } from './components/Header';
-import { FlightDirectorCommentaryBar } from './components/FlightDirectorCommentaryBar';
 import { GlobeView3D } from './components/GlobeView3D';
 import { SatelliteList } from './components/SatelliteList';
 import { MissionQueue } from './components/MissionQueue';
@@ -10,14 +9,12 @@ import { TelemetryHUD } from './components/TelemetryHUD';
 import { ScheduleGantt } from './components/ScheduleGantt';
 import { ExplainabilityModal } from './components/ExplainabilityModal';
 import { BenchmarkModal } from './components/BenchmarkModal';
-import { MultiAgentModal } from './components/MultiAgentModal';
 import { ScenarioDirectorModal } from './components/ScenarioDirectorModal';
 import { TargetDispatchModal } from './components/TargetDispatchModal';
 import { ISLNetworkHUD } from './components/ISLNetworkHUD';
 import { MissionRAGDrawer } from './components/MissionRAGDrawer';
-import { AILabModal } from './components/AILabModal';
 
-// AI-Native Primary Hero Views
+// AI-Native Primary Views
 import { AIAssistantHeroView } from './components/AIAssistantHeroView';
 import { DecisionExplorerView } from './components/DecisionExplorerView';
 import { DataDiscoveryLineageView } from './components/DataDiscoveryLineageView';
@@ -31,19 +28,15 @@ export const App: React.FC = () => {
   const activeTab = useSimulationStore((s) => s.activeTab);
   const showRAGDrawer = useSimulationStore((s) => s.showRAGDrawer);
   const setShowRAGDrawer = useSimulationStore((s) => s.setShowRAGDrawer);
-  const setShowAILabModal = useSimulationStore((s) => s.setShowAILabModal);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none">
-      {/* Top Header, Navigation & Simulation Controls */}
+      {/* Top Header, Navigation & Decision Console Controls */}
       <Header />
-
-      {/* Flight Director Tactical Commentary Bar (Grounded Decision Summary) */}
-      <FlightDirectorCommentaryBar />
 
       {/* Main Dynamic View Area */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Tab 1: Hero AI Assistant ("Ask ORBIT-X" 10-Step Workflow) */}
+        {/* Tab 1: Hero AI Assistant ("Ask ORBIT-X" 10-Step Decision Workflow) */}
         {activeTab === 'assistant' && <AIAssistantHeroView />}
 
         {/* Tab 2: Decision Explorer (Candidates, SHAP, Constraints, Solvers) */}
@@ -86,24 +79,6 @@ export const App: React.FC = () => {
             </aside>
           </div>
         )}
-
-        {/* Tab 7: AI Lab & Model Cards */}
-        {activeTab === 'ailab' && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-950 text-center space-y-4">
-            <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-              <span className="font-orbitron text-2xl font-bold">AI Lab & Training Studio</span>
-            </div>
-            <p className="text-sm text-slate-400 max-w-lg">
-              Launch reproducible cross-attention training runs, inspect model cards, and evaluate neural vs CP-SAT scheduling.
-            </p>
-            <button
-              onClick={() => setShowAILabModal(true)}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-semibold text-xs shadow-lg shadow-cyan-500/20 transition cursor-pointer font-mono"
-            >
-              Open Interactive AI Lab Studio
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Decision Explainability Inspector Modal */}
@@ -112,10 +87,7 @@ export const App: React.FC = () => {
       {/* Scheduler Benchmark Comparison Modal */}
       <BenchmarkModal />
 
-      {/* Multi-Agent Cooperative Auction Ledger */}
-      <MultiAgentModal />
-
-      {/* Extreme Space Mission Scenario Director */}
+      {/* Extreme Scenario Director (Evaluation) */}
       <ScenarioDirectorModal />
 
       {/* Point-and-Click Target Dispatch Deck */}
@@ -126,9 +98,6 @@ export const App: React.FC = () => {
 
       {/* Grounded Decision History RAG Drawer */}
       <MissionRAGDrawer isOpen={showRAGDrawer} onClose={() => setShowRAGDrawer(false)} />
-
-      {/* Neural AI Lab & Fine-Tuning Studio Modal */}
-      <AILabModal />
     </div>
   );
 };

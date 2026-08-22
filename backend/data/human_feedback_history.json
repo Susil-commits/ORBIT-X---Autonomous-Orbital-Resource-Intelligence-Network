@@ -79,5 +79,23 @@
     "operator_notes": "Approved via CLI live demonstration suite.",
     "suggested_alternative_satellite": null,
     "recorded_at_iso": "2026-08-22T18:45:55.964247+00:00"
+  },
+  {
+    "feedback_id": "FB-04f674ba",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T19:14:10.952920+00:00"
+  },
+  {
+    "feedback_id": "FB-166cd745",
+    "decision_record_id": "DEC-LIVE-DEMO-001",
+    "mission_id": "M-DISASTER-01",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Approved via CLI live demonstration suite.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T19:16:53.086842+00:00"
   }
 ]
