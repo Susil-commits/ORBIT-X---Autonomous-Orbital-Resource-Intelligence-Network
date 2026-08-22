@@ -298,3 +298,13 @@ class ConstellationOptimizer:
             solver_time_ms=solve_time_ms,
             total_reward=total_reward,
         )
+
+
+_optimizer_instance: Optional[ConstellationOptimizer] = None
+
+
+def get_optimizer() -> ConstellationOptimizer:
+    global _optimizer_instance
+    if _optimizer_instance is None:
+        _optimizer_instance = ConstellationOptimizer()
+    return _optimizer_instance

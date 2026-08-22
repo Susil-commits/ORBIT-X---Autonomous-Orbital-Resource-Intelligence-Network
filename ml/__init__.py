@@ -1,46 +1,46 @@
-"""
-ORBIT-X ML Package
-==================
-Modular Machine Learning subsystem for candidate ranking, bid value estimation,
-classical baselines, deep learning cross-attention models, and TreeSHAP explainability.
+"""ORBIT-X Machine Learning Package.
+
+Modular ML subsystem featuring:
+- Neural Ranking: Multi-Head Cross-Attention Network (resource-task interactions)
+- Classical Baselines: Random, Greedy EDF, Ridge, Random Forest, MLP
+- Tree-based Ranking: Gradient Boosting / XGBoost
+- Explainable AI (XAI): TreeSHAP feature attributions and Attention heatmaps
+- Training, evaluation metrics, and fast sub-millisecond inference
 """
 
-from backend.app.intelligence.baselines import (
-    BaselineComparisonSuite,
+from ml.models.cross_attention.ranker import (
+    CrossAttentionNeuralRanker,
+    ResourceFeatureEncoder,
+    RequestRequirementEncoder,
+    ConstellationCrossAttentionNet,
+    CrossAttentionRanker,
+    SatelliteFeatureEncoder,
+    MissionRequirementEncoder,
+)
+from ml.models.baselines.classical import (
     RandomBaseline,
     GreedyEDFBaseline,
     RidgeBaseline,
     RandomForestBaseline,
     BidValueMLPBaseline,
 )
-from backend.app.intelligence.cross_attention_network import (
-    ConstellationCrossAttentionNet,
-    CrossAttentionRanker,
-    SatelliteFeatureEncoder,
-    MissionRequirementEncoder,
-)
-from backend.app.intelligence.shap_explainer import (
-    TreeSHAPExplainer,
-    AttentionHeatmapGenerator,
-)
-from backend.app.intelligence.bid_value_network import (
-    NeuralBidNetwork,
-    MissionBidPredictor,
-)
+from ml.models.xgboost.ranker import XGBoostRanker
+from ml.explainability.shap_xai import TreeSHAPExplainer, AttentionHeatmapGenerator
 
 __all__ = [
-    "BaselineComparisonSuite",
+    "CrossAttentionNeuralRanker",
+    "ResourceFeatureEncoder",
+    "RequestRequirementEncoder",
+    "ConstellationCrossAttentionNet",
+    "CrossAttentionRanker",
+    "SatelliteFeatureEncoder",
+    "MissionRequirementEncoder",
     "RandomBaseline",
     "GreedyEDFBaseline",
     "RidgeBaseline",
     "RandomForestBaseline",
     "BidValueMLPBaseline",
-    "ConstellationCrossAttentionNet",
-    "CrossAttentionRanker",
-    "SatelliteFeatureEncoder",
-    "MissionRequirementEncoder",
+    "XGBoostRanker",
     "TreeSHAPExplainer",
     "AttentionHeatmapGenerator",
-    "NeuralBidNetwork",
-    "MissionBidPredictor",
 ]

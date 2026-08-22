@@ -1,7 +1,15 @@
 # ORBIT-X
 
 ## AI-Native Decision Intelligence Platform
-*Context-Aware AI Platform for Predictive Analytics, Intelligent Resource Allocation, and Explainable Decision Support*
+
+ORBIT-X is an end-to-end AI platform that combines operational data,
+machine learning, anomaly detection, explainable AI, context-aware
+retrieval, tool-using agents, MCP, and constraint-aware optimization
+to transform operational data into auditable decisions.
+
+A satellite simulation environment generates realistic telemetry,
+constraints, and failure scenarios used to train, evaluate, and
+stress-test the AI system.
 
 <div align="center">
 
@@ -23,15 +31,9 @@
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Manifests-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io)
 [![Observability](https://img.shields.io/badge/Observability-Prometheus%20%7C%20Grafana-F46800?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
-[![PyTest](https://img.shields.io/badge/Tests-83%2F83%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
+[![PyTest](https://img.shields.io/badge/Tests-90%2F90%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
 
 </div>
-
----
-
-**ORBIT-X** is an end-to-end AI platform that combines operational data pipelines, machine learning, anomaly detection, context-aware retrieval, tool-using agents, explainable AI, and constraint-aware optimization to transform operational telemetry into auditable decisions.
-
-A high-fidelity satellite simulation environment provides realistic telemetry streams, operational states, and failure scenarios for evaluating the system.
 
 ---
 
@@ -130,11 +132,11 @@ The AI layer is not an isolated chatbot. It is deeply embedded into the operatio
 - **Operational Data Ingestion:** Stream, store, and validate high-frequency multivariate telemetry.
 - **Schema Validation & Cleaning:** Automated Pydantic v2 enforcement and missing value handling.
 - **Modular Feature Engineering:** Standardized 18-dimensional multimodal feature pipelines.
-- **Classical & Deep Learning:** Baselines (`Random`, `Greedy`, `Ridge`, `Random Forest`, `MLP`) and `Multi-Head Cross-Attention` neural networks.
-- **Multivariate Anomaly Detection:** Unsupervised Isolation Forest sensor health scoring.
-- **Empirical Baseline Evaluation:** Formal held-out comparison with measured metrics.
-- **Decision Explainability:** TreeSHAP feature attributions and attention heatmaps.
-- **Hybrid Decisioning:** Fast probabilistic ML ranking ($O(1)$) coupled with deterministic CP-SAT optimization ($O(N \log N)$).
+- **Classical & Deep Learning:** Baselines (`Random`, `Greedy`, `Ridge`, `Random Forest`, `MLP`) and `Multi-Head Cross-Attention` neural ranking network (learning interactions between resource-state features and incoming request requirements, transferable across recommendation, scheduling, and decision support).
+- **Multivariate Anomaly Detection:** Unsupervised Isolation Forest sensor health scoring and automated risk penalty injection.
+- **Empirical Baseline Evaluation:** Formal held-out comparison with measured metrics across 7 architectures.
+- **Decision Explainability:** TreeSHAP feature attributions and Cross-Attention token interaction heatmaps.
+- **Hybrid Decisioning:** Fast probabilistic ML ranking ($O(1)$) coupled with deterministic CP-SAT constraint optimization ($O(N \log N)$).
 - **Semantic Metadata & Discovery:** Natural language dataset queries with zero hallucination.
 - **Data Lineage Tracking:** Bidirectional graph tracing from raw telemetry to final decisions.
 - **Context-Aware RAG:** Hybrid retrieval fusing metadata filters, dense vectors, and structured logs.

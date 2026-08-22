@@ -39,6 +39,7 @@ from app.api.routes_constellation_data import router as constellation_data_route
 from app.api.routes_auth import router as auth_router
 from app.api.routes_context import router as context_router
 from app.api.routes_experiments import router as experiments_router
+from app.api.routes_ai_platform import router as ai_platform_router
 
 # Initialize structured logging
 logger = setup_structured_logging(level=logging.INFO)
@@ -198,6 +199,7 @@ app.include_router(ai_router)
 app.include_router(constellation_data_router)
 app.include_router(context_router)
 app.include_router(experiments_router)
+app.include_router(ai_platform_router)
 
 
 # ----------------------------------------------------
