@@ -1865,16 +1865,15 @@ The project is already technically ambitious. The highest-value work now is **pr
 
 ---
 
-# 39. Final Interview Positioning
+# 39. Engineering Architecture Summary
 
-The final project story should be:
+The production platform story is:
 
 > ORBIT-X is an autonomous orbital resource intelligence platform where I combined orbital physics, machine learning, anomaly detection and CP-SAT optimization to generate mission schedules. I then designed an event-driven distributed architecture around the intelligence engine using Kafka for telemetry and mission events, Redis for caching and distributed locks, BullMQ for asynchronous workloads, PostgreSQL for durable state, OpenTelemetry/Prometheus/Grafana for observability, JWT/RBAC for security, and Docker/Kubernetes for deployment. I validated the architecture using integration, failure, concurrency and load testing and documented reproducible benchmark results.
 
-The important distinction is:
+The key distinction is:
 
 **AI/physics is the intelligence layer.**
 
 **Kafka/Redis/workers/observability/security/Kubernetes is the production platform.**
 
-That combination is what makes ORBIT-X a strong software-engineering portfolio project.
