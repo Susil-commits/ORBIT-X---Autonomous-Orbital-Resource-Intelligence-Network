@@ -28,6 +28,8 @@ interface SimulationStore {
   auctionResults: AuctionResult[] | null;
   isLoadingAuctions: boolean;
   isConnected: boolean;
+  activeTab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation' | 'ailab';
+  setActiveTab: (tab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation' | 'ailab') => void;
   
   // Modal Setters
   setTickData: (data: ConstellationTick) => void;
@@ -92,6 +94,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   auctionResults: null,
   isLoadingAuctions: false,
   isConnected: false,
+  activeTab: 'assistant',
+  setActiveTab: (tab) => set({ activeTab: tab }),
 
   setTickData: (data) => {
     const src = (data.data_source as any) || (data.satellites?.[0]?.data_source as any) || 'synthetic';

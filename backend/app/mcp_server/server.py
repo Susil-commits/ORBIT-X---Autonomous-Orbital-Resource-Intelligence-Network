@@ -137,5 +137,81 @@ def trigger_scenario(scenario_name: str) -> str:
     }, indent=2)
 
 
+@mcp.tool()
+def get_dataset_metadata(dataset_name: str) -> str:
+    """
+    Retrieves semantic metadata catalog details for a specific operational or ML dataset,
+    including columns, types, owner, freshness, quality score, and downstream ML models.
+    """
+    from app.intelligence.context_graph import get_context_graph_engine
+    engine = get_context_graph_engine()
+    meta = engine.get_dataset_metadata(dataset_name)
+    if not meta:
+        return json.dumps({"error": f"Dataset '{dataset_name}' not found in catalog."}, indent=2)
+    return json.dumps(meta.model_dump(), indent=2)
+
+
+@mcp.tool()
+def get_decision_lineage(mission_id: str) -> str:
+    """
+    Traverses and returns the full end-to-end Data Lineage Graph for a mission assignment:
+    Raw Sensor Telemetry -> Cleaned Dataset -> Feature Table -> ML Prediction -> CP-SAT -> Decision -> Outcome.
+    """
+    from app.intelligence.context_graph import get_context_graph_engine
+    engine = get_context_graph_engine()
+    lineage = engine.trace_decision_lineage(mission_id=mission_id)
+    return json.dumps(lineage.model_dump(), indent=2)
+
+
+@mcp.tool()
+def check_data_quality() -> str:
+    """
+    Audits live constellation telemetry against physical limits, checking for missing values,
+    sensor degradation, and schema drift.
+    """
+    from app.intelligence.data_quality_agent import get_data_quality_agent
+    sim = get_simulator()
+    agent = get_data_quality_agent()
+    frames = [s.telemetry for s in sim.satellites]
+    report = agent.audit_telemetry_stream(frames)
+    return json.dumps(report.model_dump(), indent=2)
+
+
+@mcp.tool()
+def get_model_baselines_report() -> str:
+    """
+    Returns comparative benchmark metrics across all 7 machine learning models
+    (Random, Greedy, Ridge, Random Forest, MLP, Cross-Attention, Hybrid CP-SAT).
+    """
+    from app.intelligence.baselines import get_baseline_suite
+    suite = get_baseline_suite()
+    report = suite.run_full_comparison()
+    return json.dumps(report.model_dump(), indent=2)
+
+
+@mcp.tool()
+def submit_human_feedback(
+    decision_record_id: str,
+    feedback_type: str = "APPROVE",
+    operator_notes: str = "Operator verified constraint satisfaction.",
+) -> str:
+    """
+    Submits human-in-the-loop operator review (APPROVE, REJECT, INVESTIGATE) for a decision record
+    to be logged into the persistent feedback database for continuous AI alignment.
+    """
+    from app.intelligence.trust_layer import get_trust_layer_engine
+    from app.core.schemas import HumanFeedbackRequest
+    engine = get_trust_layer_engine()
+    res = engine.record_feedback(
+        HumanFeedbackRequest(
+            decision_record_id=decision_record_id,
+            feedback_type=feedback_type,
+            operator_notes=operator_notes,
+        )
+    )
+    return json.dumps(res.model_dump(), indent=2)
+
+
 if __name__ == "__main__":
     mcp.run()
+

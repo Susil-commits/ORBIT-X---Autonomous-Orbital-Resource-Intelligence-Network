@@ -1,0 +1,109 @@
+{
+  "catalog_version": "2.1.0",
+  "updated_at_iso": "2026-08-22T16:00:00Z",
+  "datasets": [
+    {
+      "dataset_name": "satellite_telemetry",
+      "owner": "flight-operations",
+      "description": "High-frequency operational telemetry including bus voltage, solar current, subsystem temperatures, attitude jitter, and RF SNR.",
+      "schema_version": "v2.0",
+      "storage_format": "TimescaleDB / Redis Ring Buffer",
+      "freshness_seconds": 1.0,
+      "quality_score": 0.992,
+      "sensitivity": "operational",
+      "columns": [
+        {"name": "timestamp_s", "type": "float", "description": "Simulation epoch offset in seconds"},
+        {"name": "satellite_id", "type": "string", "description": "Unique satellite identifier (e.g. SAT-01)"},
+        {"name": "bus_voltage_v", "type": "float", "description": "28V nominal power bus voltage"},
+        {"name": "solar_current_a", "type": "float", "description": "Instantaneous solar array current in Amperes"},
+        {"name": "battery_temp_c", "type": "float", "description": "Battery cell temperature in Celsius"},
+        {"name": "payload_temp_c", "type": "float", "description": "Optical sensor payload temperature in Celsius"},
+        {"name": "reaction_wheel_jitter_dps", "type": "float", "description": "RMS attitude jitter in degrees per second"},
+        {"name": "rf_snr_db", "type": "float", "description": "RF downlink signal-to-noise ratio in dB"},
+        {"name": "anomaly_score", "type": "float", "description": "Isolation Forest computed multivariate anomaly score [0.0, 1.0]"}
+      ],
+      "downstream_consumers": [
+        "SpacecraftHealthAI (Isolation Forest)",
+        "PINNBatteryThermalSimulator",
+        "MultiAgentCoordinator",
+        "Observability Dashboard"
+      ]
+    },
+    {
+      "dataset_name": "mission_requests",
+      "owner": "mission-planning",
+      "description": "Earth observation imaging and downlink mission specifications with target coordinates, priorities, and deadlines.",
+      "schema_version": "v1.5",
+      "storage_format": "PostgreSQL / JSON",
+      "freshness_seconds": 5.0,
+      "quality_score": 0.985,
+      "sensitivity": "mission-critical",
+      "columns": [
+        {"name": "id", "type": "string", "description": "Unique mission identifier (e.g. EO-DISASTER-01)"},
+        {"name": "target_lat", "type": "float", "description": "Target geodetic latitude [-90, 90]"},
+        {"name": "target_lon", "type": "float", "description": "Target geodetic longitude [-180, 180]"},
+        {"name": "priority", "type": "int", "description": "Mission priority level [1-5]"},
+        {"name": "duration_s", "type": "float", "description": "Required imaging duration in seconds"},
+        {"name": "deadline_s", "type": "float", "description": "Hard execution deadline in simulation seconds"},
+        {"name": "data_size_gb", "type": "float", "description": "Generated payload data size in GB"},
+        {"name": "energy_cost_wh", "type": "float", "description": "Estimated energy consumption in Watt-hours"}
+      ],
+      "downstream_consumers": [
+        "ConstellationOptimizer (CP-SAT)",
+        "ConstellationCrossAttentionNet",
+        "BidValueMLP",
+        "XGBoostBaseline"
+      ]
+    },
+    {
+      "dataset_name": "decision_history",
+      "owner": "decision-intelligence",
+      "description": "Immutable operational log of mission schedule assignments, rejected candidates, solver rationale, and anomaly replans.",
+      "schema_version": "v2.0",
+      "storage_format": "PostgreSQL / In-memory Ring Buffer",
+      "freshness_seconds": 0.5,
+      "quality_score": 1.0,
+      "sensitivity": "audit-trail",
+      "columns": [
+        {"name": "record_id", "type": "string", "description": "Unique decision event record ID"},
+        {"name": "tick", "type": "int", "description": "Simulation tick sequence number"},
+        {"name": "sim_time_s", "type": "float", "description": "Simulation epoch seconds"},
+        {"name": "event_type", "type": "string", "description": "Category (MISSION_ASSIGNED, ANOMALY_DETECTED, CONJUNCTION_AVOIDANCE)"},
+        {"name": "summary", "type": "string", "description": "Natural language summary of the decision rationale"},
+        {"name": "mission_id", "type": "string", "description": "Associated mission ID if applicable"},
+        {"name": "satellite_id", "type": "string", "description": "Primary satellite actor"},
+        {"name": "details", "type": "json", "description": "Structured candidate scores, binding constraints, and metrics"}
+      ],
+      "downstream_consumers": [
+        "HybridMissionQAEngine (Dense + BM25 RAG)",
+        "Ask ORBIT-X Trust Layer",
+        "SelfHealingAgent",
+        "Human Feedback Loop"
+      ]
+    },
+    {
+      "dataset_name": "model_features",
+      "owner": "ml-platform",
+      "description": "Normalized multi-task feature dataset pairing 10 satellite state dimensions with 8 mission demand dimensions for supervised fine-tuning.",
+      "schema_version": "v2.2",
+      "storage_format": "Parquet / JSON",
+      "freshness_seconds": 3600.0,
+      "quality_score": 0.995,
+      "sensitivity": "internal-ml",
+      "columns": [
+        {"name": "satellite_features", "type": "array<float>[10]", "description": "Normalized priority, SoC, elevation, slew, health, storage, sunlight, deadline slack, energy, duration"},
+        {"name": "mission_features", "type": "array<float>[8]", "description": "Normalized priority, slack, duration, data size, lat, lon, cloud cover, solar flux"},
+        {"name": "target_cpsat_score", "type": "float", "description": "Authoritative CP-SAT solver objective score"},
+        {"name": "is_winner", "type": "int", "description": "Binary flag indicating whether candidate was selected by CP-SAT"},
+        {"name": "estimated_latency_s", "type": "float", "description": "Downlink latency estimate"},
+        {"name": "estimated_energy_wh", "type": "float", "description": "Mission energy consumption estimate"}
+      ],
+      "downstream_consumers": [
+        "ConstellationCrossAttentionNet",
+        "BidValueMLP",
+        "XGBoostBaseline",
+        "TreeSHAPExplainer"
+      ]
+    }
+  ]
+}

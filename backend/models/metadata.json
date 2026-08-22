@@ -1,0 +1,47 @@
+{
+  "registry_version": "1.0.0",
+  "active_production_models": {
+    "cross_attention_network": {
+      "version": "v2.2.0",
+      "model_path": "models/cross_attention_network.pt",
+      "architecture": "ConstellationCrossAttentionNet",
+      "d_token": 32,
+      "num_heads": 4,
+      "sha256": "a6d5267d84cd92d1945eb5ce463d12224749f99f242502660144f808db3c2859",
+      "last_trained_utc": "2026-08-21T06:05:00Z",
+      "metrics": {
+        "top1_agreement_pct": 84.62,
+        "mae": 18.91,
+        "inference_latency_ms_p50": 0.372,
+        "status": "CHAMPION"
+      }
+    },
+    "bid_value_mlp": {
+      "version": "v2.0.0",
+      "model_path": "models/bid_network.pt",
+      "architecture": "BidValueMLP",
+      "input_dim": 10,
+      "hidden_dim": 64,
+      "sha256": "74883492ff339ca8764a8b79e9a66522c7a3014a51e604f3299863c0bb47ca99",
+      "last_trained_utc": "2026-08-20T12:00:00Z",
+      "metrics": {
+        "top1_agreement_pct": 68.8,
+        "mae": 42.03,
+        "inference_latency_ms_p50": 0.075,
+        "status": "ACTIVE_BACKUP"
+      }
+    },
+    "anomaly_detector": {
+      "version": "v2.0.0",
+      "architecture": "Multivariate Isolation Forest",
+      "n_estimators": 100,
+      "contamination": 0.05,
+      "metrics": {
+        "macro_precision": 0.966,
+        "macro_recall": 0.946,
+        "false_alarm_rate": 0.0082,
+        "status": "CHAMPION"
+      }
+    }
+  }
+}

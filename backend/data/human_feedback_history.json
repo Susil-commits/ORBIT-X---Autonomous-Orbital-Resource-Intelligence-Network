@@ -1,0 +1,83 @@
+[
+  {
+    "feedback_id": "FB-c3184453",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T16:35:14.715277+00:00"
+  },
+  {
+    "feedback_id": "FB-48a70ebc",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T16:38:25.216111+00:00"
+  },
+  {
+    "feedback_id": "FB-0af9da9e",
+    "decision_record_id": "DEC-LIVE-DEMO-001",
+    "mission_id": "M-DISASTER-01",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Approved via CLI live demonstration suite.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T16:46:52.319807+00:00"
+  },
+  {
+    "feedback_id": "FB-959fd3a8",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T17:08:10.274562+00:00"
+  },
+  {
+    "feedback_id": "FB-81867826",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T17:14:20.044522+00:00"
+  },
+  {
+    "feedback_id": "FB-7273b048",
+    "decision_record_id": "DEC-LIVE-DEMO-001",
+    "mission_id": "M-DISASTER-01",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Approved via CLI live demonstration suite.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T17:18:11.993734+00:00"
+  },
+  {
+    "feedback_id": "FB-7945b41a",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T18:34:50.053581+00:00"
+  },
+  {
+    "feedback_id": "FB-e52cbc9d",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T18:42:58.780500+00:00"
+  },
+  {
+    "feedback_id": "FB-47b366a3",
+    "decision_record_id": "DEC-LIVE-DEMO-001",
+    "mission_id": "M-DISASTER-01",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Approved via CLI live demonstration suite.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-22T18:45:55.964247+00:00"
+  }
+]

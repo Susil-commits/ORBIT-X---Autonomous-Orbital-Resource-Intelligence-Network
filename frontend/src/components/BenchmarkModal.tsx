@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSimulationStore } from '../hooks/useSimulationStore';
-import { X, Trophy, CheckCircle2, RotateCw, Cpu, ShieldCheck, Zap, Network, Layers } from 'lucide-react';
-import type { BenchmarkResult } from '../types';
+import {
+  X,
+  Trophy,
+  RotateCw,
+  Cpu,
+  ShieldCheck,
+  Zap,
+  Network,
+  Layers,
+  BarChart3,
+  FlaskConical,
+} from 'lucide-react';
+import type {
+  BenchmarkResult,
+  BaselineComparisonReport,
+  FeatureAblationReport,
+} from '../types';
 
 export const BenchmarkModal: React.FC = () => {
   const show = useSimulationStore((s) => s.showBenchmarkModal);
@@ -10,23 +25,66 @@ export const BenchmarkModal: React.FC = () => {
   const isBenchmarking = useSimulationStore((s) => s.isBenchmarking);
   const runBenchmarks = useSimulationStore((s) => s.runBenchmarks);
 
+  const [activeTab, setActiveTab] = useState<'SCHEDULERS' | 'ML_BASELINES' | 'ABLATION'>('SCHEDULERS');
+  const [mlReport, setMlReport] = useState<BaselineComparisonReport | null>(null);
+  const [ablationReport, setAblationReport] = useState<FeatureAblationReport | null>(null);
+  const [isLoadingMl, setIsLoadingMl] = useState(false);
+
+  useEffect(() => {
+    if (show && activeTab === 'ML_BASELINES' && !mlReport) {
+      fetchMlBaselines();
+    } else if (show && activeTab === 'ABLATION' && !ablationReport) {
+      fetchAblation();
+    }
+  }, [show, activeTab]);
+
+  const fetchMlBaselines = async () => {
+    setIsLoadingMl(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/experiments/baselines');
+      if (res.ok) {
+        const data = await res.json();
+        setMlReport(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch ML baselines:', e);
+    } finally {
+      setIsLoadingMl(false);
+    }
+  };
+
+  const fetchAblation = async () => {
+    setIsLoadingMl(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/experiments/ablation');
+      if (res.ok) {
+        const data = await res.json();
+        setAblationReport(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch ablation report:', e);
+    } finally {
+      setIsLoadingMl(false);
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="hud-panel max-w-6xl w-full rounded-xl border border-emerald-500/40 p-6 flex flex-col max-h-[92vh] overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-sans">
+      <div className="hud-panel max-w-6xl w-full rounded-2xl border border-emerald-500/40 p-6 flex flex-col max-h-[92vh] overflow-hidden shadow-2xl bg-slate-950">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-emerald-500/20">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
               <Trophy className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <h2 className="font-orbitron font-bold text-sm tracking-wider text-white">
-                ORBIT-X 6-SCHEDULER COMPARATIVE BENCHMARK SUITE
+                ORBIT-X EMPIRICAL BENCHMARK & EXPERIMENTS SUITE
               </h2>
-              <p className="text-[10px] font-mono text-slate-400">
-                Authoritative Master Spec Evaluation: Random • Greedy EDF • Multi-Agent Auction • Neural Surrogate • Hybrid • CP-SAT
+              <p className="text-[11px] font-mono text-slate-400">
+                Authoritative Master Spec Evaluation: Schedulers • 7 ML Baselines • Feature Ablations
               </p>
             </div>
           </div>
@@ -38,184 +96,253 @@ export const BenchmarkModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-6">
-          {isBenchmarking ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-cyan-300 font-mono text-xs">
-              <RotateCw className="w-10 h-10 animate-spin text-cyan-400" />
-              <span className="tracking-wide">Benchmarking 6 schedulers across identical constellation topologies & fault scenarios...</span>
-            </div>
-          ) : benchmarkResults && benchmarkResults.length > 0 ? (
-            <>
-              {/* 6-Scheduler Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {benchmarkResults.map((res: BenchmarkResult, idx: number) => {
-                  const isCPSAT = res.scheduler_name.includes('CP-SAT') && !res.scheduler_name.includes('Hybrid');
-                  const isHybrid = res.scheduler_name.includes('Hybrid');
-                  const isNeural = res.scheduler_name.includes('Neural');
-                  const isAuction = res.scheduler_name.includes('Auction');
-                  const isGreedy = res.scheduler_name.includes('Greedy');
-
-                  let cardBorder = 'border-slate-800 bg-slate-900/60';
-                  let badge = null;
-                  let icon = <Layers className="w-3.5 h-3.5 text-slate-400" />;
-
-                  if (isCPSAT) {
-                    cardBorder = 'border-emerald-500/60 bg-emerald-950/20 glow-emerald';
-                    badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">★ EXACT OPTIMUM</span>;
-                    icon = <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />;
-                  } else if (isHybrid) {
-                    cardBorder = 'border-cyan-500/60 bg-cyan-950/20 glow-cyan';
-                    badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/50">⚡ FAST OPTIMAL</span>;
-                    icon = <Zap className="w-3.5 h-3.5 text-cyan-400" />;
-                  } else if (isNeural) {
-                    cardBorder = 'border-blue-500/40 bg-blue-950/20';
-                    badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">&lt;1ms INFERENCE</span>;
-                    icon = <Cpu className="w-3.5 h-3.5 text-blue-400" />;
-                  } else if (isAuction) {
-                    cardBorder = 'border-indigo-500/40 bg-indigo-950/20';
-                    badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">DISTRIBUTED</span>;
-                    icon = <Network className="w-3.5 h-3.5 text-indigo-400" />;
-                  } else if (isGreedy) {
-                    cardBorder = 'border-amber-500/40 bg-amber-950/20';
-                    badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">HEURISTIC</span>;
-                  }
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`hud-card p-4 rounded-xl border flex flex-col justify-between transition hover:border-slate-700 ${cardBorder}`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1.5">
-                            {icon}
-                            <span className="font-orbitron font-bold text-xs text-white">
-                              {res.scheduler_name}
-                            </span>
-                          </div>
-                          {badge}
-                        </div>
-
-                        {/* Primary KPI: Completion Rate */}
-                        <div className="mb-4 bg-black/30 p-2.5 rounded-lg border border-white/5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] uppercase font-mono text-slate-400">
-                              Mission Success Rate
-                            </span>
-                            <span className="text-xs font-mono font-bold text-emerald-400">
-                              ${res.total_reward_yield.toFixed(0)} Yield
-                            </span>
-                          </div>
-                          <div className="flex items-baseline gap-2 mt-1">
-                            <span className="font-mono text-2xl font-bold text-white">
-                              {res.completion_rate_pct}%
-                            </span>
-                            <span className="text-xs font-mono text-slate-400">
-                              ({res.completed_missions}/{res.num_missions} tasks)
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Metric Bars */}
-                        <div className="space-y-2.5 text-[11px] font-mono">
-                          <div>
-                            <div className="flex justify-between text-slate-300 mb-1">
-                              <span>High-Priority (P4/P5)</span>
-                              <span className="font-bold text-cyan-300">{res.high_priority_completion_pct}%</span>
-                            </div>
-                            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-cyan-400 rounded-full"
-                                style={{ width: `${res.high_priority_completion_pct}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex justify-between text-slate-300 mb-1">
-                              <span>Avg Battery Reserve</span>
-                              <span className="font-bold text-emerald-300">{res.avg_battery_reserve_pct}%</span>
-                            </div>
-                            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-emerald-400 rounded-full"
-                                style={{ width: `${res.avg_battery_reserve_pct}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex justify-between text-slate-300 mb-1">
-                              <span>Ground Downlink Util</span>
-                              <span className="font-bold text-purple-300">{res.ground_station_utilization_pct}%</span>
-                            </div>
-                            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-purple-400 rounded-full"
-                                style={{ width: `${res.ground_station_utilization_pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Cpu className="w-3 h-3 text-cyan-400" />
-                          Solve: <strong className="text-slate-200">{res.avg_solve_time_ms.toFixed(2)} ms</strong>
-                        </span>
-                        <span>
-                          Slack: <strong className="text-slate-200">{res.avg_deadline_slack_s.toFixed(0)}s</strong>
-                        </span>
-                        {res.neural_regret !== undefined && res.neural_regret > 0 ? (
-                          <span className="text-amber-400">Regret: -{res.neural_regret.toFixed(0)}</span>
-                        ) : (
-                          <span className="text-emerald-400">Regret: $0</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Architectural Synthesis Matrix */}
-              <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 space-y-2">
-                <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Master Engineering Architecture Insights:</span>
-                </div>
-                <p className="text-slate-400 leading-relaxed text-[11px]">
-                  • <strong>Google OR-Tools CP-SAT</strong> achieves global exact Pareto optimality, respecting all battery safety floors and ground contact windows.<br />
-                  • <strong>Hybrid (Neural Pruning + CP-SAT)</strong> recovers ~99.5% of CP-SAT reward while reducing solver branch-and-bound search space by &gt;60%.<br />
-                  • <strong>Neural Surrogate & Vickrey Auction</strong> provide sub-3ms distributed local bidding, safely rejecting infeasible tasks via constraint projection.
-                </p>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-16 text-xs font-mono text-slate-400">
-              Click &quot;Run Benchmark Suite&quot; to execute identical scenario comparisons across all 6 schedulers.
-            </div>
-          )}
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 pt-3 border-b border-slate-800">
+          <button
+            onClick={() => setActiveTab('SCHEDULERS')}
+            className={`px-4 py-2 text-xs font-mono font-bold flex items-center gap-2 border-b-2 transition ${
+              activeTab === 'SCHEDULERS'
+                ? 'border-emerald-400 text-emerald-400 bg-emerald-950/20'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            Constellation Schedulers (6)
+          </button>
+          <button
+            onClick={() => setActiveTab('ML_BASELINES')}
+            className={`px-4 py-2 text-xs font-mono font-bold flex items-center gap-2 border-b-2 transition ${
+              activeTab === 'ML_BASELINES'
+                ? 'border-cyan-400 text-cyan-400 bg-cyan-950/20'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            ML Model Baselines (7)
+          </button>
+          <button
+            onClick={() => setActiveTab('ABLATION')}
+            className={`px-4 py-2 text-xs font-mono font-bold flex items-center gap-2 border-b-2 transition ${
+              activeTab === 'ABLATION'
+                ? 'border-indigo-400 text-indigo-400 bg-indigo-950/20'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <FlaskConical className="w-3.5 h-3.5" />
+            Feature Ablation Study
+          </button>
         </div>
 
-        {/* Footer */}
-        <div className="pt-3 border-t border-emerald-500/20 flex items-center justify-between">
-          <button
-            onClick={runBenchmarks}
-            disabled={isBenchmarking}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600/30 border border-emerald-500/60 text-emerald-300 text-xs font-mono hover:bg-emerald-600/40 transition disabled:opacity-50"
-          >
-            <RotateCw className={`w-3.5 h-3.5 ${isBenchmarking ? 'animate-spin' : ''}`} />
-            Run 6-Scheduler Benchmark Suite
-          </button>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-6">
+          {/* TAB 1: Schedulers */}
+          {activeTab === 'SCHEDULERS' && (
+            <>
+              {isBenchmarking ? (
+                <div className="flex flex-col items-center justify-center py-24 gap-4 text-cyan-300 font-mono text-xs">
+                  <RotateCw className="w-10 h-10 animate-spin text-cyan-400" />
+                  <span className="tracking-wide">Benchmarking 6 schedulers across identical constellation topologies...</span>
+                </div>
+              ) : benchmarkResults && benchmarkResults.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {benchmarkResults.map((res: BenchmarkResult, idx: number) => {
+                    const isCPSAT = res.scheduler_name.includes('CP-SAT') && !res.scheduler_name.includes('Hybrid');
+                    const isHybrid = res.scheduler_name.includes('Hybrid');
+                    const isNeural = res.scheduler_name.includes('Neural');
+                    const isAuction = res.scheduler_name.includes('Auction');
+                    const isGreedy = res.scheduler_name.includes('Greedy');
 
-          <button
-            onClick={() => setShow(false)}
-            className="px-4 py-2 rounded-lg bg-slate-800 text-slate-200 text-xs font-mono hover:bg-slate-700 transition"
-          >
-            Close
-          </button>
+                    let cardBorder = 'border-slate-800 bg-slate-900/60';
+                    let badge = null;
+                    let icon = <Layers className="w-3.5 h-3.5 text-slate-400" />;
+
+                    if (isCPSAT) {
+                      cardBorder = 'border-emerald-500/60 bg-emerald-950/20';
+                      badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">★ EXACT OPTIMUM</span>;
+                      icon = <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />;
+                    } else if (isHybrid) {
+                      cardBorder = 'border-cyan-500/60 bg-cyan-950/20';
+                      badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/50">⚡ FAST OPTIMAL</span>;
+                      icon = <Zap className="w-3.5 h-3.5 text-cyan-400" />;
+                    } else if (isNeural) {
+                      cardBorder = 'border-blue-500/40 bg-blue-950/20';
+                      badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">&lt;1ms INFERENCE</span>;
+                      icon = <Cpu className="w-3.5 h-3.5 text-blue-400" />;
+                    } else if (isAuction) {
+                      cardBorder = 'border-indigo-500/40 bg-indigo-950/20';
+                      badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">DISTRIBUTED</span>;
+                      icon = <Network className="w-3.5 h-3.5 text-indigo-400" />;
+                    } else if (isGreedy) {
+                      cardBorder = 'border-amber-500/40 bg-amber-950/20';
+                      badge = <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">HEURISTIC</span>;
+                    }
+
+                    return (
+                      <div key={idx} className={`p-4 rounded-xl border flex flex-col justify-between ${cardBorder}`}>
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-1.5">
+                              {icon}
+                              <span className="font-orbitron font-bold text-xs text-white">{res.scheduler_name}</span>
+                            </div>
+                            {badge}
+                          </div>
+                          <div className="space-y-2 text-xs font-mono">
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Completion Rate:</span>
+                              <span className="text-emerald-400 font-bold">{res.completion_rate_pct.toFixed(1)}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Solver Latency:</span>
+                              <span className="text-cyan-400 font-bold">{res.avg_solve_time_ms.toFixed(1)} ms</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Violations:</span>
+                              <span className="text-slate-300 font-bold">{res.constraint_violations}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-16 space-y-4">
+                  <p className="text-xs font-mono text-slate-400">No active benchmark run stored in memory.</p>
+                  <button
+                    onClick={() => runBenchmarks()}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold transition shadow-lg"
+                  >
+                    Run 6-Scheduler Benchmark Suite
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* TAB 2: ML Baselines */}
+          {activeTab === 'ML_BASELINES' && (
+            <div className="space-y-4">
+              {isLoadingMl ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-cyan-400 font-mono text-xs">
+                  <RotateCw className="w-8 h-8 animate-spin" />
+                  <span>Evaluating 7 Machine Learning baseline models against CP-SAT ground truth...</span>
+                </div>
+              ) : mlReport ? (
+                <>
+                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs font-mono">
+                    <div>
+                      <span className="text-slate-400">Champion Architecture: </span>
+                      <span className="text-emerald-400 font-bold">{mlReport.champion_model}</span>
+                    </div>
+                    <div className="text-slate-400">
+                      Evaluated Missions: <span className="text-cyan-400 font-bold">{mlReport.evaluated_missions}</span>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-xl border border-slate-800">
+                    <table className="w-full text-left text-xs font-mono text-slate-300">
+                      <thead className="bg-slate-900 text-[11px] text-slate-400 uppercase border-b border-slate-800">
+                        <tr>
+                          <th className="py-3 px-4">Model Name</th>
+                          <th className="py-3 px-3">Category</th>
+                          <th className="py-3 px-3">Top-1 Agreement</th>
+                          <th className="py-3 px-3">Score MAE</th>
+                          <th className="py-3 px-3">F1 Score</th>
+                          <th className="py-3 px-3">p50 Latency</th>
+                          <th className="py-3 px-3">Throughput</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+                        {mlReport.models.map((m, idx) => (
+                          <tr key={idx} className="hover:bg-slate-900/50 transition">
+                            <td className="py-3 px-4 font-bold text-white flex items-center gap-2">
+                              {m.model_name.includes('Champion') && <span className="text-emerald-400 font-bold">★</span>}
+                              {m.model_name}
+                            </td>
+                            <td className="py-3 px-3 text-[10px] text-slate-400">{m.model_category}</td>
+                            <td className="py-3 px-3 font-bold text-cyan-400">{m.top1_agreement_pct.toFixed(1)}%</td>
+                            <td className="py-3 px-3 text-slate-300">{m.mae.toFixed(2)}</td>
+                            <td className="py-3 px-3 text-emerald-400">{m.f1_score.toFixed(3)}</td>
+                            <td className="py-3 px-3 text-slate-300">{m.latency_ms_p50.toFixed(3)} ms</td>
+                            <td className="py-3 px-3 text-slate-400">{m.throughput_inferences_sec.toFixed(0)} inf/s</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 text-xs font-mono text-slate-300 space-y-1">
+                    <span className="font-bold text-cyan-400 uppercase text-[10px]">Data Science Selection Rationale:</span>
+                    <p className="text-slate-400 leading-relaxed">{mlReport.selection_rationale}</p>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          )}
+
+          {/* TAB 3: Feature Ablation Study */}
+          {activeTab === 'ABLATION' && (
+            <div className="space-y-4">
+              {isLoadingMl ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-cyan-400 font-mono text-xs">
+                  <RotateCw className="w-8 h-8 animate-spin" />
+                  <span>Computing feature ablation matrices across battery, priority, temporal, and spatial look-angles...</span>
+                </div>
+              ) : ablationReport ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {ablationReport.ablations.map((ab, idx) => {
+                      const isBaseline = ab.removed_features.length === 0;
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-4 rounded-xl border space-y-2 ${
+                            isBaseline
+                              ? 'bg-slate-900 border-cyan-500/50'
+                              : 'bg-slate-950 border-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono font-bold text-xs text-white">{ab.ablation_name}</span>
+                            <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded ${
+                              isBaseline
+                                ? 'bg-cyan-950 text-cyan-400 border border-cyan-800'
+                                : 'bg-rose-950/60 text-rose-400 border border-rose-800/60'
+                            }`}>
+                              {isBaseline ? 'REFERENCE' : `${ab.performance_delta_pct.toFixed(1)}%`}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
+                            <div>Features: <span className="text-white font-bold">{ab.remaining_feature_count}</span></div>
+                            <div>Top-1: <span className="text-cyan-400 font-bold">{ab.top1_agreement_pct.toFixed(1)}%</span></div>
+                            <div>MAE: <span className="text-slate-300 font-bold">{ab.mae.toFixed(2)}</span></div>
+                          </div>
+
+                          <p className="text-[11px] text-slate-400 font-mono leading-relaxed">
+                            {ab.interpretation}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                    <span className="font-bold text-cyan-400 uppercase text-[10px] font-mono">Key Ablation Findings:</span>
+                    <ul className="space-y-1 text-xs font-mono text-slate-300">
+                      {ablationReport.key_findings.map((f, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-cyan-400">•</span>
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
     </div>

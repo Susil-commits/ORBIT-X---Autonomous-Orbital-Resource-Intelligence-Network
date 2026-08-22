@@ -22,6 +22,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   Loader2,
+  Layers,
+  GitBranch,
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -45,6 +47,8 @@ export const Header: React.FC = () => {
     triggerAgentHealing,
     fetchISSVerification,
     exportDossier,
+    activeTab,
+    setActiveTab,
   } = useSimulationStore();
 
   const [isSwitchingSource, setIsSwitchingSource] = useState(false);
@@ -339,6 +343,107 @@ export const Header: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {/* Top Primary Navigation Bar */}
+      <div className="w-full bg-slate-950/95 border-b border-cyan-500/20 px-6 py-2 flex flex-wrap items-center justify-between gap-3 z-10 backdrop-blur-md">
+        <nav className="flex items-center gap-2 font-mono text-xs overflow-x-auto py-0.5">
+          <button
+            onClick={() => setActiveTab('assistant')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'assistant'
+                ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border border-cyan-400 text-cyan-300 shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>AI Assistant (Hero)</span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold">P0</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('decision')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'decision'
+                ? 'bg-gradient-to-r from-blue-500/30 to-indigo-500/30 border border-blue-400 text-blue-300 shadow-md shadow-blue-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-400" />
+            <span>Decision Explorer</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('data')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'data'
+                ? 'bg-gradient-to-r from-purple-500/30 to-indigo-500/30 border border-purple-400 text-purple-300 shadow-md shadow-purple-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <GitBranch className="w-3.5 h-3.5 text-purple-400" />
+            <span>Data Discovery & Lineage</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('traces')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'traces'
+                ? 'bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-emerald-400 text-emerald-300 shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Agent Traces & MCP</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('monitoring')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'monitoring'
+                ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300 shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Monitoring & SLOs</span>
+          </button>
+
+          <div className="h-4 w-px bg-slate-800 mx-1" />
+
+          <button
+            onClick={() => setActiveTab('simulation')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'simulation'
+                ? 'bg-slate-800 border border-slate-600 text-slate-100 shadow-md'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5 text-slate-400" />
+            <span>Simulation (Digital Twin)</span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">Eval</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ailab')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              activeTab === 'ailab'
+                ? 'bg-indigo-500/30 border border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <Brain className="w-3.5 h-3.5 text-indigo-400" />
+            <span>AI Lab & Models</span>
+          </button>
+        </nav>
+
+        {/* Status indicator on right */}
+        <div className="hidden lg:flex items-center gap-3 text-xs font-mono text-slate-400">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>HITL Decision Pipeline Active</span>
+          </div>
+        </div>
+      </div>
 
       {/* ISS Verification Modal */}
       {showISSModal && (

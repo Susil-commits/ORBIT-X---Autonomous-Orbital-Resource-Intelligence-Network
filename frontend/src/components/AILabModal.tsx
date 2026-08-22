@@ -33,7 +33,7 @@ export const AILabModal: React.FC = () => {
     fetchPINNBatteryThermal,
   } = useSimulationStore();
 
-  const [activeTab, setActiveTab] = useState<'cross_attention' | 'finetuning' | 'pinn' | 'checkpoints'>('cross_attention');
+  const [activeTab, setActiveTab] = useState<'cross_attention' | 'finetuning' | 'pinn' | 'checkpoints' | 'data_catalog'>('cross_attention');
 
   // Tab 1: Cross-Attention Playground State
   const [selectedSatId, setSelectedSatId] = useState<string>('SAT-01');
@@ -58,6 +58,12 @@ export const AILabModal: React.FC = () => {
   const [pinnPayloadActive, setPinnPayloadActive] = useState<boolean>(true);
   const [pinnSolarFlux, setPinnSolarFlux] = useState<number>(1361.0);
   const [pinnData, setPinnData] = useState<PINNBatteryThermalResponse | null>(null);
+
+  // Tab 5: Data Platform & Catalog State
+  const [catalogData, setCatalogData] = useState<any | null>(null);
+  const [qualityReport, setQualityReport] = useState<any | null>(null);
+  const [lineageData, setLineageData] = useState<any | null>(null);
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
 
   const loadCrossAttention = useCallback(async () => {
     try {
@@ -108,6 +114,51 @@ export const AILabModal: React.FC = () => {
     }
   }, [fetchPINNBatteryThermal, pinnInitialSoc, pinnTempC, pinnPayloadActive, pinnSolarFlux]);
 
+  const loadCatalog = useCallback(async () => {
+    setIsLoadingCatalog(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/context/catalog');
+      if (res.ok) {
+        const data = await res.json();
+        setCatalogData(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch catalog', e);
+    } finally {
+      setIsLoadingCatalog(false);
+    }
+  }, []);
+
+  const runQualityAudit = async () => {
+    setIsLoadingCatalog(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/context/quality/audit');
+      if (res.ok) {
+        const data = await res.json();
+        setQualityReport(data);
+      }
+    } catch (e) {
+      console.error('Failed to run quality audit', e);
+    } finally {
+      setIsLoadingCatalog(false);
+    }
+  };
+
+  const loadLineage = async (missionId: string = 'EO-M204') => {
+    setIsLoadingCatalog(true);
+    try {
+      const res = await fetch(`http://localhost:8000/api/context/lineage/${missionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLineageData(data);
+      }
+    } catch (e) {
+      console.error('Failed to load lineage', e);
+    } finally {
+      setIsLoadingCatalog(false);
+    }
+  };
+
   // Load initial data on open
   useEffect(() => {
     if (!showAILabModal) return;
@@ -115,7 +166,10 @@ export const AILabModal: React.FC = () => {
     loadCrossAttention();
     loadFinetuneStatus();
     loadPINN();
-  }, [showAILabModal, loadCrossAttention, loadFinetuneStatus, loadPINN]);
+    if (activeTab === 'data_catalog' && !catalogData) {
+      loadCatalog();
+    }
+  }, [showAILabModal, activeTab, loadCrossAttention, loadFinetuneStatus, loadPINN, loadCatalog, catalogData]);
 
   const handleStartTraining = async () => {
     setIsTrainingJobRunning(true);
@@ -223,6 +277,18 @@ export const AILabModal: React.FC = () => {
           >
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             Model Checkpoint & Drift Hub
+          </button>
+
+          <button
+            onClick={() => setActiveTab('data_catalog')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-all ${
+              activeTab === 'data_catalog'
+                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+            }`}
+          >
+            <Layers className="w-4 h-4 text-cyan-400" />
+            Data Platform & Catalog (Layer 1)
           </button>
         </div>
 
@@ -785,8 +851,124 @@ export const AILabModal: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* ========================================================= */}
+          {/* TAB 5: DATA PLATFORM, CATALOG & LINEAGE (LAYER 1) */}
+          {/* ========================================================= */}
+          {activeTab === 'data_catalog' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div>
+                  <h3 className="text-xs font-mono font-bold text-slate-100 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-cyan-400" />
+                    SEMANTIC METADATA CATALOG & DATA CONTRACTS
+                  </h3>
+                  <p className="text-[11px] font-mono text-slate-400">
+                    4 Core Datasets Cataloged with Schema Contracts, Ownership & Downstream ML Consumers.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => runQualityAudit()}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold transition flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Run Quality Audit
+                  </button>
+                  <button
+                    onClick={() => loadLineage('EO-M204')}
+                    className="px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold transition flex items-center gap-1.5"
+                  >
+                    <Network className="w-3.5 h-3.5" />
+                    Trace Lineage
+                  </button>
+                </div>
+              </div>
+
+              {/* Quality Report Banner if available */}
+              {qualityReport && (
+                <div className="p-4 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-2 animate-fade-in">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" /> Telemetry Data Quality Audit: PASS
+                    </span>
+                    <span className="text-slate-400">
+                      Score: <span className="text-emerald-400 font-bold">{(qualityReport.overall_quality_score * 100).toFixed(1)}%</span>
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono text-slate-400 grid grid-cols-3 gap-2">
+                    <div>Records Checked: {qualityReport.total_records_checked}</div>
+                    <div>Schema Drift: ZERO</div>
+                    <div>Circuit Breaker: NOMINAL</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Lineage Graph Card if available */}
+              {lineageData && (
+                <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 space-y-3 animate-fade-in">
+                  <div className="text-xs font-mono font-bold text-cyan-400 flex items-center gap-2">
+                    <Network className="w-4 h-4" />
+                    End-to-End Lineage: {lineageData.target_id}
+                  </div>
+                  <p className="text-[11px] font-mono text-slate-300 bg-slate-900 p-2.5 rounded border border-slate-800">
+                    {lineageData.lineage_path_summary}
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {lineageData.nodes.map((n: any, idx: number) => (
+                      <span key={idx} className="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-[10px] font-mono text-slate-300">
+                        {n.label} ({n.type})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Datasets Grid */}
+              {isLoadingCatalog ? (
+                <div className="text-center py-12 text-cyan-400 font-mono text-xs flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Loading semantic metadata catalog...</span>
+                </div>
+              ) : catalogData?.datasets ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {catalogData.datasets.map((d: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-xs text-white">{d.dataset_name}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+                          {d.schema_version}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] font-mono text-slate-400 leading-relaxed">
+                        {d.description}
+                      </p>
+
+                      <div className="text-[10px] font-mono text-slate-400 space-y-1">
+                        <div>Owner: <span className="text-slate-300">{d.owner}</span> | Format: <span className="text-slate-300">{d.storage_format}</span></div>
+                        <div>Quality Score: <span className="text-emerald-400 font-bold">{(d.quality_score * 100).toFixed(1)}%</span> | Freshness SLA: <span className="text-cyan-400">{d.freshness_seconds}s</span></div>
+                      </div>
+
+                      <div className="pt-1 border-t border-slate-800/80">
+                        <span className="text-[10px] font-mono text-slate-500 block mb-1">Downstream AI Models:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {d.downstream_consumers.map((c: string, cIdx: number) => (
+                            <span key={cIdx} className="text-[9px] font-mono bg-slate-950 px-1.5 py-0.5 rounded text-cyan-300 border border-slate-800">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+

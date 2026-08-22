@@ -24,7 +24,7 @@ services:
       kafka:
         condition: service_started
     volumes:
-      - ./backend/data:/app/data
+      - ./data:/app/data
       - ./backend/models:/app/models
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]

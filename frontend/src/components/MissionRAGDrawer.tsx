@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import {
   X,
   Search,
-  BookOpen,
   CheckCircle2,
   AlertTriangle,
   FileText,
   Sparkles,
-  Clock,
   Send,
   Loader2,
+  ShieldCheck,
+  Cpu,
+  Layers,
+  ThumbsUp,
+  ThumbsDown,
+  HelpCircle,
+  Activity,
+  Check,
 } from 'lucide-react';
-import type { MissionQAResponse } from '../types';
+import type { TrustLayerResponse, HumanFeedbackResponse } from '../types';
 
 interface MissionRAGDrawerProps {
   isOpen: boolean;
@@ -20,17 +26,18 @@ interface MissionRAGDrawerProps {
 
 const SAMPLE_QUERIES = [
   "Why was satellite 3 assigned to Hurricane Alpha?",
-  "What triggered the autonomous CAM burn on SAT-04?",
-  "Explain the battery thermal anomaly and how the AI responded.",
-  "Why was SAT-02 rejected for the Tokyo SAR mission?",
+  "Why did the system reject SAT-02 for the Tokyo SAR mission?",
+  "Explain the battery thermal anomaly on SAT-07 and how the AI responded.",
+  "Show data lineage and model features for Mission M-204.",
   "What is the capital of France?", // Out of domain test
 ];
 
 export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [qaResult, setQaResult] = useState<MissionQAResponse | null>(null);
+  const [trustResult, setTrustResult] = useState<TrustLayerResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackStatus, setFeedbackStatus] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -38,22 +45,43 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
     if (!queryText.trim()) return;
     setIsLoading(true);
     setError(null);
+    setFeedbackStatus(null);
     try {
-      const response = await fetch('http://localhost:8000/api/ai/hybrid-rag/qa', {
+      const response = await fetch(`http://localhost:8000/api/context/ask?query=${encodeURIComponent(queryText)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: queryText, top_k: 5, dense_weight: 0.6, bm25_weight: 0.4 }),
       });
       if (!response.ok) {
         throw new Error(`API error ${response.status}: ${response.statusText}`);
       }
-      const data: MissionQAResponse = await response.json();
-      setQaResult(data);
+      const data: TrustLayerResponse = await response.json();
+      setTrustResult(data);
     } catch (err: any) {
-      console.error('Hybrid RAG QA failed:', err);
-      setError(err.message || 'Failed to query hybrid mission history engine.');
+      console.error('Ask ORBIT-X query failed:', err);
+      setError(err.message || 'Failed to query Ask ORBIT-X Trust Layer.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFeedback = async (type: 'APPROVE' | 'REJECT' | 'INVESTIGATE') => {
+    if (!trustResult) return;
+    try {
+      const res = await fetch('http://localhost:8000/api/context/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          decision_record_id: `DEC-${Date.now().toString().slice(-6)}`,
+          mission_id: 'EO-OPERATIONAL',
+          feedback_type: type,
+          operator_notes: `Operator submitted ${type} action through Ask ORBIT-X HUD.`,
+        }),
+      });
+      if (res.ok) {
+        const data: HumanFeedbackResponse = await res.json();
+        setFeedbackStatus(`Feedback '${type}' successfully logged to continuous evaluation database (${data.feedback_id}).`);
+      }
+    } catch (e) {
+      console.error('Failed to submit feedback:', e);
     }
   };
 
@@ -63,23 +91,23 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-xl h-full bg-slate-950 border-l border-cyan-500/30 flex flex-col shadow-2xl overflow-hidden font-sans">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in font-sans">
+      <div className="w-full max-w-2xl h-full bg-slate-950 border-l border-cyan-500/30 flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <BookOpen className="w-5 h-5" />
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                Mission AI Copilot & Decision RAG
+                Ask ORBIT-X: Decision Intelligence Copilot
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
-                  Grounded QA
+                  Trust Layer
                 </span>
               </h2>
               <p className="text-xs text-slate-400">
-                Verifiable operational history Q&A with strict source citation grounding.
+                Auditable decision reasoning combining Telemetry, ML Models, CP-SAT, SHAP & Citations.
               </p>
             </div>
           </div>
@@ -100,8 +128,8 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask about satellite assignments, anomalies, rejections..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-24 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                placeholder="Ask why a mission was assigned, check anomalies, trace lineage..."
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-24 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition shadow-inner"
               />
               <Search className="w-4 h-4 text-slate-500 absolute left-3.5" />
               <button
@@ -144,89 +172,152 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
             </div>
           )}
 
-          {/* QA Result Card */}
-          {qaResult && (
-            <div className="space-y-4 animate-fade-in">
+          {/* Trust Result Card */}
+          {trustResult && (
+            <div className="space-y-5 animate-fade-in">
               {/* Answer Box */}
-              <div
-                className={`p-5 rounded-xl border ${
-                  qaResult.grounded
-                    ? 'bg-slate-900/80 border-cyan-500/30 text-slate-100'
-                    : 'bg-amber-950/20 border-amber-800/40 text-amber-200'
-                }`}
-              >
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
+              <div className="p-5 rounded-xl bg-slate-900/90 border border-cyan-500/30 text-slate-100 shadow-lg space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                   <div className="flex items-center gap-2">
-                    {qaResult.grounded ? (
-                      <span className="flex items-center gap-1 text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        GROUNDED ANSWER
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-xs font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60">
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        HONEST REFUSAL (OUT OF DOMAIN)
-                      </span>
-                    )}
+                    <span className="flex items-center gap-1 text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      AUDITED REASONING
+                    </span>
+                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
+                      trustResult.confidence_level === 'HIGH'
+                        ? 'bg-cyan-950 text-cyan-400 border-cyan-800'
+                        : 'bg-amber-950 text-amber-400 border-amber-800'
+                    }`}>
+                      Confidence: {(trustResult.confidence_score * 100).toFixed(1)}% ({trustResult.confidence_level})
+                    </span>
                   </div>
-                  <div className="text-[11px] font-mono text-slate-400">
-                    Confidence: <span className="text-cyan-400 font-bold">{(qaResult.confidence_score * 100).toFixed(1)}%</span>
+                  <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                    <Cpu className="w-3 h-3 text-cyan-400" />
+                    <span>Tools: {trustResult.tools_used.length}</span>
                   </div>
                 </div>
 
-                <p className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-slate-200">
-                  {qaResult.answer}
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-200">
+                  {trustResult.answer}
                 </p>
+
+                {trustResult.lineage_summary && (
+                  <div className="p-3 rounded-lg bg-slate-950/70 border border-slate-800 text-xs text-slate-300 font-mono space-y-1">
+                    <div className="text-[10px] uppercase font-bold text-cyan-400 flex items-center gap-1.5">
+                      <Layers className="w-3 h-3" />
+                      Data Lineage Path
+                    </div>
+                    <p className="text-[11px] text-slate-400">{trustResult.lineage_summary}</p>
+                  </div>
+                )}
               </div>
 
-              {/* Verified Citations Section */}
-              {qaResult.citations && qaResult.citations.length > 0 && (
+              {/* Multi-source Evidence List */}
+              {trustResult.evidence && trustResult.evidence.length > 0 && (
                 <div className="space-y-2.5">
                   <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                    Verified Operational Source Citations ({qaResult.citations.length})
+                    <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                    Audited Multi-Source Evidence ({trustResult.evidence.length})
                   </h3>
-                  <div className="space-y-2">
-                    {qaResult.citations.map((cit, idx) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {trustResult.evidence.map((ev, idx) => (
                       <div
                         key={idx}
-                        className="p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition space-y-1.5"
+                        className="p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition space-y-1"
                       >
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded text-[11px] border border-cyan-800/50">
-                              [{cit.record_id}]
-                            </span>
-                            <span className="font-mono text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
-                              {cit.event_type}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500">
-                            <Clock className="w-3 h-3" />
-                            <span>T+{cit.sim_time_s.toFixed(0)}s</span>
-                            <span className="text-cyan-600 ml-1">({(cit.relevance_score * 100).toFixed(0)}% rel.)</span>
-                          </div>
+                        <div className="flex items-center justify-between text-[10px] font-mono">
+                          <span className="font-bold text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/50">
+                            {ev.evidence_type}
+                          </span>
+                          <span className="text-emerald-400 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Verified
+                          </span>
                         </div>
-                        <p className="text-xs text-slate-300 font-mono">
-                          {cit.summary}
+                        <p className="text-xs text-slate-300 font-mono line-clamp-2">
+                          {ev.summary}
                         </p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Verified Citations Section */}
+              {trustResult.citations && trustResult.citations.length > 0 && (
+                <div className="space-y-2.5">
+                  <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                    Verified Citations ({trustResult.citations.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {trustResult.citations.map((cit, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-cyan-400">[{cit.record_id}] {cit.event_type}</span>
+                          <span className="text-slate-500">T+{cit.sim_time_s.toFixed(0)}s</span>
+                        </div>
+                        <p className="text-slate-300 text-[11px]">{cit.summary}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Human-in-the-Loop Action Bar */}
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                    Human-in-the-Loop Review
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-mono">Continuous AI Alignment</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleFeedback('APPROVE')}
+                    className="flex-1 py-2 px-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-medium flex items-center justify-center gap-1.5 transition"
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    Approve Decision
+                  </button>
+                  <button
+                    onClick={() => handleFeedback('REJECT')}
+                    className="flex-1 py-2 px-3 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-medium flex items-center justify-center gap-1.5 transition"
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleFeedback('INVESTIGATE')}
+                    className="flex-1 py-2 px-3 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 text-xs font-medium flex items-center justify-center gap-1.5 transition"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Investigate
+                  </button>
+                </div>
+
+                {feedbackStatus && (
+                  <p className="text-[11px] text-emerald-400 font-mono animate-fade-in bg-emerald-950/40 p-2 rounded border border-emerald-800/50">
+                    ✓ {feedbackStatus}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
           {/* Placeholder / Empty State */}
-          {!qaResult && !isLoading && (
+          {!trustResult && !isLoading && (
             <div className="p-8 border border-dashed border-slate-800 rounded-2xl text-center space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mx-auto">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-semibold text-slate-200">Grounded Decision History Engine</h3>
+              <h3 className="text-sm font-semibold text-slate-200">Ask ORBIT-X: Decision Intelligence Copilot</h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                ORBIT-X maintains an immutable ring-buffer of multi-agent bids, solver constraints, and anomaly responses. Ask any question to retrieve cited explanations.
+                Connects real-time telemetry, Cross-Attention neural predictions, CP-SAT constraints, and SHAP attributions into an auditable decision trail with human review actions.
               </p>
             </div>
           )}

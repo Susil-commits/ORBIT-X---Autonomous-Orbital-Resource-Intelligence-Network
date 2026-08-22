@@ -523,3 +523,156 @@ class HybridMissionQARequest(BaseModel):
     dense_weight: float = 0.6
     bm25_weight: float = 0.4
 
+
+# ====================================================
+# Layer 1 & Layer 4: Context Layer, Metadata & Lineage
+# ====================================================
+
+class DataCatalogColumn(BaseModel):
+    name: str
+    type: str
+    description: str
+
+
+class DataCatalogEntry(BaseModel):
+    dataset_name: str
+    owner: str
+    description: str
+    schema_version: str
+    storage_format: str
+    freshness_seconds: float
+    quality_score: float
+    sensitivity: str
+    columns: List[DataCatalogColumn]
+    downstream_consumers: List[str]
+
+
+class DataCatalogResponse(BaseModel):
+    catalog_version: str
+    total_datasets: int
+    datasets: List[DataCatalogEntry]
+
+
+class DataLineageNode(BaseModel):
+    id: str
+    label: str
+    type: str  # "SOURCE_TELEMETRY", "DATASET", "FEATURE_TABLE", "ML_MODEL", "OPTIMIZER", "DECISION", "OUTCOME"
+    metadata: Dict[str, Any] = {}
+
+
+class DataLineageEdge(BaseModel):
+    source: str
+    target: str
+    relationship: str  # "INCORPORATES", "TRANSFORMS_INTO", "FEEDS_INTO", "PRODUCES", "VALIDATES"
+
+
+class DataLineageResponse(BaseModel):
+    target_id: str
+    nodes: List[DataLineageNode]
+    edges: List[DataLineageEdge]
+    lineage_path_summary: str
+
+
+class DataQualityAlert(BaseModel):
+    severity: str  # "INFO", "WARNING", "CRITICAL"
+    column: Optional[str] = None
+    alert_type: str  # "MISSING_VALUES", "SCHEMA_DRIFT", "DISTRIBUTION_DRIFT", "STALE_DATA"
+    message: str
+    impact: str
+    recommended_action: str
+
+
+class DataQualityReport(BaseModel):
+    dataset_name: str
+    timestamp_iso: str
+    total_records_checked: int
+    overall_quality_score: float
+    is_nominal: bool
+    alerts: List[DataQualityAlert]
+    metrics: Dict[str, Any] = {}
+
+
+# ====================================================
+# Layer 2: Baseline Models & Feature Ablation
+# ====================================================
+
+class BaselineModelScore(BaseModel):
+    model_name: str
+    model_category: str  # "HEURISTIC", "CLASSICAL_ML", "DEEP_LEARNING", "HYBRID"
+    top1_agreement_pct: float
+    mae: float
+    accuracy_pct: float
+    f1_score: float
+    latency_ms_p50: float
+    latency_ms_p95: float
+    throughput_inferences_sec: float
+    description: str
+
+
+class BaselineComparisonReport(BaseModel):
+    timestamp_iso: str
+    total_test_samples: int
+    evaluated_missions: int
+    models: List[BaselineModelScore]
+    champion_model: str
+    selection_rationale: str
+
+
+class FeatureAblationEntry(BaseModel):
+    ablation_name: str
+    removed_features: List[str]
+    remaining_feature_count: int
+    top1_agreement_pct: float
+    mae: float
+    performance_delta_pct: float
+    interpretation: str
+
+
+class FeatureAblationReport(BaseModel):
+    timestamp_iso: str
+    baseline_top1_pct: float
+    ablations: List[FeatureAblationEntry]
+    key_findings: List[str]
+
+
+# ====================================================
+# Layer 4: Trust Layer, Audit Trail & Human-in-the-Loop
+# ====================================================
+
+class TrustEvidenceItem(BaseModel):
+    evidence_type: str  # "TELEMETRY", "MISSION_METADATA", "MODEL_PREDICTION", "SHAP_XAI", "OPTIMIZER_RESULT", "LINEAGE"
+    source_id: str
+    summary: str
+    verified: bool = True
+    confidence_contribution: float = 0.0
+
+
+class TrustLayerResponse(BaseModel):
+    query: str
+    answer: str
+    confidence_score: float
+    confidence_level: str  # "HIGH", "MEDIUM", "LOW"
+    grounded: bool
+    evidence: List[TrustEvidenceItem]
+    citations: List[Citation]
+    tools_used: List[str]
+    lineage_summary: Optional[str] = None
+    requires_human_review: bool = False
+    recommended_action: Optional[str] = None
+
+
+class HumanFeedbackRequest(BaseModel):
+    decision_record_id: str
+    mission_id: Optional[str] = None
+    feedback_type: str  # "APPROVE", "REJECT", "INVESTIGATE"
+    operator_notes: Optional[str] = None
+    suggested_alternative_satellite: Optional[str] = None
+
+
+class HumanFeedbackResponse(BaseModel):
+    feedback_id: str
+    status: str
+    message: str
+    recorded_at_iso: str
+
+

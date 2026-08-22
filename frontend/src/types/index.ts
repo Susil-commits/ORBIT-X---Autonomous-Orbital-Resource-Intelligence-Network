@@ -465,3 +465,164 @@ export interface HybridMissionQARequest {
   bm25_weight?: number;
 }
 
+// ====================================================
+// Context Layer & Semantic Metadata Catalog
+// ====================================================
+
+export interface DataCatalogColumn {
+  name: string;
+  type: string;
+  description: string;
+}
+
+export interface DataCatalogEntry {
+  dataset_name: string;
+  owner: string;
+  description: string;
+  schema_version: string;
+  storage_format: string;
+  freshness_seconds: number;
+  quality_score: number;
+  sensitivity: string;
+  columns: DataCatalogColumn[];
+  downstream_consumers: string[];
+}
+
+export interface DataCatalogResponse {
+  catalog_version: string;
+  total_datasets: number;
+  datasets: DataCatalogEntry[];
+}
+
+export interface DataLineageNode {
+  id: string;
+  label: string;
+  type: 'SOURCE_TELEMETRY' | 'DATASET' | 'FEATURE_TABLE' | 'ML_MODEL' | 'OPTIMIZER' | 'DECISION' | 'OUTCOME' | string;
+  metadata?: Record<string, any>;
+}
+
+export interface DataLineageEdge {
+  source: string;
+  target: string;
+  relationship: string;
+}
+
+export interface DataLineageResponse {
+  target_id: string;
+  nodes: DataLineageNode[];
+  edges: DataLineageEdge[];
+  lineage_path_summary: string;
+}
+
+export interface DataQualityAlert {
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  column?: string | null;
+  alert_type: string;
+  message: string;
+  impact: string;
+  recommended_action: string;
+}
+
+export interface DataQualityReport {
+  dataset_name: string;
+  timestamp_iso: string;
+  total_records_checked: number;
+  overall_quality_score: number;
+  is_nominal: boolean;
+  alerts: DataQualityAlert[];
+  metrics: Record<string, any>;
+}
+
+// ====================================================
+// ML Baselines & Feature Ablation
+// ====================================================
+
+export interface BaselineModelScore {
+  model_name: string;
+  model_category: 'HEURISTIC' | 'CLASSICAL_ML' | 'DEEP_LEARNING' | 'HYBRID' | string;
+  top1_agreement_pct: number;
+  mae: number;
+  accuracy_pct: number;
+  f1_score: number;
+  latency_ms_p50: number;
+  latency_ms_p95: number;
+  throughput_inferences_sec: number;
+  description: string;
+}
+
+export interface BaselineComparisonReport {
+  timestamp_iso: string;
+  total_test_samples: number;
+  evaluated_missions: number;
+  models: BaselineModelScore[];
+  champion_model: string;
+  selection_rationale: string;
+}
+
+export interface FeatureAblationEntry {
+  ablation_name: string;
+  removed_features: string[];
+  remaining_feature_count: number;
+  top1_agreement_pct: number;
+  mae: number;
+  performance_delta_pct: number;
+  interpretation: string;
+}
+
+export interface FeatureAblationReport {
+  timestamp_iso: string;
+  baseline_top1_pct: number;
+  ablations: FeatureAblationEntry[];
+  key_findings: string[];
+}
+
+// ====================================================
+// Trust Layer, Audit Trail & Human Feedback
+// ====================================================
+
+export interface Citation {
+  record_id: string;
+  sim_time_s: number;
+  event_type: string;
+  summary: string;
+  relevance_score: number;
+}
+
+export interface TrustEvidenceItem {
+  evidence_type: string;
+  source_id: string;
+  summary: string;
+  verified: boolean;
+  confidence_contribution: number;
+}
+
+export interface TrustLayerResponse {
+  query: string;
+  answer: string;
+  confidence_score: number;
+  confidence_level: 'HIGH' | 'MEDIUM' | 'LOW';
+  grounded: boolean;
+  evidence: TrustEvidenceItem[];
+  citations: Citation[];
+  tools_used: string[];
+  lineage_summary?: string | null;
+  requires_human_review: boolean;
+  recommended_action?: string | null;
+}
+
+export interface HumanFeedbackRequest {
+  decision_record_id: string;
+  mission_id?: string | null;
+  feedback_type: 'APPROVE' | 'REJECT' | 'INVESTIGATE';
+  operator_notes?: string | null;
+  suggested_alternative_satellite?: string | null;
+}
+
+export interface HumanFeedbackResponse {
+  feedback_id: string;
+  status: string;
+  message: string;
+  recorded_at_iso: string;
+}
+
+

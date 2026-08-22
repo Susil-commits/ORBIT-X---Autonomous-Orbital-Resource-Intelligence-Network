@@ -122,6 +122,29 @@ SATELLITES_NOMINAL = Gauge(
     "Count of satellites reporting healthy nominal status",
 )
 
+# AI Agent & Context Layer Observability Metrics
+AGENT_REQUEST_DURATION = Histogram(
+    "orbit_agent_request_duration_seconds",
+    "Ask ORBIT-X end-to-end processing latency in seconds",
+    ["query_type"],
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
+)
+AGENT_TOOL_CALLS_TOTAL = Counter(
+    "orbit_agent_tool_calls_total",
+    "Total tool invocations by the AI assistant",
+    ["tool_name", "status"],
+)
+AGENT_CONFIDENCE_SCORE = Histogram(
+    "orbit_agent_confidence_score",
+    "Distribution of synthesized answer confidence scores [0.0, 1.0]",
+    buckets=(0.1, 0.3, 0.5, 0.7, 0.85, 0.95, 1.0),
+)
+HUMAN_FEEDBACK_TOTAL = Counter(
+    "orbit_human_feedback_total",
+    "Total operator human-in-the-loop review actions recorded",
+    ["feedback_type"],
+)
+
 
 def get_prometheus_metrics_bytes() -> bytes:
     """Renders all registered Prometheus metrics to standard scrape format."""
