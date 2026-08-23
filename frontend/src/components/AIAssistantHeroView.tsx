@@ -95,7 +95,7 @@ export const AIAssistantHeroView: React.FC = () => {
             { source_id: 'SAT-03_telemetry', summary: 'Live Telemetry: SoC 24.5%, Temp 48.2°C, Bus 23.4V, Freshness: 8s', verified: true },
             { source_id: 'IsolationForest_v1.5', summary: 'Unsupervised anomaly detection flagged severe thermal excursion score -0.142.', verified: true },
             { source_id: 'ConstellationCrossAttentionNet_v2.2', summary: 'Neural candidate ranking selected SAT-17 with 94.2 valuation score and 94.8% win prob.', verified: true },
-            { source_id: 'Google_ORTools_CPSAT', summary: 'Deterministic integer program verified 100% hard constraints satisfied.', verified: true },
+            { source_id: 'Google_ORTools_CPSAT', summary: 'Deterministic integer program verified modeled physical constraints satisfied on feasible plan.', verified: true },
           ],
           tools_used: ['get_dataset_metadata', 'search_telemetry', 'evaluate_anomaly_score', 'get_model_prediction', 'explain_prediction', 'run_optimizer'],
           available_actions: ['APPROVE', 'REJECT', 'INVESTIGATE'],
@@ -130,7 +130,7 @@ export const AIAssistantHeroView: React.FC = () => {
         evidence: [
           { source_id: 'telemetry_stream', summary: 'Validated against Pydantic schema contracts', verified: true },
           { source_id: 'cross_attention_net', summary: 'Candidate token match: 94.8% win probability', verified: true },
-          { source_id: 'cpsat_solver', summary: 'Deterministic integer schedule verified with zero violations', verified: true },
+          { source_id: 'cpsat_solver', summary: 'Deterministic integer schedule verified on feasible problem', verified: true },
         ],
         tools_used: ['get_dataset_metadata', 'search_telemetry', 'get_model_prediction', 'explain_prediction', 'run_optimizer'],
         available_actions: ['APPROVE', 'REJECT', 'INVESTIGATE'],
@@ -216,7 +216,7 @@ export const AIAssistantHeroView: React.FC = () => {
           <div className="h-4 w-px bg-slate-800" />
           <div>
             <span className="text-slate-400">Constraint Solver:</span>{' '}
-            <span className="text-emerald-400 font-semibold">CP-SAT 100% Safe</span>
+            <span className="text-emerald-400 font-semibold">CP-SAT Hard Invariants</span>
           </div>
         </div>
       </div>

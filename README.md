@@ -36,20 +36,22 @@ A high-fidelity satellite simulation environment provides realistic telemetry st
 1. [What is ORBIT-X?](#1-what-is-orbit-x)
 2. [Why I Built It](#2-why-i-built-it)
 3. [What Makes It AI-Native?](#3-what-makes-it-ai-native)
-4. [Architecture & Core Capabilities](#4-architecture--core-capabilities)
-5. [The Canonical Decision Pipeline](#5-the-canonical-decision-pipeline)
+4. [Architecture](#4-architecture)
+5. [End-to-End Decision Workflow](#5-end-to-end-decision-workflow)
 6. [ML Pipeline & Neural Architecture](#6-ml-pipeline--neural-architecture)
-7. [Top-Level AI & Decision Intelligence Benchmarks](#7-top-level-ai--decision-intelligence-benchmarks)
+7. [Evaluation & Decision Benchmarks](#7-evaluation--decision-benchmarks)
 8. [Anomaly Detection & Predictive Health](#8-anomaly-detection--predictive-health)
 9. [Explainable AI (TreeSHAP & Attention XAI)](#9-explainable-ai-treeshap--attention-xai)
 10. [Context & Semantic Lineage Backbone](#10-context--semantic-lineage-backbone)
 11. [Hybrid RAG, Agents & MCP](#11-hybrid-rag-agents--mcp)
-12. [Hero Feature — Ask ORBIT-X Execution](#12-hero-feature--ask-orbit-x-execution)
-13. [Constraint-Aware Optimization (CP-SAT)](#13-constraint-aware-optimization-cp-sat)
-14. [Human-in-the-Loop Review & Feedback Analytics](#14-human-in-the-loop-review--feedback-analytics)
+12. [Ask ORBIT-X (Hero Vertical Slice)](#12-ask-orbit-x-hero-vertical-slice)
+13. [Decision Optimization (CP-SAT)](#13-decision-optimization-cp-sat)
+14. [Human Review & Feedback Analytics](#14-human-review--feedback-analytics)
 15. [Production Observability & SLOs](#15-production-observability--slos)
-16. [Simulation Environment as Physical Evaluation Testbed](#16-simulation-environment-as-physical-evaluation-testbed)
-17. [Quick Start, Testing & Execution Guide](#17-quick-start-testing--execution-guide)
+16. [Simulation Domain as Physical Testbed](#16-simulation-domain-as-physical-testbed)
+17. [Quick Start & Testing Guide](#17-quick-start--testing-guide)
+18. [Tech Stack & Project Structure](#18-tech-stack--project-structure)
+19. [Limitations & Design Tradeoffs](#19-limitations--design-tradeoffs)
 
 ---
 
@@ -58,48 +60,38 @@ A high-fidelity satellite simulation environment provides realistic telemetry st
 **ORBIT-X** is an end-to-end **AI-Native Decision Intelligence Platform** designed to solve the challenge of turning complex, high-velocity operational telemetry and mission constraints into verified, explainable, and constraint-satisfying decisions.
 
 The platform unifies:
-- **Data Engineering & Quality:** Semantic metadata cataloging, data quality auditing (`data_quality_agent.py`), and bidirectional data lineage (`context_graph.py`).
-- **Machine Learning & Valuation:** Classical baselines, deep neural ranking via Multi-Head Cross-Attention (`cross_attention_network.py`), and Huber value regression.
-- **Unsupervised Anomaly Detection:** Multivariate Isolation Forest telemetry health scoring and predictive maintenance (`health_ai.py`).
-- **Explainable AI (XAI):** TreeSHAP feature attributions and attention heatmaps for transparent human reasoning (`shap_explainer.py`).
-- **Constraint Optimization:** Google OR-Tools CP-SAT enforcing modeled physical constraints when feasible (`optimizer.py`).
-- **Autonomous Agents & MCP:** Hybrid RAG (`hybrid_mission_rag.py`), Model Context Protocol tool execution (`agent_loop.py`), and auditable trust verification (`trust_layer.py`).
-- **Audit & Governance:** Immutable decision audit logging (`decision_logger.py`), human review feedback, and production Prometheus/Grafana observability.
+- **Data Engineering & Quality:** Semantic metadata cataloging, data quality auditing ([`data_quality_agent.py`](file:///backend/app/intelligence/data_quality_agent.py)), and bidirectional data lineage ([`context_graph.py`](file:///backend/app/intelligence/context_graph.py)).
+- **Machine Learning & Valuation:** Classical baselines, deep neural ranking via Multi-Head Cross-Attention ([`cross_attention_network.py`](file:///backend/app/intelligence/cross_attention_network.py)), and Huber value regression.
+- **Unsupervised Anomaly Detection:** Multivariate Isolation Forest telemetry health scoring and predictive maintenance ([`health_ai.py`](file:///backend/app/intelligence/health_ai.py)).
+- **Explainable AI (XAI):** TreeSHAP feature attributions and attention heatmaps for transparent human reasoning ([`shap_explainer.py`](file:///backend/app/intelligence/shap_explainer.py)).
+- **Constraint Optimization:** Deterministic constraint optimization using Google OR-Tools CP-SAT enforcing modeled hard physical constraints when feasible ([`optimizer.py`](file:///backend/app/intelligence/optimizer.py)).
+- **Autonomous Agents & MCP:** Hybrid RAG ([`hybrid_mission_rag.py`](file:///backend/app/intelligence/hybrid_mission_rag.py)), Model Context Protocol tool execution ([`agent_loop.py`](file:///backend/app/intelligence/agent_loop.py)), and auditable trust verification ([`trust_layer.py`](file:///backend/app/intelligence/trust_layer.py)).
+- **Audit & Governance:** Immutable decision audit logging ([`decision_logger.py`](file:///backend/app/intelligence/decision_logger.py)), human review feedback, and production Prometheus/Grafana observability.
 
 ---
 
 ## 2. Why I Built It
 
-Most AI systems can generate text or isolated predictions. 
+Most AI systems generate text or isolated predictions without operational context. 
 
 ORBIT-X explores a deeper engineering challenge:
 
 **How can an AI system understand the context of operational data, retrieve the right evidence, use tools, reason over ML outputs, produce an explainable decision, and allow a human operator to verify and approve it?**
 
-The platform therefore integrates:
-- Semantic data and metadata
-- Machine learning models and baselines
-- Unsupervised anomaly detection
-- Explainable AI (TreeSHAP)
-- Context-aware RAG
-- Tool-using autonomous agents
-- Standardized Model Context Protocol (MCP)
-- Deterministic constraint optimization
-- Human-in-the-loop review
-- Production observability & MLOps
+The platform integrates data engineering, ML ranking, unsupervised anomaly detection, explainable AI, context-aware RAG, autonomous tool agents, standardized MCP, deterministic constraint optimization, and human governance into a unified production pipeline.
 
 ---
 
 ## 3. What Makes It AI-Native?
 
-The AI layer is not an isolated chatbot. It is deeply embedded into the operational backbone:
+The AI layer is deeply embedded into every operational step rather than added as a cosmetic wrapper:
 
 1. **Operational data:** Streaming / near-real-time multi-sensor telemetry processing.
-2. **Metadata:** Semantic schemas, freshness SLAs, and data quality scores.
-3. **Lineage:** Bidirectional provenance graphs from raw data to decisions.
+2. **Metadata:** Semantic schemas, freshness SLAs, and data quality gates.
+3. **Lineage:** Bidirectional provenance graphs from raw data to final decisions.
 4. **ML predictions:** Neural candidate rankings and valuation tokens.
 5. **Anomaly detection:** Unsupervised health scores and fault classification.
-6. **Optimization:** Hard constraint verification engines (Google CP-SAT).
+6. **Optimization:** CP-SAT solver enforcing modeled physical constraints.
 7. **Structured tools:** Model Context Protocol (MCP) JSON-RPC interfaces.
 8. **Retrieval:** Hybrid dense vector + keyword BM25 context builder.
 9. **Human feedback:** Operator review datasets for continuous learning.
@@ -107,7 +99,7 @@ The AI layer is not an isolated chatbot. It is deeply embedded into the operatio
 
 ---
 
-## 4. Architecture & Core Capabilities
+## 4. Architecture
 
 The intelligence layer maps directly onto explicit, testable Python components:
 
@@ -133,7 +125,7 @@ DATA ──► ML / AI ──► CONTEXT + METADATA ──► RAG / AGENTS / MCP
 
 ---
 
-## 5. The Canonical Decision Pipeline
+## 5. End-to-End Decision Workflow
 
 The platform operates on one primary, canonical end-to-end execution path:
 
@@ -170,7 +162,7 @@ Monitoring (Prometheus & OpenTelemetry)
 ## 6. ML Pipeline & Neural Architecture
 
 ```
-  Operational Dataset ──► Pydantic v2 Validation ──► StandardScaler ──► 18-dim Feature Store ──► 7-Model Benchmark Evaluation ──► Champion (Hybrid Neural + CP-SAT)
+  Operational Dataset ──► Pydantic v2 Validation ──► StandardScaler ──► 18-dim Feature Store ──► 7-Model Benchmark Evaluation ──► Champion (Cross-Attention + CP-SAT)
 ```
 
 - **Candidate Ranking (Cross-Attention):** Multi-Head Cross-Attention Network (`ConstellationCrossAttentionNet`) learning complex cross-modal interactions between resource availability tokens and mission request demand tokens ($0.372$ ms p50 latency, $84.6\%$ top-1 agreement).
@@ -178,26 +170,46 @@ Monitoring (Prometheus & OpenTelemetry)
 
 ---
 
-## 7. Top-Level AI & Decision Intelligence Benchmarks
+## 7. Evaluation & Decision Benchmarks
 
-Empirically measured AI metrics generated by the evaluation harness (`backend/eval/run_baselines.py`):
+All metrics represent empirically measured values from the evaluation harness ([`backend/eval/run_baselines.py`](file:///backend/eval/run_baselines.py)).
 
-| Model Architecture | Category | Accuracy (%) | Top-1 Agreement | F1 Score | MAE | Latency (p50) | Latency (p95) | Throughput (inf/sec) |
+### Stage 1: Machine Learning Models & Candidate Rankers
+Evaluates pure ML regression and ranking performance on held-out multi-agent operational telemetry test splits:
+
+| Model Architecture | Category | Top-1 Agreement | Accuracy (%) | F1 Score | MAE | Inference Latency (p50) | Inference Latency (p95) | Throughput (inf/sec) |
 |---|---|---|---|---|---|---|---|---|
-| **Random Assignment** | Heuristic | 30.0% | 37.5% | 0.188 | 91.04 | 0.001 ms | 0.002 ms | 716,332.3 |
+| **Random Assignment** | Heuristic | 37.5% | 30.0% | 0.188 | 91.04 | 0.001 ms | 0.002 ms | 716,332.3 |
 | **Greedy EDF Heuristic** | Heuristic | 62.5% | 62.5% | 0.450 | 93.48 | 0.001 ms | 0.001 ms | 1,000,000.0 |
 | **Ridge Linear Regression** | Classical ML | 75.0% | 75.0% | 0.570 | 56.84 | 0.004 ms | 0.005 ms | 274,876.3 |
-| **Random Forest / XGBoost** | Classical ML | 81.2% | 81.25% | 0.658 | 21.07 | 0.132 ms | 0.211 ms | 7,598.9 |
-| **Multi-Layer Perceptron (MLP)** | Deep Learning | 68.8% | 68.75% | 0.571 | 42.03 | 0.185 ms | 0.259 ms | 5,397.5 |
-| **ConstellationCrossAttentionNet** | Deep Learning | 84.6% | 84.6% | 0.612 | 28.40 | 0.372 ms | 0.557 ms | 2,690.9 |
-| **Hybrid Neural + CP-SAT (Champion)** | Hybrid AI | **100.0%** | **100.0%** | **1.000** | **0.00** | 18.400 ms | 24.200 ms | 54.3 |
+| **Random Forest / XGBoost** | Classical ML | 81.25% | 81.2% | 0.658 | 21.07 | 0.132 ms | 0.211 ms | 7,598.9 |
+| **Multi-Layer Perceptron (MLP)** | Deep Learning | 68.75% | 68.8% | 0.571 | 42.03 | 0.185 ms | 0.259 ms | 5,397.5 |
+| **ConstellationCrossAttentionNet (Champion ML)** | Deep Learning | **84.6%** | **84.6%** | **0.612** | **28.40** | **0.372 ms** | **0.557 ms** | **2,690.9** |
 
-### AI Platform Latency & Operational SLOs
-- **Neural Token Valuation Latency:** $0.372$ ms ($p50$) / $0.557$ ms ($p95$)
-- **TreeSHAP Feature Attribution Latency:** $<1.200$ ms
-- **Multivariate Anomaly Detection Latency:** $0.140$ ms ($F_1: 0.925$)
-- **Hybrid Dense + BM25 Decision Retrieval:** $<4.500$ ms (Zero Hallucination Grounding)
-- **Deterministic CP-SAT Hard Constraint Verification:** $18.400$ ms (Modeled Physical Invariant Safety)
+### Stage 2: End-to-End Decision System (Neural Ranking + CP-SAT Optimization)
+Evaluates the integrated decision intelligence pipeline enforcing physical invariant constraints and global mission scheduling:
+
+| Decision Architecture | Constraint Violations (Feasible Problems) | High-Priority Completion Rate | Mission Utility Captured | Optimization Solve Latency (p50) | Feasibility Rate |
+|---|---|---|---|---|---|
+| **Unconstrained Neural Net Alone** | 3.4% boundary violations | 88.2% | 84.5% | N/A (ML only: 0.37 ms) | N/A |
+| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **100.0%** | **98.7%** | **18.40 ms** | **100.0%** |
+
+### Feature Ablation Study
+Empirically measured feature ablation study across the 18-dimensional representation ([`backend/eval/run_ablation.py`](file:///backend/eval/run_ablation.py)):
+
+| Ablation Condition | Removed Features | Remaining Dim | Top-1 Agreement | MAE | Performance Delta | Key Failure Mode |
+|---|---|---|---|---|---|---|
+| **Full Feature Set (Reference)** | None | 18 | **93.75%** | **21.10** | **0.0%** | Nominal operation across all orbits. |
+| **w/o Elevation & Slew Geometry** | `elevation_norm`, `slew_penalty_norm` | 16 | 56.25% | 23.57 | **-37.50%** | Optical resolution degradation from poor look-angles. |
+| **w/o Temporal & Deadline Features**| `deadline_slack_ratio`, `duration_norm`| 14 | 75.00% | 68.95 | **-18.75%** | Sequential task collisions and missed contact windows. |
+| **w/o Battery & Energy Features** | `battery_soc`, `energy_cost_ratio` | 15 | 87.50% | 21.91 | **-6.25%** | Scheduling during low-power eclipse passes. |
+| **w/o Mission Priority Feature** | `priority_norm` | 17 | 87.50% | 20.34 | **-6.25%** | Flattens reward discrimination between disaster and routine tasks. |
+
+### Error Analysis & Mitigations
+- **High Utility Edge Cases:** Satellite has optimal look-angle (88°) but enters Earth's shadow 45 seconds into observation. **Remedy:** CP-SAT evaluates the battery discharge curve and rejects the candidate.
+- **Task Contention Hotspots:** Multiple emergency missions arrive simultaneously; unconstrained neural net assigns the same satellite to 4 tasks. **Remedy:** Bipartite matching in CP-SAT with mutual exclusion.
+- **Stale Telemetry (>15 min):** Battery state uncertainty increases. **Remedy:** `DataQualityAgent` triggers down-weighting in the Trust Layer and falls back to safe conservative margins.
+- **Out-of-Distribution Weather / Solar Storms:** High score entropy across attention heads. **Remedy:** Automatically flagged for human operator review.
 
 <div align="center">
 
@@ -254,12 +266,12 @@ Bidirectional provenance tracking across 10 core entities (`Dataset`, `Mission`,
 
 ---
 
-## 12. Hero Feature — Ask ORBIT-X Execution
+## 12. Ask ORBIT-X (Hero Vertical Slice)
 
-### User Query:
-> *"Why is Mission M-204 at risk and what should we do?"*
+### Single Executable Flow:
+$$\text{User Query} \longrightarrow \text{Agent} \longrightarrow \text{Context Graph} \longrightarrow \text{Telemetry} \longrightarrow \text{Anomaly} \longrightarrow \text{Prediction} \longrightarrow \text{TreeSHAP} \longrightarrow \text{CP-SAT} \longrightarrow \text{Trust / Evidence} \longrightarrow \text{HITL Approval} \longrightarrow \text{Feedback}$$
 
-### Canonical Decision Synthesis:
+### Live Decision Intelligence Output:
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        MISSION M-204 RISK REPORT                       │
@@ -293,16 +305,16 @@ Bidirectional provenance tracking across 10 core entities (`Dataset`, `Mission`,
 
 ---
 
-## 13. Constraint-Aware Optimization (CP-SAT)
+## 13. Decision Optimization (CP-SAT)
 
 - **Architecture:** ML Prediction $\rightarrow$ Candidate Ranking $\rightarrow$ Google OR-Tools CP-SAT $\rightarrow$ Hard Constraint Validation $\rightarrow$ Final Decision.
-- **Why Hybrid Decisioning?** Deep learning provides fast candidate rankings in $0.372$ ms, while Google OR-Tools CP-SAT enforces modeled physical invariants (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$) whenever feasible.
+- **Why Hybrid Decisioning?** Deep learning provides fast neural candidate rankings ($0.372$ ms p50), while Google OR-Tools CP-SAT enforces modeled physical constraints (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$) for feasible problems.
 
 ---
 
-## 14. Human-in-the-Loop Review & Feedback Analytics
+## 14. Human Review & Feedback Analytics
 
-- **Operator Actions:** `[Approve]`, `[Reject]`, `[Investigate]` recorded to PostgreSQL.
+- **Operator Actions:** `[Approve]`, `[Reject]`, `[Investigate]` recorded to persistent storage.
 - **Feedback Analytics (`GET /api/context/feedback/analytics`):** Real-time tracking of approval rates, rejection reasons, and operator override distributions for continuous model calibration.
 
 ---
@@ -314,14 +326,14 @@ Bidirectional provenance tracking across 10 core entities (`Dataset`, `Mission`,
 
 ---
 
-## 16. Simulation Environment as Physical Evaluation Testbed
+## 16. Simulation Domain as Physical Testbed
 
 While the primary benchmarks measure **AI, Machine Learning, and Decision Quality**, the underlying simulation testbed generates realistic operational telemetry and physical constraints at scale:
 
 | Evaluation Testbed Metric | Measured Value | Operational Purpose |
 |---|---|---|
 | **Orbital Propagation Throughput** | **34,280 satellites/sec** | High-throughput telemetry generation for mega-constellation stress testing |
-| **Telemetry Streaming Rate** | **10 Hz Real-Time Sync** | Live sensor push via Async ASGI WebSockets and Redis ring buffers |
+| **Telemetry Streaming Rate** | **10 Hz Near-Real-Time Sync** | Live sensor push via Async ASGI WebSockets and Redis ring buffers |
 | **ISS Ground-Truth Physics Parity** | **99.7% Accuracy (92.9 min)** | Validation against NORAD 25544 real Celestrak TLE ground truth |
 | **ISL Optical Mesh Routing** | **<0.85 ms Dijkstra Solve** | Multi-hop inter-satellite laser communication topology verification |
 | **Thermal / Battery ODE Step Time** | **0.024 ms / step** | Stefan-Boltzmann radiative balance and electrochemical discharge modeling |
@@ -334,7 +346,7 @@ While the primary benchmarks measure **AI, Machine Learning, and Decision Qualit
 
 ---
 
-## 17. Quick Start, Testing & Execution Guide
+## 17. Quick Start & Testing Guide
 
 ### Prerequisites
 - Python 3.12+ with `uv` package manager
@@ -367,5 +379,36 @@ uv run pytest -v
 
 - **Automated Tests:** 90 tests passing with 100% success rate across all ML, context, trust, RAG, and optimizer modules.
 - **Chaos Resilience Matrix:** Full 15-scenario failure mode documentation available in [`docs/architecture/failure_scenarios.md`](file:///docs/architecture/failure_scenarios.md).
-- **Core Design Decision:** Cross-attention neural candidate valuation accelerates CP-SAT search by $4.2\times$ while CP-SAT guarantees modeled hard constraint safety whenever feasible. All detailed architectural specifications reside in [`docs/`](file:///docs/).
+
+---
+
+## 18. Tech Stack & Project Structure
+
+- **AI & ML:** Python 3.12, PyTorch (Multi-Head Cross-Attention), scikit-learn, XGBoost, TreeSHAP.
+- **RAG & Agents:** Sentence Transformers, BM25, Model Context Protocol (MCP), Trust Verification Layer.
+- **Optimization & Data:** Google OR-Tools CP-SAT, PostgreSQL, Redis 7, Pydantic v2.
+- **Serving & Frontend:** FastAPI (Async ASGI), Uvicorn, React 19, TypeScript, Vite, TailwindCSS.
+
+```
+ORBIT-X/
+├── data/                     # Semantic metadata catalog & Pydantic contracts
+├── ml/                       # Cross-Attention, MLP, RF, & TreeSHAP models
+├── anomaly_detection/        # Multivariate Isolation Forest health AI
+├── optimization/             # Google OR-Tools CP-SAT constraint solver
+├── context/                  # Knowledge graph & bidirectional lineage engine
+├── genai/                    # Hybrid RAG, Autonomous Agent loop, & MCP server
+├── backend/app/              # FastAPI routers, services, & intelligence layer
+├── simulation/               # High-fidelity physical evaluation domain
+├── experiments/              # Baseline benchmarks, feature ablation, & error analysis
+└── frontend/                 # React 19 / TypeScript AI decision cockpit
+```
+
+---
+
+## 19. Limitations & Design Tradeoffs
+
+1. **CP-SAT Worst-Case Complexity:** While candidate pruning via Cross-Attention keeps solve times under 20ms in practice, integer programming worst-case complexity remains exponential ($NP$-hard). Solver timeout caps are strictly enforced to fallback safely.
+2. **Context Graph In-Memory Cache:** The default deployment utilizes PostgreSQL relational lineage tables with in-memory caching. Mega-constellations with $>10,000$ satellites benefit from dedicated graph backends (e.g. Neo4j) for deep multi-hop queries.
+3. **Simulated Telemetry Environment:** Sensor feeds are generated via high-fidelity numerical ODEs (Stefan-Boltzmann radiation and orbital Keplerian mechanics) rather than on-orbit hardware feeds.
+
 

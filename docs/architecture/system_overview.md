@@ -80,7 +80,7 @@ ORBIT-X is designed as a modular, production-ready **AI-Native Decision Intellig
 - **Agent Planning & Trust Layer:** Multi-step intent understanding, planning, tool selection, evidence collection, and hallucination verification.
 
 ### 2.5 Decision Intelligence & Optimization Layer
-- **Hybrid ML + CP-SAT:** Decouples fast probabilistic candidate scoring ($O(1)$ inference) from hard physical constraint enforcement ($O(N \log N)$ CP-SAT solver).
+- **Hybrid ML + CP-SAT:** Decouples fast neural candidate ranking from deterministic constraint optimization using Google OR-Tools CP-SAT.
 - **Human-in-the-Loop:** Interactive approval, rejection, and investigation workflows with full audit logging.
 - **Continuous Feedback Loop:** Operator decisions are collected into feedback datasets to drive fine-tuning and retrieval optimization.
 

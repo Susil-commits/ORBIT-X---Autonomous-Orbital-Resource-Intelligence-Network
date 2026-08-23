@@ -204,7 +204,7 @@ class TrustLayerEngine:
             TrustEvidenceItem(
                 evidence_type="OPTIMIZER_RESULT",
                 source_id="Google_ORTools_CPSAT",
-                summary=f"Global integer schedule verified for {reassign_candidate}: 100% hard constraints satisfied with zero violations.",
+                summary=f"Global integer schedule verified for {reassign_candidate}: Modeled physical constraints satisfied with zero violations on feasible schedule.",
                 verified=True,
                 confidence_contribution=0.10,
             )

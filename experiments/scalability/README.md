@@ -23,6 +23,6 @@ Benchmark the throughput, latency, and memory scaling of ORBIT-X components acro
 | **500 Satellites** | 2,500 | 1.48 ms | 142.0 ms | 510,000 pts/sec | 380 MB | 184.5 ms |
 
 ## 4. Key Engineering Takeaways
-- **Sub-Linear CP-SAT Growth:** By utilizing the Cross-Attention network to prune the candidate search space down to the top-5 feasible satellites per mission prior to CP-SAT solver initialization, constraint solve time grows sub-linearly ($O(N \log N)$ rather than $O(N!)$).
+- **Pruned Search Space for CP-SAT:** By utilizing the Cross-Attention network to prune the candidate search space down to the top-5 feasible satellites per mission prior to CP-SAT solver initialization, constraint solve time is kept highly tractable and fast under increasing fleet sizes.
 - **FastAPI Throughput:** The async FastAPI inference server sustains >4,500 requests/sec with Redis caching enabled.
 - **Memory Footprint:** Peak system memory remains under 500MB even at 500-satellite constellation scale.
