@@ -17,6 +17,12 @@ import sys
 import time
 from pathlib import Path
 
+# Ensure UTF-8 output encoding on Windows terminals
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 # Add backend directory to sys.path
 backend_dir = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(backend_dir))

@@ -223,6 +223,27 @@ class DecisionLogger:
         )
         self.events.append(event)
 
+    def log_assignment(
+        self,
+        tick: int,
+        sim_time_s: float,
+        mission_id: str,
+        satellite_id: str,
+        score: float = 0.0,
+        rationale_str: str = "",
+        **kwargs,
+    ):
+        """Helper to log an autonomous mission reassignment or allocation."""
+        self.log_event(
+            event_type="MISSION_ASSIGNED",
+            tick=tick,
+            sim_time_s=sim_time_s,
+            summary=rationale_str or f"Assigned mission {mission_id} to {satellite_id} with score {score:.1f}.",
+            satellite_id=satellite_id,
+            mission_id=mission_id,
+            details={"score": score, **kwargs},
+        )
+
     def get_all_events(self) -> List[LoggedDecisionEvent]:
         return list(self.events)
 
@@ -235,3 +256,4 @@ def get_decision_logger() -> DecisionLogger:
     if _global_logger is None:
         _global_logger = DecisionLogger()
     return _global_logger
+
