@@ -259,5 +259,14 @@
     "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
     "suggested_alternative_satellite": null,
     "recorded_at_iso": "2026-08-23T06:57:11.132150+00:00"
+  },
+  {
+    "feedback_id": "FB-bb50f0d6",
+    "decision_record_id": "DEC-LIVE-DEMO-001",
+    "mission_id": "M-DISASTER-01",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Approved via CLI live demonstration suite.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-23T07:16:27.766919+00:00"
   }
 ]

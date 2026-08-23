@@ -174,25 +174,25 @@ Monitoring (Prometheus & OpenTelemetry)
 
 All metrics represent empirically measured values from the evaluation harness ([`backend/eval/run_baselines.py`](file:///backend/eval/run_baselines.py)).
 
-### Stage 1: Machine Learning Models & Candidate Rankers
+### Table A: Predictive & Ranking Models (ML Evaluation)
 Evaluates pure ML regression and ranking performance on held-out multi-agent operational telemetry test splits:
 
-| Model Architecture | Category | Top-1 Agreement | Accuracy (%) | F1 Score | MAE | Inference Latency (p50) | Inference Latency (p95) | Throughput (inf/sec) |
-|---|---|---|---|---|---|---|---|---|
-| **Random Assignment** | Heuristic | 37.5% | 30.0% | 0.188 | 91.04 | 0.001 ms | 0.002 ms | 716,332.3 |
-| **Greedy EDF Heuristic** | Heuristic | 62.5% | 62.5% | 0.450 | 93.48 | 0.001 ms | 0.001 ms | 1,000,000.0 |
-| **Ridge Linear Regression** | Classical ML | 75.0% | 75.0% | 0.570 | 56.84 | 0.004 ms | 0.005 ms | 274,876.3 |
-| **Random Forest / XGBoost** | Classical ML | 81.25% | 81.2% | 0.658 | 21.07 | 0.132 ms | 0.211 ms | 7,598.9 |
-| **Multi-Layer Perceptron (MLP)** | Deep Learning | 68.75% | 68.8% | 0.571 | 42.03 | 0.185 ms | 0.259 ms | 5,397.5 |
-| **ConstellationCrossAttentionNet (Champion ML)** | Deep Learning | **84.6%** | **84.6%** | **0.612** | **28.40** | **0.372 ms** | **0.557 ms** | **2,690.9** |
+| Model Architecture | Category | Accuracy (%) | F1 Score | MAE | Top-1 Agreement | Inference Latency (p50) | Throughput (inf/sec) |
+|---|---|---|---|---|---|---|---|
+| **Random Assignment** | Heuristic | 30.0% | 0.188 | 91.04 | 37.5% | 0.001 ms | 716,332.3 |
+| **Greedy EDF Heuristic** | Heuristic | 62.5% | 0.450 | 93.48 | 62.5% | 0.001 ms | 1,000,000.0 |
+| **Ridge Linear Regression** | Classical ML | 75.0% | 0.570 | 56.84 | 75.0% | 0.004 ms | 274,876.3 |
+| **Random Forest / XGBoost** | Classical ML | 81.2% | 0.658 | 21.07 | 81.25% | 0.132 ms | 7,598.9 |
+| **Multi-Layer Perceptron (MLP)** | Deep Learning | 68.8% | 0.571 | 42.03 | 68.75% | 0.185 ms | 5,397.5 |
+| **ConstellationCrossAttentionNet (Champion ML)** | Deep Learning | **84.6%** | **0.612** | **28.40** | **84.6%** | **0.372 ms** | **2,690.9** |
 
-### Stage 2: End-to-End Decision System (Neural Ranking + CP-SAT Optimization)
+### Table B: Decision Systems (Hybrid ML + CP-SAT Evaluation)
 Evaluates the integrated decision intelligence pipeline enforcing physical invariant constraints and global mission scheduling:
 
-| Decision Architecture | Constraint Violations (Feasible Problems) | High-Priority Completion Rate | Mission Utility Captured | Optimization Solve Latency (p50) | Feasibility Rate |
-|---|---|---|---|---|---|
-| **Unconstrained Neural Net Alone** | 3.4% boundary violations | 88.2% | 84.5% | N/A (ML only: 0.37 ms) | N/A |
-| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **100.0%** | **98.7%** | **18.40 ms** | **100.0%** |
+| Decision System | Constraint Violations (Feasible Instances) | Mission Utility Captured | Feasibility Rate | High-Priority Completion | Optimization Latency (p50) | End-to-End Latency (p50) |
+|---|---|---|---|---|---|---|
+| **Cross-Attention Alone** | 3.4% boundary violations | 84.5% | 96.6% | 88.2% | N/A (Neural only) | **0.372 ms** |
+| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **98.7%** | **100.0%** | **100.0%** | **18.40 ms** | **18.77 ms** |
 
 ### Feature Ablation Study
 Empirically measured feature ablation study across the 18-dimensional representation ([`backend/eval/run_ablation.py`](file:///backend/eval/run_ablation.py)):
@@ -307,8 +307,9 @@ $$\text{User Query} \longrightarrow \text{Agent} \longrightarrow \text{Context G
 
 ## 13. Decision Optimization (CP-SAT)
 
-- **Architecture:** ML Prediction $\rightarrow$ Candidate Ranking $\rightarrow$ Google OR-Tools CP-SAT $\rightarrow$ Hard Constraint Validation $\rightarrow$ Final Decision.
-- **Why Hybrid Decisioning?** Deep learning provides fast neural candidate rankings ($0.372$ ms p50), while Google OR-Tools CP-SAT enforces modeled physical constraints (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$) for feasible problems.
+- **Hybrid Decisioning Architecture:** Fast neural candidate ranking followed by constraint-aware optimization using Google OR-Tools CP-SAT.
+- **Constraint Enforcement:** Google OR-Tools CP-SAT enforces the hard constraints explicitly modeled in the optimization problem when a feasible solution exists (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$, mutual exclusivity).
+- **Search Space Pruning:** Cross-Attention candidate scoring prunes the decision search space to top candidate tokens prior to CP-SAT initialization, keeping solver latency under $20$ ms.
 
 ---
 

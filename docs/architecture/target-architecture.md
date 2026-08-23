@@ -58,7 +58,7 @@ Persistent Audit & Continuous Evaluation (PostgreSQL Ledger / Redis Hot Cache / 
 - **Trust & Grounding Verification**: Enforces fact consistency, generates source citations, and executes honest refusals upon detecting insufficient context.
 
 ### 2.5 Deterministic Decisioning & Human-in-the-Loop (HITL)
-- **Google OR-Tools CP-SAT**: Solves multi-objective integer programming to guarantee 100% hard safety invariants (line-of-sight visibility, battery depth of discharge, thermal boundaries).
+- **Google OR-Tools CP-SAT**: Solves multi-objective integer programming to enforce modeled physical constraints (line-of-sight visibility, battery depth of discharge, thermal boundaries) when feasible.
 - **Human Approval Gate**: Multi-state decision lifecycle (`proposed`, `approved`, `rejected`, `investigate`, `executed`) with auditable reviewer rationales.
 - **Feedback Dataset**: Operator decisions feed a PostgreSQL evaluation repository for continuous validation.
 
