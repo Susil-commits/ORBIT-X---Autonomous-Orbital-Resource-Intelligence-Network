@@ -117,6 +117,7 @@ class MultiHeadFeatureCrossAttention(nn.Module if nn is not None else object):
             self.ffn = nn.Sequential(
                 nn.Linear(d_token, d_token * 2),
                 nn.GELU(),
+                nn.Dropout(0.1),
                 nn.Linear(d_token * 2, d_token),
             )
 
@@ -252,13 +253,26 @@ class CrossAttentionPredictor:
             self.model_hash = hashlib.sha256(raw_bytes).hexdigest()
 
         checkpoint = torch.load(path, map_location="cpu", weights_only=False)
-        if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-            self.model.load_state_dict(checkpoint["state_dict"])
-            self.metadata = checkpoint.get("metadata", {})
-        else:
-            self.model.load_state_dict(checkpoint)
+        state_dict = checkpoint["state_dict"] if isinstance(checkpoint, dict) and "state_dict" in checkpoint else checkpoint
+        self.metadata = checkpoint.get("metadata", {}) if isinstance(checkpoint, dict) else {}
 
-        self.model.eval()
+        if isinstance(state_dict, dict) and self.model is not None:
+            # Adapt between ffn.2 and ffn.3 if needed across any architecture variants
+            adapted_sd = {}
+            for k, v in state_dict.items():
+                if "cross_attn.ffn.2." in k and hasattr(self.model, "cross_attn") and len(self.model.cross_attn.ffn) == 4:
+                    k = k.replace("cross_attn.ffn.2.", "cross_attn.ffn.3.")
+                elif "cross_attn.ffn.3." in k and hasattr(self.model, "cross_attn") and len(self.model.cross_attn.ffn) == 3:
+                    k = k.replace("cross_attn.ffn.3.", "cross_attn.ffn.2.")
+                adapted_sd[k] = v
+            try:
+                self.model.load_state_dict(adapted_sd, strict=True)
+            except Exception as e:
+                print(f"Warning: strict load failed, attempting non-strict: {e}")
+                self.model.load_state_dict(adapted_sd, strict=False)
+
+        if self.model is not None:
+            self.model.eval()
         self.is_loaded = True
         print(f"Loaded ConstellationCrossAttentionNet checkpoint (Hash: {self.model_hash[:12]}...)")
 
