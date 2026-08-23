@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from app.intelligence.pinn_battery_thermal import ThermalPhysicsSimulator
+from app.simulation.pinn_battery_thermal import ThermalPhysicsSimulator
 
 DOCS_ASSETS_DIR = BACKEND_DIR.parent / "docs" / "assets"
 DOCS_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
