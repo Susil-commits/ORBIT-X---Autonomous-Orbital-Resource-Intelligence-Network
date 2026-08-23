@@ -26,7 +26,7 @@ A high-fidelity satellite simulation environment provides realistic telemetry st
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Manifests-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io)
 [![Observability](https://img.shields.io/badge/Observability-Prometheus%20%7C%20Grafana-F46800?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
-[![PyTest](https://img.shields.io/badge/Tests-107%2F107%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
+[![PyTest](https://img.shields.io/badge/Tests-106%2F106%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
 
 </div>
 
@@ -462,7 +462,7 @@ cd backend
 pytest -v
 ```
 
-- **Automated Tests:** 107 tests passing with 100% success rate across all ML, context quality, agent evaluation, trust, RAG, and optimizer modules.
+- **Automated Tests:** 106 tests passing with 100% success rate across all ML, context quality, agent evaluation, trust, RAG, and optimizer modules.
 - **Chaos Resilience Matrix:** Full 15-scenario failure mode documentation available in [`docs/architecture/failure_scenarios.md`](file:///docs/architecture/failure_scenarios.md).
 
 ---
@@ -471,7 +471,7 @@ pytest -v
 
 - **AI & ML:** Python 3.12, PyTorch (Multi-Head Cross-Attention), scikit-learn, XGBoost, TreeSHAP.
 - **RAG & Agents:** Sentence Transformers, BM25, Model Context Protocol (MCP), Trust Verification Layer.
-- **Context Governance & Evaluation:** Deterministic Context Quality Evaluator, 7-Dimension Agent Evaluation Suite.
+- **Context Governance & Evaluation:** Deterministic 5-Dimension Context Evaluation Package (`context/evaluation/`), 7-Dimension Agent Evaluation Suite.
 - **Optimization & Data:** Google OR-Tools CP-SAT, PostgreSQL, Redis 7, Pydantic v2.
 - **Serving & Frontend:** FastAPI (Async ASGI), Uvicorn, React 19, TypeScript, Vite, TailwindCSS.
 
@@ -481,7 +481,12 @@ ORBIT-X/
 ├── ml/                       # Cross-Attention, MLP, RF, & TreeSHAP models
 ├── anomaly_detection/        # Multivariate Isolation Forest health AI
 ├── optimization/             # Google OR-Tools CP-SAT constraint solver
-├── context/                  # Knowledge graph & bidirectional lineage engine
+├── context/                  # Knowledge graph, 10 canonical entities, & lineage engine
+│   ├── schemas/              # Asset governance schemas (VERIFIED/DRAFT/DEPRECATED)
+│   ├── metadata/             # Semantic metadata catalog & dataset records
+│   ├── discovery/            # Trust-weighted semantic discovery engine
+│   ├── lineage/              # 10-node bidirectional provenance DAGs
+│   └── evaluation/           # 5-metric context quality evaluation package
 ├── genai/                    # Hybrid RAG, Autonomous Agent loop, & MCP server
 ├── backend/app/              # FastAPI routers, services, & intelligence layer
 │   ├── context/evaluation/   # Context quality & 7-dim agent evaluation engines
