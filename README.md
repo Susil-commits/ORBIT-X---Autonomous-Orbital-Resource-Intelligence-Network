@@ -223,6 +223,12 @@ Empirically measured feature ablation study across the 18-dimensional representa
 | **w/o Battery & Energy Features** | `battery_soc`, `energy_cost_ratio` | 15 | 87.50% | 21.91 | **-6.25%** | Scheduling during low-power eclipse passes. |
 | **w/o Mission Priority Feature** | `priority_norm` | 17 | 87.50% | 20.34 | **-6.25%** | Flattens reward discrimination between disaster and routine tasks. |
 
+<div align="center">
+
+![Benchmark Comparison](docs/assets/benchmark_comparison.png)
+
+</div>
+
 ---
 
 ## 8. Anomaly Detection & Predictive Health
@@ -231,6 +237,12 @@ Empirically measured feature ablation study across the 18-dimensional representa
 - **Telemetry Features (7-dim):** `battery_soc`, `internal_temp_c`, `power_draw_w`, `comm_latency_ms`, `link_snr_db`, `memory_util_pct`, `task_failure_rate`.
 - **Pipeline:** Telemetry $\rightarrow$ Feature Extraction $\rightarrow$ Isolation Forest $\rightarrow$ Anomaly Score $\rightarrow$ Threshold ($-0.095$) $\rightarrow$ Severity Alert $\rightarrow$ Autonomous Replanning.
 - **Metrics:** Precision: $0.918$, Recall: $0.932$, F1: $0.925$, False Positive Rate: $2.1\%$, Detection Latency: $0.14$ ms.
+
+<div align="center">
+
+![Health AI Metrics](docs/assets/health_ai_metrics.png)
+
+</div>
 
 ---
 
@@ -265,12 +277,12 @@ Context quality is deterministically measured by [`context_evaluator.py`](file:/
 
 | Context Quality Metric | Measured Value | Evaluation Formula | Operational Verification |
 |---|---|---|---|
-| **Metadata Completeness** | **100.0%** | $\frac{\text{populated catalog \& column attributes}}{\text{total required schema slots}}$ | Evaluates all 14 catalog fields and 3 column metadata fields across all registered datasets. |
-| **Lineage Coverage** | **100.0%** | $\frac{\text{nodes with bidirectional DAG edges}}{10\text{ DAG nodes}}$ | Full upstream/downstream graph coverage across all 10 context entities. |
+| **Metadata Completeness** | **100.0%** | $\frac{\text{populated schema attributes}}{\text{total required schema slots}}$ | Evaluates all 14 catalog fields and 3 column metadata fields across all registered datasets. |
+| **Lineage Coverage** | **100.0%** | $\frac{\text{connected DAG nodes}}{\text{total DAG nodes (10)}}$ | Full upstream/downstream graph coverage across all 10 context entities. |
 | **Freshness SLA Compliance** | **93.8%** | $\frac{\text{assets with freshness } \le \text{SLA}}{\text{total assets}}$ | 15/16 operational streams meet latency SLAs; identifies deprecated legacy streams. |
 | **Verified Asset Ratio** | **66.7%** | $\frac{\text{VERIFIED assets}}{\text{total assets}}$ | 4 certified `VERIFIED` datasets, 1 `DRAFT`, 1 `DEPRECATED`. |
-| **Retrieval Groundedness** | **100.0%** | $\frac{\text{probes matching certified schema}}{\text{total probes}}$ | 5/5 authoritative search probes match verified schema definitions. |
-| **Stale Context Rate** | **6.2%** | $\frac{\text{DEPRECATED or SLA-expired entities}}{\text{total entities}}$ | Accurately identifies and isolates 1/16 deprecated legacy entities. |
+| **Retrieval Groundedness** | **100.0%** | $\frac{\text{grounded schema hits}}{\text{total search probes}}$ | 5/5 authoritative search probes match verified schema definitions. |
+| **Stale Context Rate** | **6.2%** | $\frac{\text{DEPRECATED or stale assets}}{\text{total assets}}$ | Accurately identifies and isolates 1/16 deprecated legacy entities. |
 
 ### Governed Agent Workflow ("Agent Asks Context, Not Database")
 ORBIT-X agents never query underlying database tables directly. Governed context acts as an intelligent intermediary plane:
@@ -407,6 +419,16 @@ While the primary benchmarks measure **AI, Machine Learning, and Decision Qualit
 | **ISS Ground-Truth Physics Parity** | **99.7% Accuracy (92.9 min)** | Validation against NORAD 25544 real Celestrak TLE ground truth |
 | **ISL Optical Mesh Routing** | **<0.85 ms Dijkstra Solve** | Multi-hop inter-satellite laser communication topology verification |
 | **Thermal / Battery ODE Step Time** | **0.024 ms / step** | Stefan-Boltzmann radiative balance and electrochemical discharge modeling |
+
+<div align="center">
+
+![Constellation Scaling](docs/assets/constellation_scaling.png)
+
+<br/>
+
+![Thermal Battery ODE](docs/assets/thermal_battery_ode.png)
+
+</div>
 
 ---
 
