@@ -6,7 +6,7 @@ from typing import List, Dict
 from app.core.schemas import AccessWindow, WindowType
 from app.simulation.simulator import get_simulator
 from app.physics.access_model import find_access_windows
-from app.intelligence.multi_agent import MultiAgentCoordinator, AuctionResult
+from benchmarks.legacy.multi_agent import MultiAgentCoordinator, AuctionResult
 
 router = APIRouter(prefix="/api/multi-agent", tags=["Multi-Agent"])
 

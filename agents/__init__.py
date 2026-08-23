@@ -12,7 +12,7 @@ from backend.app.intelligence.agent_loop import (
     SelfHealingAgent,
     get_self_healing_agent,
 )
-from backend.app.intelligence.mission_qa import MissionQAEngine, get_mission_qa_engine
+from backend.app.intelligence.hybrid_mission_rag import MissionQAEngine, get_mission_qa_engine
 
 # Compatibility aliases
 AgentLoop = SelfHealingAgent

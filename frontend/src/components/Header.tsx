@@ -333,8 +333,7 @@ export const Header: React.FC = () => {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>AI Assistant (Hero)</span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold">P0</span>
+            <span>AI Assistant</span>
           </button>
 
           <button
@@ -358,7 +357,7 @@ export const Header: React.FC = () => {
             }`}
           >
             <GitBranch className="w-3.5 h-3.5 text-purple-400" />
-            <span>Data Discovery & Lineage</span>
+            <span>Data & Lineage</span>
           </button>
 
           <button
@@ -370,7 +369,7 @@ export const Header: React.FC = () => {
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Agent Traces & MCP</span>
+            <span>Agent Trace</span>
           </button>
 
           <button
@@ -382,7 +381,7 @@ export const Header: React.FC = () => {
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Monitoring & SLOs</span>
+            <span>Monitoring</span>
           </button>
 
           <div className="h-4 w-px bg-slate-800 mx-1" />
@@ -396,8 +395,7 @@ export const Header: React.FC = () => {
             }`}
           >
             <Globe className="w-3.5 h-3.5 text-slate-400" />
-            <span>Simulation (Digital Twin)</span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">Eval</span>
+            <span>Simulation</span>
           </button>
         </nav>
 

@@ -27,7 +27,7 @@ from app.core.schemas import (
 from app.physics.orbit_propagator import create_initial_constellation
 from app.physics.access_model import find_access_windows, get_default_ground_stations
 from app.intelligence.optimizer import ConstellationOptimizer
-from app.intelligence.multi_agent import MultiAgentCoordinator
+from benchmarks.legacy.multi_agent import MultiAgentCoordinator
 from app.intelligence.bid_value_network import extract_features, get_bid_value_predictor
 from app.simulation.scenarios import generate_random_mission
 

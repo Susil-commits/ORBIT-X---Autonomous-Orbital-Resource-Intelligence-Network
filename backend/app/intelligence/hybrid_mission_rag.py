@@ -270,3 +270,9 @@ def get_hybrid_mission_qa_engine() -> HybridMissionQAEngine:
     if _GLOBAL_HYBRID_QA_ENGINE is None:
         _GLOBAL_HYBRID_QA_ENGINE = HybridMissionQAEngine()
     return _GLOBAL_HYBRID_QA_ENGINE
+
+
+# Backward-compatible aliases
+get_mission_qa_engine = get_hybrid_mission_qa_engine
+MissionQAEngine = HybridMissionQAEngine
+

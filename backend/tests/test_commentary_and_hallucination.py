@@ -1,7 +1,7 @@
 """Unit tests for Tactical Flight Director commentary & Fact-Consistency Verifier."""
 
 import pytest
-from app.intelligence.commentary_generator import (
+from app.intelligence.agent_loop import (
     get_commentary_generator,
     FactConsistencyVerifier,
 )

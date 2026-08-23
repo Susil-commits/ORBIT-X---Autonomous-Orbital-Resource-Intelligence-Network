@@ -25,19 +25,16 @@ from app.core.schemas import (
     AgentHealingAction,
     EvalRunSummary,
 )
-from app.simulation.simulator import get_simulator
-from app.intelligence.mission_qa import get_mission_qa_engine
-from app.intelligence.hybrid_mission_rag import get_hybrid_mission_qa_engine
+from app.intelligence.hybrid_mission_rag import get_hybrid_mission_qa_engine, get_mission_qa_engine
 from app.intelligence.shap_explainer import get_shap_explainer
-from app.intelligence.multi_agent import MultiAgentCoordinator
+from benchmarks.legacy.multi_agent import MultiAgentCoordinator
 from app.intelligence.agent_loop import get_self_healing_agent
-from app.intelligence.commentary_generator import get_commentary_generator
 from app.intelligence.cross_attention_network import (
     get_cross_attention_predictor,
     SATELLITE_FEATURE_NAMES,
     MISSION_FEATURE_NAMES,
 )
-from app.intelligence.pinn_battery_thermal import (
+from app.simulation.pinn_battery_thermal import (
     get_thermal_physics_simulator,
     get_pinn_model,
 )

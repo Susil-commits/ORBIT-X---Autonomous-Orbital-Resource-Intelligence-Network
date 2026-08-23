@@ -1,7 +1,7 @@
 """Unit tests for Grounded Decision History RAG & Mission QA with citations."""
 
 import pytest
-from app.intelligence.mission_qa import get_mission_qa_engine
+from app.intelligence.hybrid_mission_rag import get_hybrid_mission_qa_engine as get_mission_qa_engine
 from app.intelligence.decision_logger import get_decision_logger
 
 

@@ -1,4 +1,7 @@
-"""Battery Energy Intelligence & Lookahead Forecasting Model."""
+"""Battery Energy Simulation & Lookahead Forecasting Model.
+
+Moved to simulation domain for physical ODE simulation and constellation telemetry dynamics.
+"""
 
 from typing import List, Tuple, Optional
 from app.core.schemas import BatteryState, AccessWindow, WindowType

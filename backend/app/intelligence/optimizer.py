@@ -15,7 +15,7 @@ from app.core.schemas import (
     HealthStatus,
     WindowType,
 )
-from app.intelligence.explainability import generate_decision_explanation
+from app.intelligence.shap_explainer import generate_decision_explanation
 
 
 class ConstellationOptimizer:

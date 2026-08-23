@@ -1,6 +1,6 @@
 """Agent Query Interface and Mission Intent Parsing."""
 
-from backend.app.intelligence.mission_qa import MissionQAEngine, get_mission_qa_engine
+from backend.app.intelligence.hybrid_mission_rag import MissionQAEngine, get_mission_qa_engine
 
 # Compatibility alias
 AgentQueryEngine = MissionQAEngine

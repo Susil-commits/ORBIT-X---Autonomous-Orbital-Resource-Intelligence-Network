@@ -38,7 +38,7 @@ from app.physics.access_model import (
 )
 from app.physics.collision import evaluate_conjunctions
 from app.physics.isl_network import build_isl_mesh
-from app.intelligence.battery_model import compute_step_battery_update
+from app.simulation.battery_model import compute_step_battery_update
 from app.intelligence.health_ai import get_health_ai
 from app.intelligence.optimizer import ConstellationOptimizer
 from app.intelligence.decision_logger import get_decision_logger

@@ -138,6 +138,10 @@ class BidValuePredictor:
             val = self.model(inp).item()
             return float(max(0.0, val))
 
+    # Aliases
+    predict_bid_value = predict_single
+    predict = predict_single
+
     def predict_batch(self, features_matrix: np.ndarray) -> np.ndarray:
         """Runs vectorized batch inference."""
         with torch.no_grad():

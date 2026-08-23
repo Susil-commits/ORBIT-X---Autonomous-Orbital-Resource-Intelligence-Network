@@ -1,7 +1,7 @@
 """Tests for High-Fidelity Physics ODE Battery and Thermal Dynamics."""
 
 import pytest
-from app.intelligence.pinn_battery_thermal import (
+from app.simulation.pinn_battery_thermal import (
     ThermalPhysicsSimulator,
     get_thermal_physics_simulator,
     get_pinn_model,

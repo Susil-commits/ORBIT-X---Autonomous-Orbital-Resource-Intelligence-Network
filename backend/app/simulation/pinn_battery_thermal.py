@@ -102,7 +102,6 @@ class ThermalPhysicsSimulator:
         new_soc = float(np.clip(soc + (de_joules / self.capacity_joules), 0.0, 1.0))
 
         # Degradation acceleration factor (Arrhenius law)
-        # Elevated temperature accelerates capacity fade
         deg_factor = math.exp((temp_c - 20.0) / 35.0) * 0.0001
 
         return new_soc, new_temp_c, p_solar_electric, q_rad, deg_factor, dq_net
@@ -154,8 +153,6 @@ class ThermalPhysicsSimulator:
                 dt_s=dt_s,
             )
 
-            # Numerical discretization conservation residual:
-            # Measures thermal flux rate relative to capacitance scale + electrical power flux relative to capacity
             thermal_flux_norm = abs(dq_net) / (self.thermal_capacitance * 0.05)
             soc_flux_norm = abs(p_solar - (140.0 if req.payload_active else 45.0)) / (self.capacity_wh * 0.5)
             step_res = (thermal_flux_norm * 0.0005) + (soc_flux_norm * 0.0002)
@@ -180,7 +177,6 @@ class ThermalPhysicsSimulator:
 
         avg_residual = float(np.mean(residuals)) if residuals else 0.0005
 
-        # Dynamically compute confidence score honestly from physical residual and operational limits
         temp_penalty = max(0.0, (max_temp - 60.0) / 40.0) if max_temp > 60.0 else 0.0
         soc_penalty = max(0.0, (0.20 - min_soc) / 0.20) if min_soc < 0.20 else 0.0
         raw_confidence = math.exp(-avg_residual * 15.0) - (0.5 * temp_penalty) - (0.5 * soc_penalty)
@@ -198,10 +194,6 @@ class ThermalPhysicsSimulator:
         )
 
 
-# Backward-compatible aliases for legacy imports
-PhysicsInformedBatteryThermalModel = ThermalPhysicsSimulator
-PINNThermalEnergySurrogate = ThermalPhysicsSimulator
-
 # Global singleton
 _GLOBAL_THERMAL_SIMULATOR: Optional[ThermalPhysicsSimulator] = None
 
@@ -213,5 +205,6 @@ def get_thermal_physics_simulator() -> ThermalPhysicsSimulator:
     return _GLOBAL_THERMAL_SIMULATOR
 
 
-# Alias for backward-compatible route imports
 get_pinn_model = get_thermal_physics_simulator
+PhysicsInformedBatteryThermalModel = ThermalPhysicsSimulator
+PINNBatteryThermalModel = ThermalPhysicsSimulator

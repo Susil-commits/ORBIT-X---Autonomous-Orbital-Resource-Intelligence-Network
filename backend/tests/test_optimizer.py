@@ -3,7 +3,7 @@
 from app.physics.orbit_propagator import create_initial_constellation
 from app.physics.access_model import find_access_windows, get_default_ground_stations
 from app.intelligence.optimizer import ConstellationOptimizer
-from app.intelligence.multi_agent import MultiAgentCoordinator
+from benchmarks.legacy.multi_agent import MultiAgentCoordinator
 from app.simulation.scenarios import get_default_missions
 from app.core.schemas import WindowType, HealthStatus
 
