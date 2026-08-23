@@ -10,63 +10,68 @@ A high-fidelity satellite constellation simulation environment serves as the **o
 
 ## 2. Core Architecture
 
-```
-                         ORBIT-X PLATFORM ARCHITECTURE
-                                       │
-                    ┌──────────────────┴──────────────────┐
-                    │                                     │
-               DATA LAYER                            AI / ML LAYER
-                    │                                     │
-              PostgreSQL                              ML Models
-              Telemetry                           Anomaly Detection
-              Metadata                               SHAP / XAI
-              Lineage                               Predictions
-                    │                                     │
-                    └──────────────────┬──────────────────┘
-                                       │
-                                 CONTEXT LAYER
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-                Metadata             Vector              SQL
-                 Search              Search             Query
-                    │                  │                  │
-                    └──────────────────┼──────────────────┘
-                                       │
-                                 Context / RAG
-                                       │
-                                  AGENT LAYER
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-                  Tools             Planning          Reasoning
-                    │                  │                  │
-                    └──────────────────┼──────────────────┘
-                                       │
-                                DECISION LAYER
-                                       │
-                                  ML + CP-SAT
-                                       │
-                                Human Approval
-                                       │
-                                       ▼
-                                    ACTION
-                                       │
-                                Feedback Loop
-                                       │
-                                       ▼
-                            Evaluation / Improvement
-                                       │
-                                       ▼
-                             Prometheus / Grafana
+```text
+DATA
+ ↓
+ML / AI
+ ↓
+CONTEXT + METADATA
+ ↓
+RAG / AGENTS / MCP
+ ↓
+DECISION INTELLIGENCE
+ ↓
+OPTIMIZATION
+ ↓
+HUMAN REVIEW
+ ↓
+FEEDBACK
+ ↓
+MONITORING
+
+        ↑
+Satellite Simulation
+Telemetry + Constraints + Failure Scenarios
 ```
 
 ---
 
-## 3. Operational Data & Intelligence Loop
+## 3. The Canonical Decision Pipeline
 
-```
-DATA ──► Feature Engineering ──► ML / AI ──► Context + Metadata ──► RAG / Agent / Tools ──► Decision Intelligence ──► Optimization ──► Human Review ──► Monitoring + Feedback
+The platform operates on one primary, canonical end-to-end path:
+
+```text
+DATA
+ ↓
+Validation (data_quality_agent.py)
+ ↓
+Feature Engineering (18-dim multimodal vectors)
+ ↓
+ML / Anomaly Detection (health_ai.py)
+ ↓
+Prediction (cross_attention_network.py)
+ ↓
+SHAP (shap_explainer.py)
+ ↓
+Context Graph / Metadata (context_graph.py)
+ ↓
+RAG (hybrid_mission_rag.py)
+ ↓
+Agent (agent_loop.py)
+ ↓
+Tools / MCP (mcp_tools.py)
+ ↓
+CP-SAT (optimizer.py)
+ ↓
+Decision (decision_logger.py)
+ ↓
+Trust / Evidence (trust_layer.py)
+ ↓
+Human Review (governance.py)
+ ↓
+Feedback (loop.py)
+ ↓
+Monitoring (Prometheus & OpenTelemetry)
 ```
 
 ---
