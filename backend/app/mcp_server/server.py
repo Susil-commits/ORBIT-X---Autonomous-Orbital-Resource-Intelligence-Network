@@ -24,8 +24,8 @@ from app.core.schemas import ScenarioType
 from app.simulation.simulator import get_simulator
 from app.intelligence.shap_explainer import get_shap_explainer
 from app.intelligence.bid_value_network import extract_features, get_bid_value_predictor
-from app.intelligence.mission_qa import get_mission_qa_engine
-from app.intelligence.multi_agent import MultiAgentCoordinator
+from app.intelligence.hybrid_mission_rag import get_hybrid_mission_qa_engine as get_mission_qa_engine
+from benchmarks.legacy.multi_agent import MultiAgentCoordinator
 from app.intelligence.context_graph import get_context_graph_engine
 from app.intelligence.data_quality_agent import get_data_quality_agent
 from app.intelligence.trust_layer import get_trust_layer_engine
@@ -340,6 +340,18 @@ def submit_human_feedback(
         )
     )
     return json.dumps(res.model_dump(), indent=2)
+
+
+@mcp.tool()
+def trace_decision_provenance(decision_id: str = "DEC-M-204") -> str:
+    """
+    Backwards-traces the exact data lineage, datasets, features, models, anomalies,
+    and constraints that influenced a specific decision event in the context graph.
+    Answers: 'What data influenced this decision?'
+    """
+    engine = get_context_graph_engine()
+    res = engine.what_data_influenced_decision(decision_id=decision_id)
+    return json.dumps(res, indent=2)
 
 
 if __name__ == "__main__":

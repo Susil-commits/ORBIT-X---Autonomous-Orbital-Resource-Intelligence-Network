@@ -3,7 +3,12 @@
 Formalizes the transformation from raw simulation / telemetry feeds into validated,
 cleaned, and feature-engineered datasets ready for ML training and real-time inference:
 
-Raw Data -> Validation -> Cleaning -> Feature Engineering -> Processed Dataset -> ML
+Raw Data -> Validation -> Data Quality Agent Gate -> Cleaning -> Feature Engineering -> Processed Dataset -> ML
+
+Pipeline Gating:
+- GOOD: continue to ML
+- WARNING: continue with downweight & flags
+- CRITICAL: block affected downstream processing
 """
 
 import math
@@ -14,8 +19,17 @@ from pydantic import ValidationError
 from data.schemas.entities import Telemetry, MissionRequest
 
 
+class QualityDecision:
+    def __init__(self, status: str, overall_quality_score: float, action_taken: str, is_blocked: bool, downweight_factor: float = 1.0):
+        self.status = status
+        self.overall_quality_score = overall_quality_score
+        self.action_taken = action_taken
+        self.is_blocked = is_blocked
+        self.downweight_factor = downweight_factor
+
+
 class DataProcessingPipeline:
-    """End-to-end data validation, imputation, and feature extraction pipeline."""
+    """End-to-end data validation, quality gating, imputation, and feature extraction pipeline."""
 
     FEATURE_NAMES = [
         "battery_soc",
@@ -49,8 +63,47 @@ class DataProcessingPipeline:
         except ValidationError as e:
             return None, f"Schema validation error: {e}"
 
+    def audit_quality_gate(self, raw_data: Dict[str, Any], current_time_s: Optional[float] = None) -> QualityDecision:
+        """
+        Step 2: Data Quality Agent Gating.
+        Detects missing values, schema drift, stale records, invalid types, and sensor outliers.
+        """
+        issues = []
+        # Mandatory fields
+        for field in ["battery_soc", "bus_voltage_v", "battery_temp_c"]:
+            if field not in raw_data or raw_data[field] is None:
+                issues.append(f"Missing {field}")
+
+        # Physical outliers
+        try:
+            soc = float(raw_data.get("battery_soc", 0.8))
+            voltage = float(raw_data.get("bus_voltage_v", 28.0))
+            temp = float(raw_data.get("battery_temp_c", 20.0))
+
+            if soc < 0.0 or soc > 1.0:
+                issues.append(f"SoC outlier ({soc})")
+            if voltage < 18.0 or voltage > 38.0:
+                issues.append(f"Voltage excursion ({voltage}V)")
+            if temp < -40.0 or temp > 85.0:
+                issues.append(f"Thermal excursion ({temp}°C)")
+        except (ValueError, TypeError) as e:
+            issues.append(f"Type error: {e}")
+
+        # Staleness
+        if "timestamp_s" in raw_data and current_time_s is not None:
+            lag = current_time_s - float(raw_data["timestamp_s"])
+            if lag > 600.0:
+                issues.append(f"Stale by {lag:.0f}s")
+
+        if any("Missing" in i or "Type error" in i for i in issues):
+            return QualityDecision("CRITICAL", 0.0, "BLOCKED by Data Quality Circuit Breaker", is_blocked=True, downweight_factor=0.0)
+        elif issues:
+            return QualityDecision("WARNING", 0.75, "WARNING: Quality downweight applied", is_blocked=False, downweight_factor=0.75)
+        else:
+            return QualityDecision("GOOD", 1.0, "GOOD: Passed quality gate", is_blocked=False, downweight_factor=1.0)
+
     def clean_telemetry(self, telemetry: Telemetry) -> Dict[str, float]:
-        """Step 2: Clean and impute telemetry values, clamping out-of-physical bounds."""
+        """Step 3: Clean and impute telemetry values, clamping out-of-physical bounds."""
         soc = max(0.0, min(1.0, float(telemetry.battery_soc)))
         temp = max(-50.0, min(100.0, float(telemetry.battery_temp_c)))
         voltage = max(18.0, min(36.0, float(telemetry.bus_voltage_v)))
@@ -76,10 +129,11 @@ class DataProcessingPipeline:
         elevation_deg: float = 45.0,
         slew_penalty_deg: float = 5.0,
         current_time_s: float = 0.0,
+        downweight_factor: float = 1.0,
     ) -> np.ndarray:
-        """Step 3: Feature Engineering into standardized feature vector."""
+        """Step 4: Feature Engineering into standardized feature vector."""
         # Normalized telemetry
-        soc = cleaned_telemetry["battery_soc"]
+        soc = cleaned_telemetry["battery_soc"] * downweight_factor
         temp_norm = (cleaned_telemetry["battery_temp_c"] - self.temp_min) / (self.temp_max - self.temp_min)
         volt_norm = cleaned_telemetry["bus_voltage_v"] / self.voltage_nominal
         lat_norm = min(1.0, cleaned_telemetry["comm_latency_ms"] / self.latency_max)
@@ -95,7 +149,7 @@ class DataProcessingPipeline:
         # Interaction & Slack features
         slack_s = max(0.0, request.deadline_epoch_s - current_time_s)
         slack_ratio = min(1.0, slack_s / 3600.0)
-        energy_cost_est = (request.duration_s * 15.0) / 1000.0  # Approx energy cost
+        energy_cost_est = (request.duration_s * 15.0) / 1000.0
         energy_cost_ratio = min(1.0, energy_cost_est / max(0.01, soc))
         slew_norm = min(1.0, slew_penalty_deg / 90.0)
 
@@ -125,16 +179,35 @@ class DataProcessingPipeline:
         request: MissionRequest,
         current_time_s: float = 0.0,
     ) -> Tuple[np.ndarray, List[str]]:
-        """Processes a batch of candidate resources for a specific task request."""
+        """
+        Processes a batch of candidate resources through the gated pipeline.
+        Blocks CRITICAL corrupted records and applies downweight penalties to WARNING records.
+        """
         valid_vectors = []
         valid_resource_ids = []
 
         for raw in raw_telemetry_list:
+            # 1. Pydantic validation
             telemetry, err = self.validate_telemetry(raw)
             if err or telemetry is None:
                 continue
+
+            # 2. Data Quality Agent Gate
+            gate_decision = self.audit_quality_gate(raw, current_time_s=current_time_s)
+            if gate_decision.is_blocked:
+                # Circuit breaker blocks critical corrupted record from ML downstream
+                continue
+
+            # 3. Clean & Impute
             cleaned = self.clean_telemetry(telemetry)
-            feat = self.extract_features(cleaned, request, current_time_s=current_time_s)
+
+            # 4. Feature Extraction with quality downweighting
+            feat = self.extract_features(
+                cleaned,
+                request,
+                current_time_s=current_time_s,
+                downweight_factor=gate_decision.downweight_factor,
+            )
             valid_vectors.append(feat)
             valid_resource_ids.append(telemetry.resource_id)
 

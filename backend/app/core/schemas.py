@@ -649,16 +649,25 @@ class TrustEvidenceItem(BaseModel):
 
 class TrustLayerResponse(BaseModel):
     query: str
+    decision_id: str = ""
+    mission_id: Optional[str] = None
+    risk_level: Optional[str] = None
+    risk_reasons: List[str] = []
     answer: str
+    recommendation: Optional[str] = None
+    target_resource: Optional[str] = None
     confidence_score: float
     confidence_level: str  # "HIGH", "MEDIUM", "LOW"
     grounded: bool
+    constraints_checked: List[Dict[str, Any]] = []
     evidence: List[TrustEvidenceItem]
     citations: List[Citation]
     tools_used: List[str]
+    source_records: List[str] = []
     lineage_summary: Optional[str] = None
     requires_human_review: bool = False
     recommended_action: Optional[str] = None
+    available_actions: List[str] = ["APPROVE", "REJECT", "INVESTIGATE"]
 
 
 class HumanFeedbackRequest(BaseModel):

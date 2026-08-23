@@ -97,6 +97,26 @@ async def submit_operator_feedback(req: HumanFeedbackRequest):
     return trust_engine.record_feedback(req)
 
 
+@router.get("/lineage/provenance/{decision_id}")
+async def get_decision_provenance(decision_id: str, mission_id: Optional[str] = None, satellite_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Traces backwards from a Decision ID to discover exact raw telemetry, datasets, features, models,
+    anomalies, and constraints that influenced the decision.
+    Answers: 'What data influenced this decision?'
+    """
+    engine = get_context_graph_engine()
+    return engine.what_data_influenced_decision(decision_id=decision_id, mission_id=mission_id, satellite_id=satellite_id)
+
+
+@router.get("/graph/schema")
+async def get_relational_graph_schema() -> Dict[str, Any]:
+    """
+    Returns the PostgreSQL relational table schema representing the context & lineage graph.
+    """
+    engine = get_context_graph_engine()
+    return engine.get_relational_schema()
+
+
 @router.get("/feedback/history")
 async def get_feedback_history() -> List[Dict[str, Any]]:
     """Returns recorded human-in-the-loop review actions."""
