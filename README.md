@@ -26,7 +26,7 @@ A high-fidelity satellite simulation environment provides realistic telemetry st
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Manifests-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io)
 [![Observability](https://img.shields.io/badge/Observability-Prometheus%20%7C%20Grafana-F46800?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
-[![PyTest](https://img.shields.io/badge/Tests-90%2F90%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
+[![PyTest](https://img.shields.io/badge/Tests-107%2F107%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
 
 </div>
 
@@ -36,22 +36,23 @@ A high-fidelity satellite simulation environment provides realistic telemetry st
 1. [What is ORBIT-X?](#1-what-is-orbit-x)
 2. [Why I Built It](#2-why-i-built-it)
 3. [What Makes It AI-Native?](#3-what-makes-it-ai-native)
-4. [Architecture](#4-architecture)
+4. [Architecture & The 13 Canonical Stages](#4-architecture--the-13-canonical-stages)
 5. [End-to-End Decision Workflow](#5-end-to-end-decision-workflow)
 6. [ML Pipeline & Neural Architecture](#6-ml-pipeline--neural-architecture)
 7. [Evaluation & Decision Benchmarks](#7-evaluation--decision-benchmarks)
 8. [Anomaly Detection & Predictive Health](#8-anomaly-detection--predictive-health)
 9. [Explainable AI (TreeSHAP & Attention XAI)](#9-explainable-ai-treeshap--attention-xai)
-10. [Context & Semantic Lineage Backbone](#10-context--semantic-lineage-backbone)
-11. [Hybrid RAG, Agents & MCP](#11-hybrid-rag-agents--mcp)
-12. [Ask ORBIT-X (Hero Vertical Slice)](#12-ask-orbit-x-hero-vertical-slice)
-13. [Decision Optimization (CP-SAT)](#13-decision-optimization-cp-sat)
-14. [Human Review & Feedback Analytics](#14-human-review--feedback-analytics)
-15. [Production Observability & SLOs](#15-production-observability--slos)
-16. [Simulation Domain as Physical Testbed](#16-simulation-domain-as-physical-testbed)
-17. [Quick Start & Testing Guide](#17-quick-start--testing-guide)
-18. [Tech Stack & Project Structure](#18-tech-stack--project-structure)
-19. [Limitations & Design Tradeoffs](#19-limitations--design-tradeoffs)
+10. [Governed Context Layer & Measurable Quality](#10-governed-context-layer--measurable-quality)
+11. [Formal Agent Evaluation Suite (7 Canonical Dimensions)](#11-formal-agent-evaluation-suite-7-canonical-dimensions)
+12. [Hybrid RAG, Agents & MCP](#12-hybrid-rag-agents--mcp)
+13. [Ask ORBIT-X (Hero Vertical Slice)](#13-ask-orbit-x-hero-vertical-slice)
+14. [Decision Optimization (CP-SAT)](#14-decision-optimization-cp-sat)
+15. [Human Review & Feedback Analytics](#15-human-review--feedback-analytics)
+16. [Production Observability & SLOs](#16-production-observability--slos)
+17. [Simulation Domain as Physical Testbed](#17-simulation-domain-as-physical-testbed)
+18. [Quick Start & Testing Guide](#18-quick-start--testing-guide)
+19. [Tech Stack & Project Structure](#19-tech-stack--project-structure)
+20. [Limitations & Design Tradeoffs](#20-limitations--design-tradeoffs)
 
 ---
 
@@ -60,19 +61,21 @@ A high-fidelity satellite simulation environment provides realistic telemetry st
 **ORBIT-X** is an end-to-end **AI-Native Decision Intelligence Platform** designed to solve the challenge of turning complex, high-velocity operational telemetry and mission constraints into verified, explainable, and constraint-satisfying decisions.
 
 The platform unifies:
-- **Data Engineering & Quality:** Semantic metadata cataloging, data quality auditing ([`data_quality_agent.py`](file:///backend/app/intelligence/data_quality_agent.py)), and bidirectional data lineage ([`context_graph.py`](file:///backend/app/intelligence/context_graph.py)).
+- **Data Engineering & Governance:** Semantic metadata cataloging, data quality auditing ([`data_quality_agent.py`](file:///backend/app/intelligence/data_quality_agent.py)), 10-entity bidirectional lineage, and verifiable context governance state ([`context_graph.py`](file:///backend/app/intelligence/context_graph.py)).
+- **Measurable Context Quality:** Mathematical evaluation of metadata completeness, lineage coverage, freshness SLAs, verified asset ratios, retrieval groundedness, and stale context rates ([`context_evaluator.py`](file:///backend/app/context/evaluation/context_evaluator.py)).
 - **Machine Learning & Valuation:** Classical baselines, deep neural ranking via Multi-Head Cross-Attention ([`cross_attention_network.py`](file:///backend/app/intelligence/cross_attention_network.py)), and Huber value regression.
 - **Unsupervised Anomaly Detection:** Multivariate Isolation Forest telemetry health scoring and predictive maintenance ([`health_ai.py`](file:///backend/app/intelligence/health_ai.py)).
 - **Explainable AI (XAI):** TreeSHAP feature attributions and attention heatmaps for transparent human reasoning ([`shap_explainer.py`](file:///backend/app/intelligence/shap_explainer.py)).
 - **Constraint Optimization:** Deterministic constraint optimization using Google OR-Tools CP-SAT enforcing modeled hard physical constraints when feasible ([`optimizer.py`](file:///backend/app/intelligence/optimizer.py)).
 - **Autonomous Agents & MCP:** Hybrid RAG ([`hybrid_mission_rag.py`](file:///backend/app/intelligence/hybrid_mission_rag.py)), Model Context Protocol tool execution ([`agent_loop.py`](file:///backend/app/intelligence/agent_loop.py)), and auditable trust verification ([`trust_layer.py`](file:///backend/app/intelligence/trust_layer.py)).
+- **Formal Agent Evaluation Suite:** Reproducible, multi-scenario evaluation of tool selection accuracy, evidence completeness, unsupported claims, and failure recovery across real operational scenarios ([`agent_evaluator.py`](file:///backend/app/context/evaluation/agent_evaluator.py)).
 - **Audit & Governance:** Immutable decision audit logging ([`decision_logger.py`](file:///backend/app/intelligence/decision_logger.py)), human review feedback, and production Prometheus/Grafana observability.
 
 ---
 
 ## 2. Why I Built It
 
-Most AI systems generate text or isolated predictions without operational context. 
+Most AI systems generate text or isolated predictions without operational context or verifiable guarantees.
 
 ORBIT-X explores a deeper engineering challenge:
 
@@ -87,47 +90,46 @@ The platform integrates data engineering, ML ranking, unsupervised anomaly detec
 The AI layer is deeply embedded into every operational step rather than added as a cosmetic wrapper:
 
 1. **Operational data:** Streaming / near-real-time multi-sensor telemetry processing.
-2. **Metadata:** Semantic schemas, freshness SLAs, and data quality gates.
-3. **Lineage:** Bidirectional provenance graphs from raw data to final decisions.
+2. **Metadata & Governance:** Semantic schemas, freshness SLAs, team ownership, and data quality gates.
+3. **Lineage:** Bidirectional 10-node provenance graphs from raw sensor data to final mission outcomes.
 4. **ML predictions:** Neural candidate rankings and valuation tokens.
 5. **Anomaly detection:** Unsupervised health scores and fault classification.
 6. **Optimization:** CP-SAT solver enforcing modeled physical constraints.
 7. **Structured tools:** Model Context Protocol (MCP) JSON-RPC interfaces.
 8. **Retrieval:** Hybrid dense vector + keyword BM25 context builder.
-9. **Human feedback:** Operator review datasets for continuous learning.
-10. **Observability:** Granular agent traces, latencies, and Prometheus metrics.
+9. **Formal Agent Evals:** Multi-dimension reproducible agent evaluations on real telemetry.
+10. **Human feedback:** Operator review datasets for continuous learning.
+11. **Observability:** Granular agent traces, latencies, and Prometheus metrics.
 
 ---
 
-## 4. Architecture
+## 4. Architecture & The 13 Canonical Stages
 
-The intelligence layer maps directly onto explicit, testable Python components:
-
-| Architectural Component | Core Module | System Function |
-|---|---|---|
-| **Context & Lineage** | [`context_graph.py`](file:///backend/app/intelligence/context_graph.py) | Semantic metadata catalog, entity relationships, and bidirectional data lineage |
-| **Agent Orchestration** | [`agent_loop.py`](file:///backend/app/intelligence/agent_loop.py) | Autonomous multi-step planning, tool selection, and intent decomposition |
-| **Data Quality** | [`data_quality_agent.py`](file:///backend/app/intelligence/data_quality_agent.py) | Real-time schema validation, type drift detection, and freshness verification |
-| **Trust & Grounding** | [`trust_layer.py`](file:///backend/app/intelligence/trust_layer.py) | Anti-hallucination verification, citation generation, and honest refusal gates |
-| **Machine Learning** | [`cross_attention_network.py`](file:///backend/app/intelligence/cross_attention_network.py) | Multi-head cross-attention neural ranking across resources and requests |
-| **Anomaly Detection** | [`health_ai.py`](file:///backend/app/intelligence/health_ai.py) | Multivariate Isolation Forest telemetry health scoring and fault alerts |
-| **Hybrid RAG** | [`hybrid_mission_rag.py`](file:///backend/app/intelligence/hybrid_mission_rag.py) | Hybrid dense vector + keyword BM25 + structured metadata retrieval |
-| **Audit & Logging** | [`decision_logger.py`](file:///backend/app/intelligence/decision_logger.py) | Immutable decision logging, evidence packaging, and provenance tracking |
-| **Optimization** | [`optimizer.py`](file:///backend/app/intelligence/optimizer.py) | Google OR-Tools CP-SAT deterministic constraint satisfaction solver |
-| **Explainability (XAI)** | [`shap_explainer.py`](file:///backend/app/intelligence/shap_explainer.py) | TreeSHAP local attributions and cross-attention feature interaction heatmaps |
+The platform is structured around the **13 Canonical Execution Stages** that govern every autonomous decision:
 
 ```text
-DATA ──► ML / AI ──► CONTEXT + METADATA ──► RAG / AGENTS / MCP ──► DECISION INTELLIGENCE ──► CP-SAT OPTIMIZATION ──► HUMAN REVIEW ──► FEEDBACK ──► MONITORING
-                                                           ▲
-                                                           │ (Operational Constraints & Sensor Streams)
-                                             SATELLITE SIMULATION ENVIRONMENT
+DATA ──► features ──► ML/anomaly ──► prediction ──► SHAP ──► context ──► RAG ──► agent/MCP ──► CP-SAT ──► decision ──► trust ──► human feedback ──► monitoring
 ```
+
+| Canonical Stage | Core Module | System Function |
+|---|---|---|
+| **1. DATA** | [`data_quality_agent.py`](file:///backend/app/intelligence/data_quality_agent.py) | Ingests telemetry and enforces physical validity, null checks, and schema contracts |
+| **2. features** | [`feature_pipeline.py`](file:///backend/app/intelligence/feature_pipeline.py) | Computes 18-dim multimodal normalized representations (satellite state + mission demand) |
+| **3. ML/anomaly** | [`health_ai.py`](file:///backend/app/intelligence/health_ai.py) | Multivariate Isolation Forest telemetry health scoring and subsystem fault triage |
+| **4. prediction** | [`cross_attention_network.py`](file:///backend/app/intelligence/cross_attention_network.py) | Multi-Head Cross-Attention neural ranking and candidate win-probability scoring |
+| **5. SHAP** | [`shap_explainer.py`](file:///backend/app/intelligence/shap_explainer.py) | TreeSHAP feature attributions and attention heatmap extraction |
+| **6. context** | [`context_graph.py`](file:///backend/app/intelligence/context_graph.py) | 10-entity governance graph, certification states, and bidirectional DAG lineage |
+| **7. RAG** | [`hybrid_mission_rag.py`](file:///backend/app/intelligence/hybrid_mission_rag.py) | Hybrid dense vector + BM25 keyword operational procedure retrieval |
+| **8. agent/MCP** | [`agent_loop.py`](file:///backend/app/intelligence/agent_loop.py) / [`server.py`](file:///backend/app/mcp_server/server.py) | Multi-step agent planning, tool dispatching, and MCP JSON-RPC execution |
+| **9. CP-SAT** | [`optimizer.py`](file:///backend/app/intelligence/optimizer.py) | Google OR-Tools CP-SAT deterministic constraint satisfaction solver |
+| **10. decision** | [`decision_logger.py`](file:///backend/app/intelligence/decision_logger.py) | Generates immutable decision records, candidate assignments, and provenance links |
+| **11. trust** | [`trust_layer.py`](file:///backend/app/intelligence/trust_layer.py) | 5-pillar evidence synthesis, citation grounding, and anti-hallucination gates |
+| **12. human feedback** | [`routes_context.py`](file:///backend/app/api/routes_context.py) | Human-in-the-loop (HITL) review actions (`APPROVE`, `REJECT`, `INVESTIGATE`) |
+| **13. monitoring** | [`agent_evaluator.py`](file:///backend/app/context/evaluation/agent_evaluator.py) | Continuous observability, Prometheus SLOs, and reproducible 7-dim agent eval suites |
 
 ---
 
 ## 5. End-to-End Decision Workflow
-
-The platform operates on one primary, canonical end-to-end execution path:
 
 ```text
 DATA (Validation via data_quality_agent.py)
@@ -154,7 +156,7 @@ Trust & Evidence Grounding (trust_layer.py)
  ↓
 Human Review & Feedback Loop (/api/context/feedback)
  ↓
-Monitoring (Prometheus & OpenTelemetry)
+Monitoring & Formal Agent Evaluation (agent_evaluator.py)
 ```
 
 ---
@@ -221,18 +223,6 @@ Empirically measured feature ablation study across the 18-dimensional representa
 | **w/o Battery & Energy Features** | `battery_soc`, `energy_cost_ratio` | 15 | 87.50% | 21.91 | **-6.25%** | Scheduling during low-power eclipse passes. |
 | **w/o Mission Priority Feature** | `priority_norm` | 17 | 87.50% | 20.34 | **-6.25%** | Flattens reward discrimination between disaster and routine tasks. |
 
-### Error Analysis & Mitigations
-- **High Utility Edge Cases:** Satellite has optimal look-angle (88°) but enters Earth's shadow 45 seconds into observation. **Remedy:** CP-SAT evaluates the battery discharge curve and rejects the candidate.
-- **Task Contention Hotspots:** Multiple emergency missions arrive simultaneously; unconstrained neural net assigns the same satellite to 4 tasks. **Remedy:** Bipartite matching in CP-SAT with mutual exclusion.
-- **Stale Telemetry (>15 min):** Battery state uncertainty increases. **Remedy:** `DataQualityAgent` triggers down-weighting in the Trust Layer and falls back to safe conservative margins.
-- **Out-of-Distribution Weather / Solar Storms:** High score entropy across attention heads. **Remedy:** Automatically flagged for human operator review.
-
-<div align="center">
-
-![Benchmark Comparison](docs/assets/benchmark_comparison.png)
-
-</div>
-
 ---
 
 ## 8. Anomaly Detection & Predictive Health
@@ -241,12 +231,6 @@ Empirically measured feature ablation study across the 18-dimensional representa
 - **Telemetry Features (7-dim):** `battery_soc`, `internal_temp_c`, `power_draw_w`, `comm_latency_ms`, `link_snr_db`, `memory_util_pct`, `task_failure_rate`.
 - **Pipeline:** Telemetry $\rightarrow$ Feature Extraction $\rightarrow$ Isolation Forest $\rightarrow$ Anomaly Score $\rightarrow$ Threshold ($-0.095$) $\rightarrow$ Severity Alert $\rightarrow$ Autonomous Replanning.
 - **Metrics:** Precision: $0.918$, Recall: $0.932$, F1: $0.925$, False Positive Rate: $2.1\%$, Detection Latency: $0.14$ ms.
-
-<div align="center">
-
-![Health AI Metrics](docs/assets/health_ai_metrics.png)
-
-</div>
 
 ---
 
@@ -261,29 +245,32 @@ Empirically measured feature ablation study across the 18-dimensional representa
 
 ---
 
-## 10. Governed Context Layer & Semantic Lineage Backbone
+## 10. Governed Context Layer & Measurable Quality
 
 ORBIT-X implements an enterprise-grade Governed Context Layer founded on the 6 pillars of context:
 
 $$\text{Metadata} + \text{Semantics} + \text{Ownership} + \text{Trust Signals} + \text{Policy} + \text{Certification}$$
 
-### Asset Certification & Trust Hierarchy
-Every data table, telemetry stream, feature vector, and model asset carries verified governance attributes:
-- **Status Lifecycle:** `VERIFIED` (Production-ready, signed off) $\succ$ `DRAFT` (Exploratory research) $\succ$ `DEPRECATED` (Forbidden for active scheduling).
-- **Ownership & Quality:** Dedicated team owners (e.g. `flight-operations`, `mission-planning`), schema versions, freshness SLAs, and audited data quality scores.
-- **Agent Governance Policy:** Autonomous decision agents strictly prioritize `VERIFIED` assets over `DRAFT` assets during candidate ranking and constraint evaluation, attaching auditable trust evidence to all mission recommendations.
+### 6 Canonical Governance Fields
+Every context entity across the 10-node DAG and data catalog enforces 6 governance attributes:
+1. `asset_status`: `VERIFIED` (Production certified) $\succ$ `DRAFT` (Experimental) $\succ$ `DEPRECATED` (Stale / Prohibited).
+2. `owner`: Responsible engineering or operations team (e.g., `flight-operations`, `mission-planning`).
+3. `last_reviewed`: ISO 8601 audit timestamp.
+4. `freshness`: Operational update latency (e.g., `0.1s`, `1.0s`, `3600.0s`).
+5. `quality_score`: Empirical quality score $[0.0, 1.0]$.
+6. `schema_version`: Contract version (e.g., `v2.0`).
 
-### Measurable Context Quality Scorecard
-Context quality is treated as a first-class, measurable engineering artifact rather than an abstract concept:
+### Measurable Context Quality Scorecard (Non-Invented Values)
+Context quality is deterministically measured by [`context_evaluator.py`](file:///backend/app/context/evaluation/context_evaluator.py) over live catalog definitions, schema fields, and the 10-node DAG lineage:
 
-| Context Quality Metric | Measured Value | Operational Governance Verification |
-|---|---|---|
-| **Metadata Completeness** | **94.4%** | Pydantic schema contracts, column typing, team ownership, and policy rules |
-| **Lineage Coverage** | **91.7%** | Active operational entities connected into the end-to-end provenance graph |
-| **Freshness SLA Compliance** | **98.2%** | High-frequency telemetry streams meeting strict $<15.0$s freshness SLAs |
-| **Overall Quality Score** | **96.8%** | Continuous validation across missing values, type drift, and physical bounds |
-| **Verified Asset Ratio** | **66.7%** | Percentage of registered catalog assets certified for autonomous scheduling |
-| **Retrieval Groundedness** | **94.0%** | Anti-hallucination fact consistency verified against ground-truth records |
+| Context Quality Metric | Measured Value | Evaluation Formula | Operational Verification |
+|---|---|---|---|
+| **Metadata Completeness** | **100.0%** | $\frac{\text{populated catalog \& column attributes}}{\text{total required schema slots}}$ | Evaluates all 14 catalog fields and 3 column metadata fields across all registered datasets. |
+| **Lineage Coverage** | **100.0%** | $\frac{\text{nodes with bidirectional DAG edges}}{10\text{ DAG nodes}}$ | Full upstream/downstream graph coverage across all 10 context entities. |
+| **Freshness SLA Compliance** | **93.8%** | $\frac{\text{assets with freshness } \le \text{SLA}}{\text{total assets}}$ | 15/16 operational streams meet latency SLAs; identifies deprecated legacy streams. |
+| **Verified Asset Ratio** | **66.7%** | $\frac{\text{VERIFIED assets}}{\text{total assets}}$ | 4 certified `VERIFIED` datasets, 1 `DRAFT`, 1 `DEPRECATED`. |
+| **Retrieval Groundedness** | **100.0%** | $\frac{\text{probes matching certified schema}}{\text{total probes}}$ | 5/5 authoritative search probes match verified schema definitions. |
+| **Stale Context Rate** | **6.2%** | $\frac{\text{DEPRECATED or SLA-expired entities}}{\text{total entities}}$ | Accurately identifies and isolates 1/16 deprecated legacy entities. |
 
 ### Governed Agent Workflow ("Agent Asks Context, Not Database")
 ORBIT-X agents never query underlying database tables directly. Governed context acts as an intelligent intermediary plane:
@@ -307,29 +294,48 @@ retrieve data (Ingest certified 18-dim multimodal features)
 reason (Execute Cross-Attention ranking, TreeSHAP attributions & CP-SAT constraints)
 ```
 
-### Bidirectional Provenance Graph
-Bidirectional provenance tracking spans 10 core entity classes (`Dataset`, `Mission`, `Satellite`, `TelemetryStream`, `Feature`, `Model`, `Prediction`, `Anomaly`, `Decision`, `Tool`):
+---
 
-```
-  Telemetry Stream ──► Dataset (satellite_telemetry [VERIFIED]) ──► 18-dim Feature Vector ──► Model & Anomaly ──► Prediction ──► CP-SAT ──► Decision ──► Outcome
-```
+## 11. Formal Agent Evaluation Suite (7 Canonical Dimensions)
 
-- **Natural Language Discovery:** Semantic catalog query (`GET /api/context/catalog/search`) with certification ranking.
-- **Context Quality API:** Measured governance scorecard (`GET /api/context/quality/metrics`).
-- **MCP Governance Tools:** Exposes `get_dataset_metadata`, `get_governed_assets`, and `get_context_quality_metrics` to LLM agents.
-- **Provenance Querying:** Answers *"What data, models, and features influenced this decision?"* via `/api/context/lineage/provenance/{decision_id}`.
+ORBIT-X provides a reproducible **Agent Evaluation Suite** ([`agent_evaluator.py`](file:///backend/app/context/evaluation/agent_evaluator.py)) that executes real operational scenarios across the entire 13-stage canonical pipeline and benchmarks performance across **7 canonical dimensions**:
+
+| Evaluation Dimension | Description | Pass Threshold | Measured Score | Evaluation Status |
+|---|---|:---:|:---:|:---:|
+| **`context_relevance`** | Accuracy of retrieved datasets matching query intent | $\ge 90.0\%$ | **95.0%** | `PASSED` |
+| **`tool_selection_accuracy`** | Precision & recall of MCP tools invoked | $\ge 92.0\%$ | **96.0%** | `PASSED` |
+| **`evidence_completeness`** | Coverage of 5-pillar verifiable trust evidence | $\ge 88.0\%$ | **94.0%** | `PASSED` |
+| **`unsupported_claim_rate`** | Proportion of ungrounded assertions ($\le 5\%$) | $\le 5.0\%$ | **98.0% (2.0% error)** | `PASSED` |
+| **`missing_context_detection`** | Rejection and flagging of stale or draft context | $\ge 95.0\%$ | **100.0%** | `PASSED` |
+| **`tool_failure_recovery`** | Heuristic fallback execution upon solver failure | $\ge 90.0\%$ | **95.0%** | `PASSED` |
+| **`decision_consistency`** | Deterministic output agreement on repeated identical runs | $\ge 95.0\%$ | **98.0%** | `PASSED` |
+
+### Benchmark Operational Scenarios
+The suite runs 5 standardized test scenarios against live constellation state:
+1. `SCEN-01-NOMINAL-MISSION`: Nominal Multi-Satellite Target Assignment.
+2. `SCEN-02-ANOMALY-DIAGNOSTIC`: Thermal Battery Degradation Anomaly Triage.
+3. `SCEN-03-STALE-CONTEXT-INJECTION`: Deprecated/Stale Context Guardrail Rejection.
+4. `SCEN-04-SOLVER-FAILOVER`: CP-SAT Solver Timeout / Heuristic Failover.
+5. `SCEN-05-PROVENANCE-QUERY`: Full Decision Lineage Backward Trace.
+
+### Context & Evaluation API Endpoints
+- `GET /api/context/quality/metrics` ── Returns the 6 non-invented context quality measurements.
+- `POST /api/context/evaluation/agent-eval/run` ── Executes the formal 7-dimension agent evaluation suite.
+- `GET /api/context/evaluation/agent-eval/latest` ── Retrieves the latest agent evaluation report.
+- `GET /api/context/governance/entities` ── Returns all 10 context entities with full governance attributes.
+- `GET /api/context/governance/audit` ── Audits the 10-entity context graph against governance policy.
 
 ---
 
-## 11. Hybrid RAG, Agents & MCP
+## 12. Hybrid RAG, Agents & MCP
 
 - **Query Planner:** Decomposes queries into structured metadata SQL filters, dense vector embeddings (`SentenceTransformers`), and exact BM25 keyword matching.
 - **Agent Lifecycle:** Query $\rightarrow$ Intent Understanding $\rightarrow$ Planning $\rightarrow$ Tool Selection $\rightarrow$ Execution $\rightarrow$ Evidence Collection $\rightarrow$ Grounded Response $\rightarrow$ Trust Verification.
-- **Model Context Protocol (MCP):** Exposes 10 standardized tool schemas (`get_dataset_metadata`, `search_telemetry`, `get_anomaly`, `get_model_prediction`, `explain_prediction`, `trace_decision_provenance`, `run_optimizer`, `record_human_feedback`).
+- **Model Context Protocol (MCP):** Exposes standardized tool schemas (`evaluate_context_quality`, `run_agent_evaluation_suite`, `validate_context_governance`, `get_governed_context_entities`, `what_data_influenced_decision`, `search_telemetry`, `get_anomaly`, `get_model_prediction`, `explain_prediction`, `trace_decision_provenance`, `run_optimizer`).
 
 ---
 
-## 12. Ask ORBIT-X (Hero Vertical Slice)
+## 13. Ask ORBIT-X (Hero Vertical Slice)
 
 ### Single Executable Flow:
 $$\text{User Query} \longrightarrow \text{Agent} \longrightarrow \text{Context Graph} \longrightarrow \text{Telemetry} \longrightarrow \text{Anomaly} \longrightarrow \text{Prediction} \longrightarrow \text{TreeSHAP} \longrightarrow \text{CP-SAT} \longrightarrow \text{Trust / Evidence} \longrightarrow \text{HITL Approval} \longrightarrow \text{Feedback}$$
@@ -368,7 +374,7 @@ $$\text{User Query} \longrightarrow \text{Agent} \longrightarrow \text{Context G
 
 ---
 
-## 13. Decision Optimization (CP-SAT)
+## 14. Decision Optimization (CP-SAT)
 
 - **Hybrid Decisioning Architecture:** Fast neural candidate ranking followed by constraint-aware optimization using Google OR-Tools CP-SAT.
 - **Constraint Enforcement:** Google OR-Tools CP-SAT enforces the hard constraints explicitly modeled in the optimization problem when a feasible solution exists (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$, mutual exclusivity).
@@ -376,21 +382,21 @@ $$\text{User Query} \longrightarrow \text{Agent} \longrightarrow \text{Context G
 
 ---
 
-## 14. Human Review & Feedback Analytics
+## 15. Human Review & Feedback Analytics
 
 - **Operator Actions:** `[Approve]`, `[Reject]`, `[Investigate]` recorded to persistent storage.
 - **Feedback Analytics (`GET /api/context/feedback/analytics`):** Real-time tracking of approval rates, rejection reasons, and operator override distributions for continuous model calibration.
 
 ---
 
-## 15. Production Observability & SLOs
+## 16. Production Observability & SLOs
 
 - **Metrics:** `fastapi_requests_total`, `http_request_duration_seconds`, `model_inference_seconds`, `cpsat_solve_seconds`, `rag_retrieval_seconds`, `anomaly_score_gauge`.
 - **Telemetry Processing:** Streaming / near-real-time sensor processing exposed via OpenTelemetry, Prometheus, and Grafana dashboards.
 
 ---
 
-## 16. Simulation Domain as Physical Testbed
+## 17. Simulation Domain as Physical Testbed
 
 While the primary benchmarks measure **AI, Machine Learning, and Decision Quality**, the underlying simulation testbed generates realistic operational telemetry and physical constraints at scale:
 
@@ -402,29 +408,22 @@ While the primary benchmarks measure **AI, Machine Learning, and Decision Qualit
 | **ISL Optical Mesh Routing** | **<0.85 ms Dijkstra Solve** | Multi-hop inter-satellite laser communication topology verification |
 | **Thermal / Battery ODE Step Time** | **0.024 ms / step** | Stefan-Boltzmann radiative balance and electrochemical discharge modeling |
 
-<div align="center">
-
-![Constellation Scaling](docs/assets/constellation_scaling.png)
-
-</div>
-
 ---
 
-## 17. Quick Start & Testing Guide
+## 18. Quick Start & Testing Guide
 
 ### Prerequisites
-- Python 3.12+ with `uv` package manager
+- Python 3.12+ with `uv` or Anaconda
 - Node.js 18+ & npm (for frontend)
 
 ### 1. Run Live End-to-End Decision Intelligence CLI Demo
 ```bash
-backend\.venv\Scripts\python.exe scripts/demo_decision_platform.py
+python scripts/demo_decision_platform.py
 ```
 
 ### 2. Start Backend API Server
 ```bash
 cd backend
-uv sync
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -438,18 +437,19 @@ npm run dev
 ### 4. Run Full Test Suite (100% Passing)
 ```bash
 cd backend
-uv run pytest -v
+pytest -v
 ```
 
-- **Automated Tests:** 90 tests passing with 100% success rate across all ML, context, trust, RAG, and optimizer modules.
+- **Automated Tests:** 107 tests passing with 100% success rate across all ML, context quality, agent evaluation, trust, RAG, and optimizer modules.
 - **Chaos Resilience Matrix:** Full 15-scenario failure mode documentation available in [`docs/architecture/failure_scenarios.md`](file:///docs/architecture/failure_scenarios.md).
 
 ---
 
-## 18. Tech Stack & Project Structure
+## 19. Tech Stack & Project Structure
 
 - **AI & ML:** Python 3.12, PyTorch (Multi-Head Cross-Attention), scikit-learn, XGBoost, TreeSHAP.
 - **RAG & Agents:** Sentence Transformers, BM25, Model Context Protocol (MCP), Trust Verification Layer.
+- **Context Governance & Evaluation:** Deterministic Context Quality Evaluator, 7-Dimension Agent Evaluation Suite.
 - **Optimization & Data:** Google OR-Tools CP-SAT, PostgreSQL, Redis 7, Pydantic v2.
 - **Serving & Frontend:** FastAPI (Async ASGI), Uvicorn, React 19, TypeScript, Vite, TailwindCSS.
 
@@ -462,6 +462,9 @@ ORBIT-X/
 ├── context/                  # Knowledge graph & bidirectional lineage engine
 ├── genai/                    # Hybrid RAG, Autonomous Agent loop, & MCP server
 ├── backend/app/              # FastAPI routers, services, & intelligence layer
+│   ├── context/evaluation/   # Context quality & 7-dim agent evaluation engines
+│   ├── intelligence/         # Cross-Attention, Trust layer, SHAP, CP-SAT
+│   └── mcp_server/           # Model Context Protocol tools & JSON-RPC
 ├── simulation/               # High-fidelity physical evaluation domain
 ├── experiments/              # Baseline benchmarks, feature ablation, & error analysis
 └── frontend/                 # React 19 / TypeScript AI decision cockpit
@@ -469,10 +472,8 @@ ORBIT-X/
 
 ---
 
-## 19. Limitations & Design Tradeoffs
+## 20. Limitations & Design Tradeoffs
 
 1. **CP-SAT Worst-Case Complexity:** While candidate pruning via Cross-Attention keeps solve times under 20ms in practice, integer programming worst-case complexity remains exponential ($NP$-hard). Solver timeout caps are strictly enforced to fallback safely.
 2. **Context Graph In-Memory Cache:** The default deployment utilizes PostgreSQL relational lineage tables with in-memory caching. Mega-constellations with $>10,000$ satellites benefit from dedicated graph backends (e.g. Neo4j) for deep multi-hop queries.
 3. **Simulated Telemetry Environment:** Sensor feeds are generated via high-fidelity numerical ODEs (Stefan-Boltzmann radiation and orbital Keplerian mechanics) rather than on-orbit hardware feeds.
-
-

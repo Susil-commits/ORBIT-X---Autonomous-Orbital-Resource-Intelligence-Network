@@ -10,7 +10,10 @@ import math
 from collections import Counter
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:
+    SentenceTransformer = None
 
 from app.core.config import settings
 from app.core.schemas import (
@@ -103,7 +106,7 @@ class HybridMissionQAEngine:
         self.logger = logger or get_decision_logger()
         self.model_name = settings.EMBEDDING_MODEL
         print(f"Initializing HybridMissionQAEngine with dense embedder '{self.model_name}' and BM25...", flush=True)
-        self.embedder = SentenceTransformer(self.model_name)
+        self.embedder = SentenceTransformer(self.model_name) if SentenceTransformer is not None else None
         self.bm25 = BM25Retriever()
         self.cached_embeddings: Optional[np.ndarray] = None
         self.cached_event_count: int = 0
@@ -123,8 +126,11 @@ class HybridMissionQAEngine:
         ]
 
         # 1. Dense Embeddings
-        dense_embs = self.embedder.encode(texts, normalize_embeddings=True)
-        self.cached_embeddings = np.array(dense_embs, dtype=np.float32)
+        if self.embedder is not None:
+            dense_embs = self.embedder.encode(texts, normalize_embeddings=True)
+            self.cached_embeddings = np.array(dense_embs, dtype=np.float32)
+        else:
+            self.cached_embeddings = np.zeros((len(texts), 384), dtype=np.float32)
 
         # 2. BM25 Inverted Index
         self.bm25.fit(texts)
@@ -169,7 +175,7 @@ class HybridMissionQAEngine:
         if not candidate_indices:
             return MissionQAResponse(
                 query=query,
-                answer=f"No decision records matched the specified metadata filter (Satellite: {satellite_filter}, Severity: {min_severity}).",
+                answer=f"No decision records matched the criteria (Satellite: {satellite_filter}, Severity: {min_severity}).",
                 grounded=False,
                 confidence_score=0.0,
                 citations=[],
@@ -180,8 +186,11 @@ class HybridMissionQAEngine:
         event_embeddings = self._sync_index(all_events)
 
         # 1. Dense Scores
-        query_emb = self.embedder.encode([query], normalize_embeddings=True)[0]
-        dense_scores = np.dot(event_embeddings, query_emb)
+        if self.embedder is not None:
+            query_emb = self.embedder.encode([query], normalize_embeddings=True)[0]
+            dense_scores = np.dot(event_embeddings, query_emb)
+        else:
+            dense_scores = np.zeros(len(all_events), dtype=np.float32)
 
         # 2. BM25 Scores
         bm25_scores = self.bm25.score(query)

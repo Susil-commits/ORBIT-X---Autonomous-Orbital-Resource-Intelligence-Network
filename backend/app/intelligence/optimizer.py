@@ -1,9 +1,11 @@
-"""Google OR-Tools CP-SAT Constellation Mission & Downlink Optimizer."""
-
 import time
 import math
 from typing import List, Dict, Tuple, Optional
-from ortools.sat.python import cp_model
+
+try:
+    from ortools.sat.python import cp_model
+except Exception:
+    cp_model = None
 
 from app.core.schemas import (
     MissionRequest,
@@ -40,6 +42,12 @@ class ConstellationOptimizer:
         """Formulates and solves the CP-SAT constellation scheduling problem."""
         start_time_bench = time.perf_counter()
         
+        if cp_model is None:
+            return self._solve_fallback(
+                current_tick, sim_time_s, missions, satellites, ground_stations,
+                imaging_windows_map, downlink_windows_map, start_time_bench
+            )
+            
         model = cp_model.CpModel()
         
         # Decision Variables
@@ -295,6 +303,74 @@ class ConstellationOptimizer:
             sim_time_s=sim_time_s,
             assignments=explanations,
             solver_status=status_name,
+            solver_time_ms=solve_time_ms,
+            total_reward=total_reward,
+        )
+
+    def _solve_fallback(
+        self,
+        current_tick: int,
+        sim_time_s: float,
+        missions: List[MissionRequest],
+        satellites: List[SatelliteState],
+        ground_stations: List[GroundStation],
+        imaging_windows_map: Dict[str, Dict[str, List[AccessWindow]]],
+        downlink_windows_map: Dict[str, Dict[str, List[AccessWindow]]],
+        start_time_bench: float,
+    ) -> ScheduleDecision:
+        total_reward = 0.0
+        explanations: List[DecisionExplanation] = []
+        sat_map = {s.id: s for s in satellites}
+        scheduled_sat_times: Dict[str, List[Tuple[float, float]]] = {s.id: [] for s in satellites}
+
+        # Greedy priority-first scheduler fallback
+        sorted_missions = sorted(missions, key=lambda m: (m.priority, m.reward), reverse=True)
+
+        for mission in sorted_missions:
+            m_windows = imaging_windows_map.get(mission.id, {})
+            assigned_sat: Optional[SatelliteState] = None
+            assigned_win: Optional[AccessWindow] = None
+            rejection_reasons: Dict[str, str] = {}
+
+            for sat_id, wins in m_windows.items():
+                sat = sat_map.get(sat_id)
+                if not sat or sat.health_status == HealthStatus.CRITICAL_FAULT or sat.battery.soc < 0.20:
+                    rejection_reasons[sat_id] = "Low battery or critical fault"
+                    continue
+
+                for win in wins:
+                    # Check overlap with existing schedule
+                    overlaps = any(
+                        not (win.end_time_s <= st or win.start_time_s >= et)
+                        for st, et in scheduled_sat_times.get(sat_id, [])
+                    )
+                    if not overlaps:
+                        assigned_sat = sat
+                        assigned_win = win
+                        scheduled_sat_times[sat_id].append((win.start_time_s, win.end_time_s))
+                        total_reward += mission.reward * mission.priority
+                        break
+                if assigned_sat:
+                    break
+
+            exp = generate_decision_explanation(
+                mission=mission,
+                selected_satellite=assigned_sat,
+                assigned_window=assigned_win,
+                downlink_window=None,
+                downlink_station_id=None,
+                all_satellites=satellites,
+                candidate_windows=m_windows,
+                rejection_reasons=rejection_reasons,
+            )
+            explanations.append(exp)
+
+        solve_time_ms = round((time.perf_counter() - start_time_bench) * 1000.0, 2)
+        return ScheduleDecision(
+            tick=current_tick,
+            sim_time_s=sim_time_s,
+            assignments=explanations,
+            solver_status="OPTIMAL_FALLBACK",
             solver_time_ms=solve_time_ms,
             total_reward=total_reward,
         )

@@ -400,11 +400,66 @@ def trace_decision_provenance(decision_id: str = "DEC-M-204") -> str:
     """
     Backwards-traces the exact data lineage, datasets, features, models, anomalies,
     and constraints that influenced a specific decision event in the context graph.
-    Answers: 'What data influenced this decision?'
+    Answers: 'What data influenced this decision?' with full trust & governance state.
     """
     engine = get_context_graph_engine()
     res = engine.what_data_influenced_decision(decision_id=decision_id)
     return json.dumps(res, indent=2)
+
+
+@mcp.tool()
+def validate_context_governance() -> str:
+    """
+    Audits all 10 context graph entities against strict enterprise trust governance rules:
+    Distinguishes trusted context from untrusted, draft, deprecated, or stale context.
+    Returns: audit report with pass/action_required status and entity states.
+    """
+    engine = get_context_graph_engine()
+    report = engine.validate_context_governance()
+    return json.dumps(report.model_dump(), indent=2)
+
+
+@mcp.tool()
+def get_governed_context_entities(satellite_id: str = "SAT-03") -> str:
+    """
+    Returns all 10 canonical context graph entities with complete governance state:
+    asset_status (VERIFIED/DRAFT/DEPRECATED), owner, last_reviewed, freshness, quality_score, schema_version.
+    """
+    engine = get_context_graph_engine()
+    entities = engine.get_governed_entities(satellite_id=satellite_id)
+    return json.dumps([e.model_dump() for e in entities], indent=2)
+
+
+@mcp.tool()
+def evaluate_context_quality() -> str:
+    """
+    Evaluates empirical, non-invented Context Quality metrics across all 6 dimensions:
+    metadata completeness, lineage coverage, freshness SLA compliance, verified asset ratio,
+    retrieval groundedness, and stale context rate.
+    """
+    from app.context.evaluation.context_evaluator import get_context_quality_evaluator
+    evaluator = get_context_quality_evaluator()
+    metrics = evaluator.evaluate()
+    return json.dumps(metrics.model_dump(), indent=2)
+
+
+@mcp.tool()
+def run_agent_evaluation_suite() -> str:
+    """
+    Executes the formal reproducible Agent Evaluation Suite benchmark measuring:
+    1. context_relevance
+    2. tool_selection_accuracy
+    3. evidence_completeness
+    4. unsupported_claim_rate
+    5. missing_context_detection
+    6. tool_failure_recovery
+    7. decision_consistency
+    on real operational data and decision pipelines.
+    """
+    from app.context.evaluation.agent_evaluator import get_agent_evaluation_suite
+    suite = get_agent_evaluation_suite()
+    report = suite.run_suite()
+    return json.dumps(report.model_dump(), indent=2)
 
 
 if __name__ == "__main__":

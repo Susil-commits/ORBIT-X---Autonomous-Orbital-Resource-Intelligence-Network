@@ -528,6 +528,24 @@ class HybridMissionQARequest(BaseModel):
 # Layer 1 & Layer 4: Context Layer, Metadata & Lineage
 # ====================================================
 
+class AssetStatus(str, Enum):
+    VERIFIED = "VERIFIED"
+    DRAFT = "DRAFT"
+    DEPRECATED = "DEPRECATED"
+
+
+class ContextGovernanceState(BaseModel):
+    asset_status: AssetStatus = AssetStatus.VERIFIED
+    owner: str = "flight-operations"
+    last_reviewed: str = "2026-08-23T12:00:00Z"
+    freshness: str = "1.0s"
+    quality_score: float = 1.0
+    schema_version: str = "v2.0"
+    trust_tier: str = "TIER_1_CERTIFIED"
+    is_trusted: bool = True
+    governance_policy: Optional[str] = None
+
+
 class DataCatalogColumn(BaseModel):
     name: str
     type: str
@@ -544,32 +562,94 @@ class DataCatalogEntry(BaseModel):
     quality_score: float
     sensitivity: str
     status: str = "VERIFIED"  # "VERIFIED", "DRAFT", "DEPRECATED"
+    asset_status: Optional[str] = None  # "VERIFIED", "DRAFT", "DEPRECATED"
+    freshness: Optional[str] = None
     last_reviewed: str = "2026-08-22T12:00:00Z"
     certification_badge: str = "CERTIFIED_GOLD"
     governance_policy: Optional[str] = "Production agent decisions require VERIFIED assets only."
     columns: List[DataCatalogColumn]
     downstream_consumers: List[str]
 
+    def model_post_init(self, __context: Any) -> None:
+        if self.asset_status is None:
+            self.asset_status = self.status
+        if self.freshness is None:
+            self.freshness = f"{self.freshness_seconds}s"
+
 
 class ContextQualityMetrics(BaseModel):
     metadata_completeness_pct: float
     lineage_coverage_pct: float
     freshness_sla_compliance_pct: float
-    overall_quality_score_pct: float
-    quality_score_pct: float
     verified_asset_ratio_pct: float
     retrieval_groundedness_pct: float
+    stale_context_rate_pct: float
+    overall_quality_score_pct: float
+    quality_score_pct: float
     metadata_completeness: float
     lineage_coverage: float
     freshness_sla_compliance: float
     quality_score: float
     verified_asset_ratio: float
     retrieval_groundedness: float
+    stale_context_rate: float
     total_assets: int
     verified_assets: int
     draft_assets: int
     deprecated_assets: int
+    stale_assets_count: int = 0
+    measurement_formula_notes: Dict[str, str] = {}
     evaluated_at_iso: str
+
+
+class AgentEvalDimensionScore(BaseModel):
+    dimension_key: str
+    dimension_name: str
+    score: float  # [0.0, 1.0]
+    score_pct: float
+    threshold: float
+    passed: bool
+    description: str
+    evaluation_formula: str
+    tested_cases: int
+    passed_cases: int
+
+
+class AgentEvalScenarioResult(BaseModel):
+    scenario_id: str
+    scenario_name: str
+    category: str
+    query: str
+    expected_tools: List[str]
+    selected_tools: List[str]
+    context_relevance_score: float
+    tool_accuracy_score: float
+    evidence_completeness_score: float
+    unsupported_claim_detected: bool
+    missing_context_detected: bool
+    recovery_tested: bool
+    recovery_successful: bool
+    decision_consistent: bool
+    passed: bool
+    execution_time_ms: float
+    notes: str
+
+
+class AgentEvalSuiteReport(BaseModel):
+    suite_version: str = "1.0.0"
+    evaluated_at_iso: str
+    total_scenarios: int
+    passed_scenarios: int
+    suite_passed: bool
+    overall_score_pct: float
+    dimensions: List[AgentEvalDimensionScore]
+    scenarios: List[AgentEvalScenarioResult]
+    pipeline_stages_evaluated: List[str] = [
+        "DATA", "features", "ML/anomaly", "prediction", "SHAP",
+        "context", "RAG", "agent/MCP", "CP-SAT", "decision",
+        "trust", "human feedback", "monitoring"
+    ]
+    summary: str
 
 
 class GovernedContextStep(BaseModel):
@@ -579,6 +659,16 @@ class GovernedContextStep(BaseModel):
     summary: str
     target_asset: Optional[str] = None
     evidence_collected: Optional[str] = None
+
+
+class GovernedContextAuditReport(BaseModel):
+    total_entities_evaluated: int
+    trusted_entities: List[str]
+    untrusted_entities: List[str]
+    stale_entities: List[str]
+    governance_passed: bool
+    audit_summary: str
+    entity_governance_states: List[Dict[str, Any]] = []
 
 
 class DataCatalogResponse(BaseModel):
@@ -594,7 +684,15 @@ class DataCatalogResponse(BaseModel):
 class DataLineageNode(BaseModel):
     id: str
     label: str
-    type: str  # "SOURCE_TELEMETRY", "DATASET", "FEATURE_TABLE", "ML_MODEL", "OPTIMIZER", "DECISION", "OUTCOME"
+    type: str  # "CONSTELLATION_SATELLITE", "SOURCE_TELEMETRY", "DATASET", "FEATURE_TABLE", "ANOMALY_DETECTOR", "ML_MODEL", "MODEL_PREDICTION", "OPTIMIZER", "DECISION_RECORD", "MISSION_OUTCOME"
+    asset_status: str = "VERIFIED"  # "VERIFIED", "DRAFT", "DEPRECATED"
+    owner: str = "flight-operations"
+    last_reviewed: str = "2026-08-23T12:00:00Z"
+    freshness: str = "1.0s"
+    quality_score: float = 1.0
+    schema_version: str = "v2.0"
+    is_trusted: bool = True
+    governance_policy: Optional[str] = None
     metadata: Dict[str, Any] = {}
 
 

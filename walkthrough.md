@@ -1,6 +1,6 @@
 # ORBIT-X Platform Walkthrough & Governance Verification
 
-This document walks through the **Ask ORBIT-X Hero Decision Workflow**, the **Governed Context Layer (Atlan-Grade Trust State)**, the **Decoupled ML & Decision Benchmark Evaluation**, and test suite verification results.
+This document walks through the **Ask ORBIT-X Hero Decision Workflow**, the **Governed Context Layer (Verifiable Enterprise Trust State)**, the **Decoupled ML & Decision Benchmark Evaluation**, and test suite verification results.
 
 ---
 

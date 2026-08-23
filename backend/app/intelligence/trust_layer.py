@@ -212,8 +212,11 @@ class TrustLayerEngine:
             )
         )
 
-        # Governed Context & Asset Certification verification (Atlan-grade Trust State)
+        # Governed Context & Asset Certification verification (Verifiable Trust State)
+        governed_nodes = self.context_engine.get_governed_entities(satellite_id=reassign_candidate)
+        audit_report = self.context_engine.validate_context_governance(governed_nodes)
         verified_ds = self.context_engine.get_dataset_metadata("satellite_telemetry")
+        
         if verified_ds:
             evidence.append(
                 TrustEvidenceItem(
@@ -224,6 +227,15 @@ class TrustLayerEngine:
                     confidence_contribution=0.10,
                 )
             )
+        evidence.append(
+            TrustEvidenceItem(
+                evidence_type="CONTEXT_GOVERNANCE_AUDIT",
+                source_id="ContextGovernanceEngine",
+                summary=f"10-Entity Context Governance Audit: {audit_report.audit_summary} (Status: {'PASSED' if audit_report.governance_passed else 'WARNING'}, Trusted Entities: {len(audit_report.trusted_entities)}/10).",
+                verified=audit_report.governance_passed,
+                confidence_contribution=0.10,
+            )
+        )
 
         # Step 8: Physical Constraints Checklist
         constraints_checked = [

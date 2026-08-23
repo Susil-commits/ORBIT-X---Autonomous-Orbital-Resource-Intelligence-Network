@@ -482,9 +482,11 @@ export interface DataCatalogEntry {
   schema_version: string;
   storage_format: string;
   freshness_seconds: number;
+  freshness?: string | number;
   quality_score: number;
   sensitivity: string;
   status: 'VERIFIED' | 'DRAFT' | 'DEPRECATED' | string;
+  asset_status?: 'VERIFIED' | 'DRAFT' | 'DEPRECATED' | string;
   last_reviewed?: string;
   certification_badge?: string;
   governance_policy?: string;
@@ -496,21 +498,71 @@ export interface ContextQualityMetrics {
   metadata_completeness_pct: number;
   lineage_coverage_pct: number;
   freshness_sla_compliance_pct: number;
-  overall_quality_score_pct: number;
-  quality_score_pct?: number;
   verified_asset_ratio_pct: number;
   retrieval_groundedness_pct: number;
+  stale_context_rate_pct: number;
+  overall_quality_score_pct: number;
+  quality_score_pct?: number;
   metadata_completeness: number;
   lineage_coverage: number;
   freshness_sla_compliance: number;
   quality_score: number;
   verified_asset_ratio: number;
   retrieval_groundedness: number;
+  stale_context_rate: number;
   total_assets: number;
   verified_assets: number;
   draft_assets: number;
   deprecated_assets: number;
+  stale_assets_count?: number;
+  measurement_formula_notes?: Record<string, string>;
   evaluated_at_iso: string;
+}
+
+export interface AgentEvalDimensionScore {
+  dimension_key: string;
+  dimension_name: string;
+  score: number;
+  score_pct: number;
+  threshold: number;
+  passed: boolean;
+  description: string;
+  evaluation_formula: string;
+  tested_cases: number;
+  passed_cases: number;
+}
+
+export interface AgentEvalScenarioResult {
+  scenario_id: string;
+  scenario_name: string;
+  category: string;
+  query: string;
+  expected_tools: string[];
+  selected_tools: string[];
+  context_relevance_score: number;
+  tool_accuracy_score: number;
+  evidence_completeness_score: number;
+  unsupported_claim_detected: boolean;
+  missing_context_detected: boolean;
+  recovery_tested: boolean;
+  recovery_successful: boolean;
+  decision_consistent: boolean;
+  passed: boolean;
+  execution_time_ms: number;
+  notes: string;
+}
+
+export interface AgentEvalSuiteReport {
+  suite_version: string;
+  evaluated_at_iso: string;
+  total_scenarios: number;
+  passed_scenarios: number;
+  suite_passed: boolean;
+  overall_score_pct: number;
+  dimensions: AgentEvalDimensionScore[];
+  scenarios: AgentEvalScenarioResult[];
+  pipeline_stages_evaluated: string[];
+  summary: string;
 }
 
 export interface GovernedContextStep {
@@ -520,6 +572,16 @@ export interface GovernedContextStep {
   summary: string;
   target_asset?: string | null;
   evidence_collected?: string | null;
+}
+
+export interface GovernedContextAuditReport {
+  total_entities_evaluated: number;
+  trusted_entities: string[];
+  untrusted_entities: string[];
+  stale_entities: string[];
+  governance_passed: boolean;
+  audit_summary: string;
+  entity_governance_states?: Record<string, any>[];
 }
 
 export interface DataCatalogResponse {
@@ -535,7 +597,15 @@ export interface DataCatalogResponse {
 export interface DataLineageNode {
   id: string;
   label: string;
-  type: 'SOURCE_TELEMETRY' | 'DATASET' | 'FEATURE_TABLE' | 'ML_MODEL' | 'OPTIMIZER' | 'DECISION' | 'OUTCOME' | string;
+  type: 'CONSTELLATION_SATELLITE' | 'SOURCE_TELEMETRY' | 'DATASET' | 'FEATURE_TABLE' | 'ANOMALY_DETECTOR' | 'ML_MODEL' | 'MODEL_PREDICTION' | 'OPTIMIZER' | 'DECISION_RECORD' | 'MISSION_OUTCOME' | string;
+  asset_status?: 'VERIFIED' | 'DRAFT' | 'DEPRECATED' | string;
+  owner?: string;
+  last_reviewed?: string;
+  freshness?: string | number;
+  quality_score?: number;
+  schema_version?: string;
+  is_trusted?: boolean;
+  governance_policy?: string;
   metadata?: Record<string, any>;
 }
 

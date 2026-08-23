@@ -7,19 +7,44 @@ from app.core.schemas import (
     DataCatalogResponse,
     DataCatalogEntry,
     DataLineageResponse,
+    DataLineageNode,
     DataQualityReport,
     TrustLayerResponse,
     HumanFeedbackRequest,
     HumanFeedbackResponse,
     ContextQualityMetrics,
     GovernedContextStep,
+    GovernedContextAuditReport,
+    AgentEvalSuiteReport,
 )
 from app.simulation.simulator import get_simulator
 from app.intelligence.context_graph import get_context_graph_engine
 from app.intelligence.data_quality_agent import get_data_quality_agent
 from app.intelligence.trust_layer import get_trust_layer_engine
+from app.context.evaluation.context_evaluator import get_context_quality_evaluator
+from app.context.evaluation.agent_evaluator import get_agent_evaluation_suite
 
 router = APIRouter(prefix="/api/context", tags=["Context Layer, Lineage & Semantic Metadata"])
+
+
+@router.get("/governance/entities", response_model=List[DataLineageNode])
+async def get_governed_entities(satellite_id: Optional[str] = "SAT-03"):
+    """
+    Returns all 10 canonical context graph entities with complete governance state:
+    asset_status (VERIFIED, DRAFT, DEPRECATED), owner, last_reviewed, freshness, quality_score, schema_version.
+    """
+    engine = get_context_graph_engine()
+    return engine.get_governed_entities(satellite_id=satellite_id or "SAT-03")
+
+
+@router.get("/governance/audit", response_model=GovernedContextAuditReport)
+async def audit_context_governance():
+    """
+    Audits the entire 10-entity context graph against the governance policy:
+    distinguishes trusted assets from untrusted, draft, deprecated, or stale assets.
+    """
+    engine = get_context_graph_engine()
+    return engine.validate_context_governance()
 
 
 @router.get("/catalog", response_model=DataCatalogResponse)
@@ -77,10 +102,30 @@ async def get_context_quality_metrics():
     """
     Returns empirical, measured Context Quality metrics across all 6 pillars:
     metadata completeness, lineage coverage, freshness SLA compliance, overall quality,
-    verified asset ratio, and retrieval groundedness.
+    verified asset ratio, retrieval groundedness, and stale context rate.
     """
-    engine = get_context_graph_engine()
-    return engine.evaluate_context_quality()
+    evaluator = get_context_quality_evaluator()
+    return evaluator.evaluate()
+
+
+@router.post("/evaluation/agent-eval/run", response_model=AgentEvalSuiteReport)
+async def run_agent_eval_suite():
+    """
+    Executes the formal reproducible Agent Evaluation Suite measuring all 7 dimensions:
+    context_relevance, tool_selection_accuracy, evidence_completeness, unsupported_claim_rate,
+    missing_context_detection, tool_failure_recovery, and decision_consistency on real operational data.
+    """
+    suite = get_agent_evaluation_suite()
+    return suite.run_suite()
+
+
+@router.get("/evaluation/agent-eval/latest", response_model=AgentEvalSuiteReport)
+async def get_latest_agent_eval_report():
+    """
+    Returns the latest evaluated Agent Benchmark Report across all 7 dimensions.
+    """
+    suite = get_agent_evaluation_suite()
+    return suite.get_latest_report()
 
 
 @router.get("/governed-pipeline/preview", response_model=List[GovernedContextStep])

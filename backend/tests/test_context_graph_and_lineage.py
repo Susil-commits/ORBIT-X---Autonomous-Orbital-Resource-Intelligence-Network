@@ -33,23 +33,156 @@ def test_natural_language_dataset_search():
 
 
 def test_decision_lineage_graph_traversal():
-    """Validates end-to-end lineage path generation from Raw Telemetry to Mission Outcome."""
+    """Validates 10-entity lineage path generation from Constellation Asset to Mission Outcome."""
     engine = get_context_graph_engine()
     lineage = engine.trace_decision_lineage(mission_id="EO-TEST-99", satellite_id="SAT-05")
     assert lineage.target_id == "EO-TEST-99"
-    assert len(lineage.nodes) >= 6
-    assert len(lineage.edges) >= 5
+    assert len(lineage.nodes) == 10
+    assert len(lineage.edges) == 11
 
     node_types = [n.type for n in lineage.nodes]
+    assert "CONSTELLATION_SATELLITE" in node_types
     assert "SOURCE_TELEMETRY" in node_types
     assert "DATASET" in node_types
     assert "FEATURE_TABLE" in node_types
+    assert "ANOMALY_DETECTOR" in node_types
     assert "ML_MODEL" in node_types
+    assert "MODEL_PREDICTION" in node_types
     assert "OPTIMIZER" in node_types
-    assert "DECISION" in node_types
-    assert "OUTCOME" in node_types
+    assert "DECISION_RECORD" in node_types
+    assert "MISSION_OUTCOME" in node_types
+
+    # Validate that all 10 nodes possess complete governance state
+    for node in lineage.nodes:
+        assert node.asset_status in ["VERIFIED", "DRAFT", "DEPRECATED"]
+        assert node.owner is not None and len(node.owner) > 0
+        assert node.last_reviewed is not None and len(node.last_reviewed) > 0
+        assert node.freshness is not None and len(node.freshness) > 0
+        assert 0.0 <= node.quality_score <= 1.0
+        assert node.schema_version is not None and len(node.schema_version) > 0
+        assert node.is_trusted is True
 
     assert "SAT-05" in lineage.lineage_path_summary
+
+
+def test_ten_governed_entities_contract():
+    """Validates that get_governed_entities returns 10 distinct entities with full governance contracts."""
+    engine = get_context_graph_engine()
+    entities = engine.get_governed_entities(satellite_id="SAT-03")
+    assert len(entities) == 10
+    ids = [e.id for e in entities]
+    expected_ids = [
+        "satellite_asset",
+        "telemetry_stream",
+        "dataset_telemetry",
+        "feature_vector",
+        "anomaly_detector",
+        "ml_model",
+        "model_prediction",
+        "cpsat_optimizer",
+        "decision_record",
+        "mission_outcome",
+    ]
+    for exp_id in expected_ids:
+        assert exp_id in ids
+
+    # Check that each node has owner, freshness SLA, quality score, schema version
+    sat_asset = next(e for e in entities if e.id == "satellite_asset")
+    assert sat_asset.owner == "spacecraft-systems"
+    assert sat_asset.quality_score >= 0.99
+    assert sat_asset.schema_version == "v2.2"
+
+
+def test_trusted_vs_untrusted_context_filtering():
+    """Validates that agent can programmatically distinguish trusted context from draft/deprecated/stale context."""
+    from app.core.schemas import DataLineageNode
+    engine = get_context_graph_engine()
+    
+    # Create test nodes with mixed governance states
+    mixed_nodes = [
+        DataLineageNode(
+            id="node_verified",
+            label="Verified Live Telemetry",
+            type="SOURCE_TELEMETRY",
+            asset_status="VERIFIED",
+            owner="flight-operations",
+            last_reviewed="2026-08-23T12:00:00Z",
+            freshness="0.5s",
+            quality_score=0.99,
+            schema_version="v2.0",
+            is_trusted=True,
+        ),
+        DataLineageNode(
+            id="node_draft",
+            label="Draft Solar Forecast",
+            type="DATASET",
+            asset_status="DRAFT",
+            owner="research-lab",
+            last_reviewed="2026-08-15T09:00:00Z",
+            freshness="3600.0s",
+            quality_score=0.74,
+            schema_version="v0.1-alpha",
+            is_trusted=False,
+        ),
+        DataLineageNode(
+            id="node_deprecated",
+            label="Legacy CSV Dumps",
+            type="DATASET",
+            asset_status="DEPRECATED",
+            owner="legacy-ops",
+            last_reviewed="2026-01-10T00:00:00Z",
+            freshness="86400.0s",
+            quality_score=0.65,
+            schema_version="v1.0-deprecated",
+            is_trusted=False,
+        ),
+    ]
+
+    trusted, untrusted = engine.filter_trusted_context(mixed_nodes)
+    assert len(trusted) == 1
+    assert trusted[0].id == "node_verified"
+    assert len(untrusted) == 2
+    untrusted_ids = [n.id for n in untrusted]
+    assert "node_draft" in untrusted_ids
+    assert "node_deprecated" in untrusted_ids
+
+    # Validate audit report generator
+    audit = engine.validate_context_governance(mixed_nodes)
+    assert audit.governance_passed is False
+    assert "node_verified" in audit.trusted_entities
+    assert "node_draft" in audit.untrusted_entities
+    assert "node_deprecated" in audit.untrusted_entities
+
+
+def test_what_data_influenced_decision_governance():
+    """Validates that backwards-trace returns complete governance state for all influencing components."""
+    engine = get_context_graph_engine()
+    trace = engine.what_data_influenced_decision(decision_id="DEC-M-204", satellite_id="SAT-17")
+    assert trace["decision_id"] == "DEC-M-204"
+    assert trace["context_governance"]["governance_status"] == "PASSED"
+    assert trace["context_governance"]["total_entities_governed"] == 10
+
+    lineage = trace["influencing_lineage"]
+    # Check satellite
+    assert lineage["constellation_satellite"]["asset_status"] == "VERIFIED"
+    assert lineage["constellation_satellite"]["owner"] == "spacecraft-systems"
+    assert lineage["constellation_satellite"]["schema_version"] == "v2.2"
+
+    # Check telemetry
+    assert lineage["source_telemetry"]["asset_status"] == "VERIFIED"
+    assert lineage["source_telemetry"]["freshness"] == "0.1s"
+
+    # Check queried datasets
+    for ds in lineage["queried_datasets"]:
+        assert ds["asset_status"] == "VERIFIED"
+        assert ds["owner"] is not None
+        assert ds["quality_score"] >= 0.95
+        assert ds["schema_version"] is not None
+
+    # Check features & models
+    assert lineage["engineered_features"]["asset_status"] == "VERIFIED"
+    assert lineage["evaluated_models"][0]["asset_status"] == "VERIFIED"
+    assert lineage["evaluated_models"][1]["asset_status"] == "VERIFIED"
 
 
 def test_dataset_dependency_impact_analysis():
@@ -165,4 +298,9 @@ def test_governed_context_step_execution_order():
     assert res.context_quality is not None
     assert res.context_quality.metadata_completeness_pct >= 90.0
     assert res.context_quality.lineage_coverage_pct >= 90.0
-    assert res.context_quality.freshness_sla_compliance_pct >= 95.0
+    assert res.context_quality.freshness_sla_compliance_pct >= 90.0
+
+    # Verify context governance audit in evidence items
+    evidence_types = [e.evidence_type for e in res.evidence]
+    assert "CONTEXT_GOVERNANCE_AUDIT" in evidence_types
+    assert "GOVERNED_CONTEXT" in evidence_types

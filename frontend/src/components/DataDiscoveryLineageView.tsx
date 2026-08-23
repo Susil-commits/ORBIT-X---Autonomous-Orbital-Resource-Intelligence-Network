@@ -95,60 +95,138 @@ export const DataDiscoveryLineageView: React.FC = () => {
       });
   }, []);
 
+  const [lineageGovernanceFilter, setLineageGovernanceFilter] = useState<'ALL' | 'VERIFIED' | 'DRAFT' | 'DEPRECATED'>('ALL');
+
   const LINEAGE_NODES = [
     {
-      id: 'node-raw',
-      title: '1. Raw Telemetry Ingestion',
-      type: 'Source Data',
-      desc: 'CelesTrak / Orbit Simulator 10Hz Feed',
-      status: 'VALIDATED',
-      meta: 'Pydantic v2 Contract &bull; 0 Nulls',
+      id: 'node-sat',
+      title: '1. Constellation Satellite (SAT-03)',
+      type: 'CONSTELLATION_SATELLITE',
+      desc: 'On-orbit bus physical power & attitude state',
+      asset_status: 'VERIFIED',
+      owner: 'spacecraft-systems',
+      last_reviewed: '2026-08-22',
+      freshness: '0.1s',
+      quality_score: 0.998,
+      schema_version: 'v2.2',
       color: 'border-cyan-500/40 bg-cyan-950/20 text-cyan-300',
     },
     {
+      id: 'node-raw',
+      title: '2. Raw Telemetry Stream',
+      type: 'SOURCE_TELEMETRY',
+      desc: '10Hz calibrated downlink sensor frames',
+      asset_status: 'VERIFIED',
+      owner: 'flight-operations',
+      last_reviewed: '2026-08-22',
+      freshness: '0.1s',
+      quality_score: 0.992,
+      schema_version: 'v2.0',
+      color: 'border-sky-500/40 bg-sky-950/20 text-sky-300',
+    },
+    {
       id: 'node-clean',
-      title: '2. Schema Cleaning & Quality Audit',
-      type: 'Data Engineering',
-      desc: 'Data Quality Agent / Drift Check',
-      status: 'HEALTHY',
-      meta: 'Quality Index: 99.8% &bull; Zero Drift',
+      title: '3. Telemetry Dataset',
+      type: 'DATASET',
+      desc: 'TimescaleDB / Redis Ring Buffer',
+      asset_status: 'VERIFIED',
+      owner: 'flight-operations',
+      last_reviewed: '2026-08-22',
+      freshness: '1.0s',
+      quality_score: 0.992,
+      schema_version: 'v2.0',
       color: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300',
     },
     {
       id: 'node-feat',
-      title: '3. Reusable Feature Store',
-      type: 'Feature Engineering',
-      desc: '7-Dim Modular Feature Pipeline',
-      status: 'VERSIONED',
-      meta: 'v2.1 Feature Set &bull; Leakage-Free',
+      title: '4. Model Feature Table',
+      type: 'FEATURE_TABLE',
+      desc: '18-Dim Multi-Task Normalized Store',
+      asset_status: 'VERIFIED',
+      owner: 'ml-platform',
+      last_reviewed: '2026-08-22',
+      freshness: '1.0s',
+      quality_score: 0.995,
+      schema_version: 'v2.2',
       color: 'border-blue-500/40 bg-blue-950/20 text-blue-300',
     },
     {
+      id: 'node-anom',
+      title: '5. Anomaly Detector (IsolationForest)',
+      type: 'ANOMALY_DETECTOR',
+      desc: 'Spacecraft Health AI Multivariate Monitor',
+      asset_status: 'VERIFIED',
+      owner: 'spacecraft-health-ai',
+      last_reviewed: '2026-08-20',
+      freshness: '0.5s',
+      quality_score: 0.980,
+      schema_version: 'v1.5',
+      color: 'border-rose-500/40 bg-rose-950/20 text-rose-300',
+    },
+    {
       id: 'node-ml',
-      title: '4. Cross-Attention Model',
-      type: 'Machine Learning',
+      title: '6. Cross-Attention Model',
+      type: 'ML_MODEL',
       desc: 'Multi-Head Attention Ranker + TreeSHAP',
-      status: 'EVALUATED',
-      meta: 'MAE: 0.042 &bull; Latency: 1.2ms',
+      asset_status: 'VERIFIED',
+      owner: 'ml-platform',
+      last_reviewed: '2026-08-21',
+      freshness: '3600.0s',
+      quality_score: 0.975,
+      schema_version: 'v2.2',
       color: 'border-indigo-500/40 bg-indigo-950/20 text-indigo-300',
     },
     {
+      id: 'node-pred',
+      title: '7. Model Prediction & Valuation',
+      type: 'MODEL_PREDICTION',
+      desc: 'Feasibility Win Prob (94.2%) + SHAP',
+      asset_status: 'VERIFIED',
+      owner: 'autonomous-gnc',
+      last_reviewed: '2026-08-23',
+      freshness: '0.2s',
+      quality_score: 0.942,
+      schema_version: 'v2.2',
+      color: 'border-purple-500/40 bg-purple-950/20 text-purple-300',
+    },
+    {
       id: 'node-cpsat',
-      title: '5. CP-SAT Optimizer',
-      type: 'Deterministic Decisioning',
-      desc: 'Google OR-Tools Constraint Solver',
-      status: 'VERIFIED',
-      meta: '100% Invariants Met &bull; 1.4ms',
-      color: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300',
+      title: '8. CP-SAT Global Optimizer',
+      type: 'OPTIMIZER',
+      desc: 'Google OR-Tools Discrete Constraint Solver',
+      asset_status: 'VERIFIED',
+      owner: 'mission-planning',
+      last_reviewed: '2026-08-22',
+      freshness: '0.05s',
+      quality_score: 1.000,
+      schema_version: 'v3.0',
+      color: 'border-teal-500/40 bg-teal-950/20 text-teal-300',
+    },
+    {
+      id: 'node-dec',
+      title: '9. Decision Record (DEC-M204)',
+      type: 'DECISION_RECORD',
+      desc: 'Immutable Audited Reassignment Event',
+      asset_status: 'VERIFIED',
+      owner: 'decision-intelligence',
+      last_reviewed: '2026-08-23',
+      freshness: '0.1s',
+      quality_score: 1.000,
+      schema_version: 'v2.0',
+      color: 'border-amber-500/40 bg-amber-950/20 text-amber-300',
     },
     {
       id: 'node-hitl',
-      title: '6. Human Review & Outcome',
-      type: 'Human-in-the-Loop',
-      desc: 'Audited Decision Ledger & Feedback',
-      status: 'PERSISTED',
-      meta: 'PostgreSQL Audit &bull; Continuous Eval',
-      color: 'border-amber-500/40 bg-amber-950/20 text-amber-300',
+      title: '10. Mission Outcome & SLA Delivery',
+      type: 'MISSION_OUTCOME',
+      desc: 'Target Downlink Execution & Feasibility Margin',
+      asset_status: 'VERIFIED',
+      owner: 'payload-operations',
+      last_reviewed: '2026-08-23',
+      freshness: '1.0s',
+      quality_score: 0.990,
+      schema_version: 'v2.0',
+      color: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300',
     },
   ];
 
@@ -198,7 +276,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
         </div>
       </div>
 
-      {/* Context Quality Scorecard (Atlan-Grade Governed Context Metrics) */}
+      {/* Context Quality Scorecard (Governed Context Metrics) */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
@@ -229,14 +307,22 @@ export const DataDiscoveryLineageView: React.FC = () => {
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
             <div className="text-[10px] text-slate-400 uppercase tracking-wider">Lineage Coverage</div>
             <div className="text-xl font-bold text-purple-300">
-              {contextMetrics?.lineage_coverage_pct != null ? `${contextMetrics.lineage_coverage_pct}%` : '91.7%'}
+              {contextMetrics?.lineage_coverage_pct != null ? `${contextMetrics.lineage_coverage_pct}%` : '100.0%'}
             </div>
-            <div className="text-[9px] text-slate-500">11/12 nodes connected</div>
+            <div className="text-[9px] text-slate-500">10/10 DAG nodes linked</div>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider">Verified Assets</div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider">Freshness SLA</div>
             <div className="text-xl font-bold text-emerald-300">
+              {contextMetrics?.freshness_sla_compliance_pct != null ? `${contextMetrics.freshness_sla_compliance_pct}%` : '98.8%'}
+            </div>
+            <div className="text-[9px] text-slate-500">&le; 1.0s telemetry latency</div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider">Verified Asset Ratio</div>
+            <div className="text-xl font-bold text-teal-300">
               {contextMetrics?.verified_asset_ratio_pct != null ? `${contextMetrics.verified_asset_ratio_pct}%` : '66.7%'}
             </div>
             <div className="text-[9px] text-slate-500">
@@ -245,27 +331,23 @@ export const DataDiscoveryLineageView: React.FC = () => {
           </div>
 
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider">Freshness SLA</div>
-            <div className="text-xl font-bold text-amber-300">
-              {contextMetrics?.freshness_sla_compliance_pct != null ? `${contextMetrics.freshness_sla_compliance_pct}%` : '98.2%'}
-            </div>
-            <div className="text-[9px] text-slate-500">&lt; 1.0s telemetry latency</div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider">Overall Quality</div>
-            <div className="text-xl font-bold text-teal-300">
-              {contextMetrics?.overall_quality_score_pct != null ? `${contextMetrics.overall_quality_score_pct}%` : '96.8%'}
-            </div>
-            <div className="text-[9px] text-slate-500">Zero nulls / strict bounds</div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
             <div className="text-[10px] text-slate-400 uppercase tracking-wider">Retrieval Groundedness</div>
             <div className="text-xl font-bold text-indigo-300">
-              {contextMetrics?.retrieval_groundedness_pct != null ? `${contextMetrics.retrieval_groundedness_pct}%` : '94.0%'}
+              {contextMetrics?.retrieval_groundedness_pct != null ? `${contextMetrics.retrieval_groundedness_pct}%` : '95.2%'}
             </div>
-            <div className="text-[9px] text-slate-500">Anti-hallucination verified</div>
+            <div className="text-[9px] text-slate-500">Schema verified (0 halluc.)</div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5 font-mono">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider">Stale Context Rate</div>
+            <div className={`text-xl font-bold ${
+              (contextMetrics?.stale_context_rate_pct || 0) > 10 ? 'text-amber-400' : 'text-emerald-300'
+            }`}>
+              {contextMetrics?.stale_context_rate_pct != null ? `${contextMetrics.stale_context_rate_pct}%` : '6.3%'}
+            </div>
+            <div className="text-[9px] text-slate-500">
+              {contextMetrics?.stale_assets_count || 1} stale/deprecated quarantined
+            </div>
           </div>
         </div>
 
@@ -349,44 +431,92 @@ export const DataDiscoveryLineageView: React.FC = () => {
       {activeTab === 'lineage' && (
         <div className="space-y-6">
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
+            {/* Lineage Header with Governance Filter */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h3 className="text-sm font-semibold font-orbitron text-slate-100">
-                  Decision Lineage: "What data influenced this decision?"
+                <h3 className="text-sm font-semibold font-orbitron text-slate-100 flex items-center gap-2">
+                  <GitBranch className="w-4 h-4 text-cyan-400" />
+                  10-Entity Decision Lineage DAG: "What data influenced this decision?"
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Traces the complete provenance graph from raw sensor telemetry up to final operator review.
+                  Traces the complete 10-node provenance graph from Constellation Asset to Mission Outcome with verifiable trust & governance state.
                 </p>
               </div>
-              <span className="text-xs font-mono px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
-                Trace ID: tr-9942a-m204
-              </span>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-slate-400">Governance:</span>
+                <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-mono">
+                  {(['ALL', 'VERIFIED', 'DRAFT', 'DEPRECATED'] as const).map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setLineageGovernanceFilter(st)}
+                      className={`px-2.5 py-0.5 rounded-lg transition-all cursor-pointer font-bold ${
+                        lineageGovernanceFilter === st
+                          ? st === 'VERIFIED'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : st === 'DRAFT'
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : st === 'DEPRECATED'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-xs font-mono px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
+                  Trace ID: tr-9942a-m204
+                </span>
+              </div>
             </div>
 
-            {/* Interactive DAG Nodes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              {LINEAGE_NODES.map((node) => (
+            {/* Interactive 10 DAG Nodes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 pt-2">
+              {LINEAGE_NODES.filter((n) => lineageGovernanceFilter === 'ALL' || n.asset_status === lineageGovernanceFilter).map((node) => (
                 <div
                   key={node.id}
                   className={`p-4 rounded-2xl border ${node.color} space-y-3 relative overflow-hidden transition-all hover:scale-[1.01]`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-900/80 text-slate-400">
-                      {node.type}
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-slate-900/80 text-slate-400 truncate max-w-[120px]">
+                      {node.type.replace('_', ' ')}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-1">
+                    <span className={`text-[10px] font-mono font-bold flex items-center gap-1 px-1.5 py-0.5 rounded ${
+                      node.asset_status === 'VERIFIED'
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : node.asset_status === 'DRAFT'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    }`}>
                       <CheckCircle2 className="w-3 h-3" />
-                      {node.status}
+                      {node.asset_status}
                     </span>
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-bold text-slate-100 font-mono">{node.title}</h4>
-                    <p className="text-xs text-slate-300 mt-1">{node.desc}</p>
+                    <h4 className="text-xs font-bold text-slate-100 font-mono line-clamp-1">{node.title}</h4>
+                    <p className="text-[11px] text-slate-300 mt-1 line-clamp-2">{node.desc}</p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
-                    <span dangerouslySetInnerHTML={{ __html: node.meta }} />
+                  <div className="pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400 space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Owner:</span>
+                      <span className="text-slate-300 font-semibold">{node.owner}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Freshness SLA:</span>
+                      <span className="text-cyan-300 font-semibold">{node.freshness}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Quality Score:</span>
+                      <span className="text-emerald-300 font-semibold">{(node.quality_score * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Schema / Reviewed:</span>
+                      <span className="text-purple-300 font-semibold">{node.schema_version} ({node.last_reviewed})</span>
+                    </div>
                   </div>
                 </div>
               ))}
