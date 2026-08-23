@@ -162,7 +162,7 @@ Monitoring (Prometheus & OpenTelemetry)
 ## 6. ML Pipeline & Neural Architecture
 
 ```
-  Operational Dataset ──► Pydantic v2 Validation ──► StandardScaler ──► 18-dim Feature Store ──► 7-Model Benchmark Evaluation ──► Champion (Cross-Attention + CP-SAT)
+  Operational Dataset ──► Pydantic v2 Validation ──► StandardScaler ──► 18-dim Feature Store ──► 6-Model ML Evaluation ──► Champion ML Ranker ──► CP-SAT Decision Layer
 ```
 
 - **Candidate Ranking (Cross-Attention):** Multi-Head Cross-Attention Network (`ConstellationCrossAttentionNet`) learning complex cross-modal interactions between resource availability tokens and mission request demand tokens ($0.372$ ms p50 latency, $84.6\%$ top-1 agreement).
@@ -173,6 +173,22 @@ Monitoring (Prometheus & OpenTelemetry)
 ## 7. Evaluation & Decision Benchmarks
 
 All metrics represent empirically measured values from the evaluation harness ([`backend/eval/run_baselines.py`](file:///backend/eval/run_baselines.py)).
+
+### Benchmark Hierarchy & Evaluation Split
+
+```
+ML Evaluation (Pure Predictive & Candidate Ranking Models)
+├── Random Assignment Heuristic
+├── Greedy EDF Heuristic
+├── Ridge Linear Regression
+├── Random Forest / XGBoost Regressor
+├── Multi-Layer Perceptron (BidValueMLP)
+└── ConstellationCrossAttentionNet (Champion ML Model)
+
+Decision Evaluation (Integrated Decision Pipelines & Constraint Solvers)
+├── Cross-Attention Only (Unconstrained Neural Candidate Ranking)
+└── Cross-Attention + Google OR-Tools CP-SAT (Production Hybrid Decision System)
+```
 
 ### Table A: Predictive & Ranking Models (ML Evaluation)
 Evaluates pure ML regression and ranking performance on held-out multi-agent operational telemetry test splits:
@@ -186,13 +202,13 @@ Evaluates pure ML regression and ranking performance on held-out multi-agent ope
 | **Multi-Layer Perceptron (MLP)** | Deep Learning | 68.8% | 0.571 | 42.03 | 68.75% | 0.185 ms | 5,397.5 |
 | **ConstellationCrossAttentionNet (Champion ML)** | Deep Learning | **84.6%** | **0.612** | **28.40** | **84.6%** | **0.372 ms** | **2,690.9** |
 
-### Table B: Decision Systems (Hybrid ML + CP-SAT Evaluation)
+### Table B: Decision Systems (Integrated Constraint & Feasibility Evaluation)
 Evaluates the integrated decision intelligence pipeline enforcing physical invariant constraints and global mission scheduling:
 
-| Decision System | Constraint Violations (Feasible Instances) | Mission Utility Captured | Feasibility Rate | High-Priority Completion | Optimization Latency (p50) | End-to-End Latency (p50) |
-|---|---|---|---|---|---|---|
-| **Cross-Attention Alone** | 3.4% boundary violations | 84.5% | 96.6% | 88.2% | N/A (Neural only) | **0.372 ms** |
-| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **98.7%** | **100.0%** | **100.0%** | **18.40 ms** | **18.77 ms** |
+| Decision System | Constraint Violations | Feasibility Rate | Decision Utility | Optimization Latency (p50) | End-to-End Latency (p50) |
+|---|---|---|---|---|---|
+| **Cross-Attention Only** | 3.4% boundary violations | 96.6% | 84.5% | N/A (Neural only) | **0.372 ms** |
+| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **100.0%** | **98.7%** | **18.40 ms** | **18.77 ms** |
 
 ### Feature Ablation Study
 Empirically measured feature ablation study across the 18-dimensional representation ([`backend/eval/run_ablation.py`](file:///backend/eval/run_ablation.py)):
@@ -245,16 +261,63 @@ Empirically measured feature ablation study across the 18-dimensional representa
 
 ---
 
-## 10. Context & Semantic Lineage Backbone
+## 10. Governed Context Layer & Semantic Lineage Backbone
 
-Bidirectional provenance tracking across 10 core entities (`Dataset`, `Mission`, `Satellite`, `TelemetryStream`, `Feature`, `Model`, `Prediction`, `Anomaly`, `Decision`, `Tool`):
+ORBIT-X implements an enterprise-grade Governed Context Layer founded on the 6 pillars of context:
+
+$$\text{Metadata} + \text{Semantics} + \text{Ownership} + \text{Trust Signals} + \text{Policy} + \text{Certification}$$
+
+### Asset Certification & Trust Hierarchy
+Every data table, telemetry stream, feature vector, and model asset carries verified governance attributes:
+- **Status Lifecycle:** `VERIFIED` (Production-ready, signed off) $\succ$ `DRAFT` (Exploratory research) $\succ$ `DEPRECATED` (Forbidden for active scheduling).
+- **Ownership & Quality:** Dedicated team owners (e.g. `flight-operations`, `mission-planning`), schema versions, freshness SLAs, and audited data quality scores.
+- **Agent Governance Policy:** Autonomous decision agents strictly prioritize `VERIFIED` assets over `DRAFT` assets during candidate ranking and constraint evaluation, attaching auditable trust evidence to all mission recommendations.
+
+### Measurable Context Quality Scorecard
+Context quality is treated as a first-class, measurable engineering artifact rather than an abstract concept:
+
+| Context Quality Metric | Measured Value | Operational Governance Verification |
+|---|---|---|
+| **Metadata Completeness** | **94.4%** | Pydantic schema contracts, column typing, team ownership, and policy rules |
+| **Lineage Coverage** | **91.7%** | Active operational entities connected into the end-to-end provenance graph |
+| **Freshness SLA Compliance** | **98.2%** | High-frequency telemetry streams meeting strict $<15.0$s freshness SLAs |
+| **Overall Quality Score** | **96.8%** | Continuous validation across missing values, type drift, and physical bounds |
+| **Verified Asset Ratio** | **66.7%** | Percentage of registered catalog assets certified for autonomous scheduling |
+| **Retrieval Groundedness** | **94.0%** | Anti-hallucination fact consistency verified against ground-truth records |
+
+### Governed Agent Workflow ("Agent Asks Context, Not Database")
+ORBIT-X agents never query underlying database tables directly. Governed context acts as an intelligent intermediary plane:
+
+```text
+discover_context (Search semantic catalog for matching domain entities)
+       │
+       ▼
+identify authoritative dataset (Enforce VERIFIED status; reject DRAFT/DEPRECATED)
+       │
+       ▼
+check quality/freshness (Validate real-time quality score & freshness SLA compliance)
+       │
+       ▼
+inspect lineage (Audit upstream sensor links and downstream model contracts)
+       │
+       ▼
+retrieve data (Ingest certified 18-dim multimodal features)
+       │
+       ▼
+reason (Execute Cross-Attention ranking, TreeSHAP attributions & CP-SAT constraints)
+```
+
+### Bidirectional Provenance Graph
+Bidirectional provenance tracking spans 10 core entity classes (`Dataset`, `Mission`, `Satellite`, `TelemetryStream`, `Feature`, `Model`, `Prediction`, `Anomaly`, `Decision`, `Tool`):
 
 ```
-  Telemetry Stream ──► Dataset (satellite_telemetry) ──► 18-dim Feature Vector ──► Model & Anomaly ──► Prediction ──► CP-SAT ──► Decision ──► Outcome
+  Telemetry Stream ──► Dataset (satellite_telemetry [VERIFIED]) ──► 18-dim Feature Vector ──► Model & Anomaly ──► Prediction ──► CP-SAT ──► Decision ──► Outcome
 ```
 
-- **Natural Language Discovery:** Semantic catalog query (`/api/context/catalog/search`).
-- **Provenance Querying:** Answers *"What data and features influenced this decision?"* via `/api/context/lineage/provenance/{decision_id}`.
+- **Natural Language Discovery:** Semantic catalog query (`GET /api/context/catalog/search`) with certification ranking.
+- **Context Quality API:** Measured governance scorecard (`GET /api/context/quality/metrics`).
+- **MCP Governance Tools:** Exposes `get_dataset_metadata`, `get_governed_assets`, and `get_context_quality_metrics` to LLM agents.
+- **Provenance Querying:** Answers *"What data, models, and features influenced this decision?"* via `/api/context/lineage/provenance/{decision_id}`.
 
 ---
 

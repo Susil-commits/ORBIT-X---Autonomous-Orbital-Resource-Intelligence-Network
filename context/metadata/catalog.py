@@ -16,6 +16,10 @@ class DatasetMetadataRecord(BaseModel):
     schema_version: str = "2.1.0"
     freshness_s: float
     quality_score: float = Field(default=0.98, ge=0.0, le=1.0)
+    status: str = "VERIFIED"  # "VERIFIED", "DRAFT", "DEPRECATED"
+    last_reviewed: str = "2026-08-22T12:00:00Z"
+    certification_badge: str = "CERTIFIED_GOLD"
+    governance_policy: Optional[str] = "Production agent decisions require VERIFIED assets only."
     record_count: int
     columns: List[Dict[str, str]]
     downstream_models: List[str]
@@ -38,6 +42,10 @@ class SemanticMetadataCatalog:
                 schema_version="2.1.0",
                 freshness_s=8.0,
                 quality_score=0.99,
+                status="VERIFIED",
+                last_reviewed="2026-08-22T12:00:00Z",
+                certification_badge="CERTIFIED_GOLD",
+                governance_policy="Production agent decisions require VERIFIED assets with freshness < 15.0s.",
                 record_count=145200,
                 columns=[
                     {"name": "resource_id", "type": "string", "desc": "Satellite identifier"},
@@ -59,6 +67,10 @@ class SemanticMetadataCatalog:
                 schema_version="2.0.0",
                 freshness_s=45.0,
                 quality_score=0.98,
+                status="VERIFIED",
+                last_reviewed="2026-08-22T10:00:00Z",
+                certification_badge="CERTIFIED_GOLD",
+                governance_policy="Authoritative mission intake pipeline with signed operator validation.",
                 record_count=1820,
                 columns=[
                     {"name": "request_id", "type": "string", "desc": "Task identifier"},
@@ -79,6 +91,10 @@ class SemanticMetadataCatalog:
                 schema_version="1.4.0",
                 freshness_s=2.0,
                 quality_score=1.0,
+                status="VERIFIED",
+                last_reviewed="2026-08-22T14:30:00Z",
+                certification_badge="CERTIFIED_GOLD",
+                governance_policy="Immutable audit trail required for all autonomous replans and human review events.",
                 record_count=8940,
                 columns=[
                     {"name": "decision_id", "type": "string", "desc": "Unique decision trace ID"},
@@ -88,6 +104,48 @@ class SemanticMetadataCatalog:
                 ],
                 downstream_models=["FeedbackLoopEvaluator", "TrustLayerEngine"],
                 upstream_sources=["CP_SAT_Solver", "HumanOperatorConsole"],
+            )
+        )
+        self.register_dataset(
+            DatasetMetadataRecord(
+                dataset_name="experimental_solar_flux_forecast",
+                description="Experimental space weather solar flare and geomagnetic flux prediction dataset under draft calibration.",
+                owner="Research Lab",
+                schema_version="v0.1-alpha",
+                freshness_s=3600.0,
+                quality_score=0.74,
+                status="DRAFT",
+                last_reviewed="2026-08-15T09:00:00Z",
+                certification_badge="DRAFT_EXPLORATORY",
+                governance_policy="Exploratory research asset; agents must prefer VERIFIED assets over DRAFT for operational scheduling.",
+                record_count=420,
+                columns=[
+                    {"name": "forecast_epoch_s", "type": "float", "desc": "Forecast epoch timestamp"},
+                    {"name": "kp_index_predicted", "type": "float", "desc": "Planetary K-index forecast"},
+                ],
+                downstream_models=["ExperimentalRadiationPredictor"],
+                upstream_sources=["SolarFluxSimulator"],
+            )
+        )
+        self.register_dataset(
+            DatasetMetadataRecord(
+                dataset_name="legacy_v1_telemetry_csv",
+                description="Deprecated uncalibrated single-channel CSV sensor dumps from early prototype ground stations.",
+                owner="Legacy Ops",
+                schema_version="v1.0-deprecated",
+                freshness_s=86400.0,
+                quality_score=0.65,
+                status="DEPRECATED",
+                last_reviewed="2026-01-10T00:00:00Z",
+                certification_badge="DEPRECATED_LEGACY",
+                governance_policy="Deprecated uncalibrated sensor format; replaced by satellite_telemetry. Forbidden for active decisions.",
+                record_count=9800,
+                columns=[
+                    {"name": "raw_time", "type": "string", "desc": "Unparsed timestamp"},
+                    {"name": "raw_channel_val", "type": "float", "desc": "Unscaled ADC count"},
+                ],
+                downstream_models=["LegacyDataArchive"],
+                upstream_sources=["LegacyGroundStation"],
             )
         )
 

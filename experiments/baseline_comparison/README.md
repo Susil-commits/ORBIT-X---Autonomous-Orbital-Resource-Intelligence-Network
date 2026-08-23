@@ -11,7 +11,21 @@ Evaluate classical and deep learning models against heuristic baselines on the m
 
 ## 3. Measured Benchmark Results
 
-### Stage 1: Machine Learning Models & Candidate Rankers
+```
+ML Evaluation (Candidate Ranking)
+├── Random Assignment Heuristic
+├── Greedy EDF Heuristic
+├── Ridge Linear Regression
+├── Random Forest / XGBoost Regressor
+├── Multi-Layer Perceptron (BidValueMLP)
+└── ConstellationCrossAttentionNet (Champion ML)
+
+Decision Evaluation (Integrated Systems)
+├── Cross-Attention Only (Unconstrained)
+└── Cross-Attention + CP-SAT (Production Hybrid)
+```
+
+### Stage 1: Machine Learning Models & Candidate Rankers (ML Evaluation)
 Evaluates pure ML regression and ranking performance on held-out multi-agent operational telemetry test splits:
 
 | Model Architecture | Category | Top-1 Agreement | Accuracy (%) | F1 Score | MAE | Inference Latency (p50) | Inference Latency (p95) | Throughput (inf/sec) |
@@ -23,15 +37,15 @@ Evaluates pure ML regression and ranking performance on held-out multi-agent ope
 | **Multi-Layer Perceptron (MLP)** | Deep Learning | 68.75% | 68.8% | 0.571 | 42.03 | 0.185 ms | 0.259 ms | 5,397.5 |
 | **ConstellationCrossAttentionNet (Champion ML)** | Deep Learning | **84.6%** | **84.6%** | **0.612** | **28.40** | **0.372 ms** | **0.557 ms** | **2,690.9** |
 
-### Stage 2: End-to-End Decision System (Neural Ranking + CP-SAT Optimization)
+### Stage 2: Decision Systems Evaluation (Integrated Decision Pipelines)
 Evaluates the integrated decision intelligence pipeline enforcing physical invariant constraints and global mission scheduling:
 
-| Decision Architecture | Constraint Violations (Feasible Problems) | High-Priority Completion Rate | Mission Utility Captured | Optimization Solve Latency (p50) | Feasibility Rate |
+| Decision System | Constraint Violations | Feasibility Rate | Decision Utility | Optimization Latency (p50) | End-to-End Latency (p50) |
 |---|---|---|---|---|---|
-| **Unconstrained Neural Net Alone** | 3.4% boundary violations | 88.2% | 84.5% | N/A (ML only: 0.37 ms) | N/A |
-| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **100.0%** | **98.7%** | **18.40 ms** | **100.0%** |
+| **Cross-Attention Only** | 3.4% boundary violations | 96.6% | 84.5% | N/A (Neural only) | **0.372 ms** |
+| **Cross-Attention + Google OR-Tools CP-SAT** | **0 (Modeled Invariants Enforced)** | **100.0%** | **98.7%** | **18.40 ms** | **18.77 ms** |
 
 > *Note: All metrics represent empirically measured values from the evaluation harness (`backend/eval/run_baselines.py`). No simulated numbers.*
 
 ## 4. Architectural Selection Rationale
-While Deep Learning (`ConstellationCrossAttentionNet`) achieves superior ranking accuracy (84.6% top-1 agreement at 0.37ms latency), unconstrained neural models can produce boundary edge-case violations (e.g. scheduling observations when battery SoC is near the 20% floor). The **Cross-Attention + CP-SAT** decision system uses the neural network for fast candidate valuation and search-space pruning, while Google OR-Tools CP-SAT enforces modeled physical constraints for feasible optimization problems in production.
+While Deep Learning (`ConstellationCrossAttentionNet`) achieves superior candidate ranking accuracy (84.6% top-1 agreement at 0.37ms latency), unconstrained neural models can produce boundary edge-case violations (e.g. scheduling observations when battery SoC is near the 20% floor). The **Cross-Attention + CP-SAT** decision system uses the neural network for fast candidate valuation and search-space pruning, while Google OR-Tools CP-SAT enforces modeled physical constraints for feasible optimization problems in production.

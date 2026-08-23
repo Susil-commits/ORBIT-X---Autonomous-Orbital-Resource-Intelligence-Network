@@ -11,6 +11,8 @@ from app.core.schemas import (
     TrustLayerResponse,
     HumanFeedbackRequest,
     HumanFeedbackResponse,
+    ContextQualityMetrics,
+    GovernedContextStep,
 )
 from app.simulation.simulator import get_simulator
 from app.intelligence.context_graph import get_context_graph_engine
@@ -68,6 +70,28 @@ async def audit_telemetry_quality():
     agent = get_data_quality_agent()
     frames = [s.telemetry for s in sim.satellites]
     return agent.audit_telemetry_stream(frames)
+
+
+@router.get("/quality/metrics", response_model=ContextQualityMetrics)
+async def get_context_quality_metrics():
+    """
+    Returns empirical, measured Context Quality metrics across all 6 pillars:
+    metadata completeness, lineage coverage, freshness SLA compliance, overall quality,
+    verified asset ratio, and retrieval groundedness.
+    """
+    engine = get_context_graph_engine()
+    return engine.evaluate_context_quality()
+
+
+@router.get("/governed-pipeline/preview", response_model=List[GovernedContextStep])
+async def get_governed_pipeline_preview():
+    """
+    Demonstrates the 6-step governed context execution sequence:
+    discover_context -> identify_authoritative_dataset -> check_quality_freshness -> inspect_lineage -> retrieve_data -> reason.
+    """
+    trust_engine = get_trust_layer_engine()
+    res = trust_engine.ask_orbitx("Why is Mission M-204 at risk?")
+    return res.governed_context_steps
 
 
 @router.get("/quality/drift_report", response_model=DataQualityReport)

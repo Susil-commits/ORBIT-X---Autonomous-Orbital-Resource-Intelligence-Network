@@ -43,7 +43,8 @@ mcp = MCPServer("ORBIT-X AI Decision Intelligence Server")
 def get_dataset_metadata(dataset_name: str = "satellite_telemetry") -> str:
     """
     Retrieves semantic metadata catalog details for a specific operational or ML dataset,
-    including columns, types, owner, freshness, quality score, and downstream ML models.
+    including certification status (VERIFIED/DRAFT/DEPRECATED), columns, types, owner,
+    freshness, quality score, last reviewed timestamp, and governance policy.
     """
     engine = get_context_graph_engine()
     meta = engine.get_dataset_metadata(dataset_name)
@@ -53,7 +54,59 @@ def get_dataset_metadata(dataset_name: str = "satellite_telemetry") -> str:
 
 
 @mcp.tool()
-def search_telemetry(query: str = "SAT-01") -> str:
+def get_governed_assets(status_filter: Optional[str] = None) -> str:
+    """
+    Retrieves governed assets from the Context Layer with certification status (VERIFIED, DRAFT, DEPRECATED),
+    ownership, quality score, freshness SLA, schema version, and policy compliance.
+    Autonomous agents strictly prefer VERIFIED assets over DRAFT assets for operational decisions.
+    """
+    engine = get_context_graph_engine()
+    catalog = engine.get_catalog()
+    datasets = catalog.datasets
+    if status_filter:
+        datasets = [d for d in datasets if d.status.upper() == status_filter.upper()]
+    return json.dumps({
+        "catalog_version": catalog.catalog_version,
+        "total_assets": len(datasets),
+        "verified_count": catalog.verified_count,
+        "draft_count": catalog.draft_count,
+        "deprecated_count": catalog.deprecated_count,
+        "governance_rule": "Agents must prioritize VERIFIED assets. DRAFT assets are exploratory; DEPRECATED assets are forbidden.",
+        "assets": [d.model_dump() for d in datasets],
+    }, indent=2)
+
+
+@mcp.tool()
+def get_context_quality_metrics() -> str:
+    """
+    Returns empirical, measured Context Quality metrics across all 6 pillars:
+    metadata completeness (%), lineage coverage (%), freshness SLA compliance (%),
+    overall quality score (%), verified asset ratio (%), and retrieval groundedness (%).
+    """
+    engine = get_context_graph_engine()
+    metrics = engine.evaluate_context_quality()
+    return json.dumps({
+        "metadata_completeness": f"{metrics.metadata_completeness_pct}%",
+        "lineage_coverage": f"{metrics.lineage_coverage_pct}%",
+        "freshness_sla_compliance": f"{metrics.freshness_sla_compliance_pct}%",
+        "overall_quality_score": f"{metrics.overall_quality_score_pct}%",
+        "verified_asset_ratio": f"{metrics.verified_asset_ratio_pct}%",
+        "retrieval_groundedness": f"{metrics.retrieval_groundedness_pct}%",
+        "raw_metrics": metrics.model_dump(),
+    }, indent=2)
+
+
+@mcp.tool()
+def execute_governed_decision_workflow(query: str = "Why is Mission M-204 at risk?") -> str:
+    """
+    Executes the 6-step governed context workflow ('Agent asks context, not database'):
+    1. discover_context -> 2. identify_authoritative_dataset -> 3. check_quality_freshness ->
+    4. inspect_lineage -> 5. retrieve_data -> 6. reason.
+    Returns grounded recommendation with auditable constraints and trust scorecard.
+    """
+    trust_engine = get_trust_layer_engine()
+    res = trust_engine.ask_orbitx(query)
+    return json.dumps(res.model_dump(), indent=2)
     """
     Searches high-frequency operational telemetry records and sensor channels matching query terms.
     """

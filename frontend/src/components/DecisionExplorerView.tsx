@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   XCircle,
   Shield,
-  TrendingUp,
   Brain,
 } from 'lucide-react';
 
@@ -77,11 +76,18 @@ export const DecisionExplorerView: React.FC = () => {
     { feature: 'isl_bandwidth_availability', value: '+0.118', rank: 5, chosenEffect: 'Low ISL packet latency', rejectedEffect: 'Mesh hop congestion' },
   ];
 
-  const BASELINE_COMPARISON = [
-    { model: 'Cross-Attention (Hero)', valuationScore: 0.942, latencyMs: '1.2ms', constraintSafety: '100% (Guaranteed via CP-SAT)', completionReward: '96.4%' },
-    { model: 'BidValueMLP (Baseline)', valuationScore: 0.865, latencyMs: '0.8ms', constraintSafety: '100% (Guaranteed via CP-SAT)', completionReward: '91.2%' },
-    { model: 'Random Forest (Baseline)', valuationScore: 0.834, latencyMs: '1.5ms', constraintSafety: '100% (Guaranteed via CP-SAT)', completionReward: '88.7%' },
-    { model: 'Greedy Earliest Deadline', valuationScore: 0.742, latencyMs: '0.3ms', constraintSafety: '84.0% (Heuristic only)', completionReward: '79.1%' },
+  const ML_EVALUATION = [
+    { model: 'ConstellationCrossAttentionNet (Champion ML)', category: 'Deep Learning', top1Agreement: '84.6%', mae: '28.40', f1Score: '0.612', latencyMs: '0.372 ms', throughput: '2,690.9 inf/s' },
+    { model: 'Random Forest / XGBoost Tier', category: 'Classical ML', top1Agreement: '81.2%', mae: '21.07', f1Score: '0.658', latencyMs: '0.132 ms', throughput: '7,598.9 inf/s' },
+    { model: 'Ridge Linear Regression', category: 'Classical ML', top1Agreement: '75.0%', mae: '56.84', f1Score: '0.570', latencyMs: '0.004 ms', throughput: '274,876.3 inf/s' },
+    { model: 'Multi-Layer Perceptron (BidValueMLP)', category: 'Deep Learning', top1Agreement: '68.8%', mae: '42.03', f1Score: '0.571', latencyMs: '0.185 ms', throughput: '5,397.5 inf/s' },
+    { model: 'Greedy EDF Heuristic', category: 'Heuristic', top1Agreement: '62.5%', mae: '93.48', f1Score: '0.450', latencyMs: '0.001 ms', throughput: '1,000,000.0 inf/s' },
+    { model: 'Random Assignment', category: 'Heuristic', top1Agreement: '37.5%', mae: '91.04', f1Score: '0.188', latencyMs: '0.001 ms', throughput: '716,332.3 inf/s' },
+  ];
+
+  const DECISION_EVALUATION = [
+    { system: 'Cross-Attention Only (Unconstrained)', violations: '3.4% boundary violations', feasibility: '96.6%', utility: '84.5%', optLatency: 'N/A (Neural only)', e2eLatency: '0.372 ms' },
+    { system: 'Cross-Attention + CP-SAT (Hybrid Champion)', violations: '0 (Modeled Invariants Enforced)', feasibility: '100.0%', utility: '98.7%', optLatency: '18.40 ms', e2eLatency: '18.77 ms' },
   ];
 
   return (
@@ -249,32 +255,83 @@ export const DecisionExplorerView: React.FC = () => {
             </div>
           </div>
 
-          {/* Model Baseline Comparison Table */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl">
-            <h3 className="text-xs font-semibold uppercase tracking-wider font-orbitron text-slate-300 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-cyan-400" />
-              Empirical Baseline Comparison (Held-Out Evaluation)
-            </h3>
+          {/* Stage 1: Pure ML Evaluation Table */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider font-orbitron text-slate-300 flex items-center gap-2">
+                <Brain className="w-4 h-4 text-cyan-400" />
+                Stage 1: Machine Learning Evaluation (Pure Predictive & Ranking Models)
+              </h3>
+              <span className="text-[10px] font-mono text-slate-500">Held-Out Multi-Agent Telemetry Split</span>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
                 <thead>
                   <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="pb-3 px-3">Model / Architecture</th>
-                    <th className="pb-3 px-3">Valuation / Agreement</th>
-                    <th className="pb-3 px-3">Inference Latency</th>
-                    <th className="pb-3 px-3">Constraint Safety</th>
-                    <th className="pb-3 px-3">Completion Reward</th>
+                    <th className="pb-3 px-3">Model Architecture</th>
+                    <th className="pb-3 px-3">Category</th>
+                    <th className="pb-3 px-3">Top-1 Agreement</th>
+                    <th className="pb-3 px-3">Score MAE</th>
+                    <th className="pb-3 px-3">F1 Score</th>
+                    <th className="pb-3 px-3">Inference Latency (p50)</th>
+                    <th className="pb-3 px-3">Throughput</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {BASELINE_COMPARISON.map((b, idx) => (
-                    <tr key={idx} className={b.model.includes('Hero') ? 'bg-cyan-950/20 font-semibold' : ''}>
-                      <td className="py-3 px-3 text-slate-200">{b.model}</td>
-                      <td className="py-3 px-3 text-cyan-300">{b.valuationScore}</td>
+                  {ML_EVALUATION.map((b, idx) => (
+                    <tr key={idx} className={b.model.includes('Champion') ? 'bg-cyan-950/20 font-semibold' : ''}>
+                      <td className="py-3 px-3 text-slate-200 flex items-center gap-1.5">
+                        {b.model.includes('Champion') && <span className="text-cyan-400">★</span>}
+                        {b.model}
+                      </td>
+                      <td className="py-3 px-3 text-[10px] text-slate-400">{b.category}</td>
+                      <td className="py-3 px-3 text-cyan-300 font-bold">{b.top1Agreement}</td>
+                      <td className="py-3 px-3 text-slate-300">{b.mae}</td>
+                      <td className="py-3 px-3 text-emerald-400">{b.f1Score}</td>
                       <td className="py-3 px-3 text-slate-300">{b.latencyMs}</td>
-                      <td className="py-3 px-3 text-emerald-400">{b.constraintSafety}</td>
-                      <td className="py-3 px-3 text-slate-200">{b.completionReward}</td>
+                      <td className="py-3 px-3 text-slate-400">{b.throughput}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Stage 2: Decision Systems Evaluation Table */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider font-orbitron text-slate-300 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                Stage 2: Decision Systems Evaluation (Constraint Enforcement & Feasibility)
+              </h3>
+              <span className="text-[10px] font-mono text-emerald-500/80">CP-SAT Invariant Guaranteed</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400">
+                    <th className="pb-3 px-3">Decision System</th>
+                    <th className="pb-3 px-3">Constraint Violations</th>
+                    <th className="pb-3 px-3">Feasibility Rate</th>
+                    <th className="pb-3 px-3">Decision Utility</th>
+                    <th className="pb-3 px-3">Optimization Latency</th>
+                    <th className="pb-3 px-3">End-to-End Latency</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {DECISION_EVALUATION.map((d, idx) => (
+                    <tr key={idx} className={d.system.includes('Hybrid') ? 'bg-emerald-950/20 font-semibold' : ''}>
+                      <td className="py-3 px-3 text-slate-200 flex items-center gap-1.5">
+                        {d.system.includes('Hybrid') && <span className="text-emerald-400">★</span>}
+                        {d.system}
+                      </td>
+                      <td className="py-3 px-3 text-amber-300">{d.violations}</td>
+                      <td className="py-3 px-3 text-emerald-400 font-bold">{d.feasibility}</td>
+                      <td className="py-3 px-3 text-cyan-300 font-bold">{d.utility}</td>
+                      <td className="py-3 px-3 text-slate-300">{d.optLatency}</td>
+                      <td className="py-3 px-3 text-emerald-300 font-mono font-bold">{d.e2eLatency}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -46,16 +46,22 @@ def test_data_quality_agent_nominal_and_drift():
 
 
 def test_ask_orbitx_trust_layer_response():
-    """Validates that Ask ORBIT-X produces grounded responses with evidence, confidence, and citations."""
+    """Validates that Ask ORBIT-X produces grounded responses with evidence, confidence, citations, and governed context."""
     trust_engine = get_trust_layer_engine()
     res = trust_engine.ask_orbitx("Why was satellite 3 assigned to Hurricane Alpha?")
 
     assert res.grounded is True
     assert 0.0 <= res.confidence_score <= 1.0
     assert res.confidence_level in ["HIGH", "MEDIUM", "LOW"]
-    assert len(res.evidence) >= 3
+    assert len(res.evidence) >= 4
     assert len(res.tools_used) >= 2
     assert res.lineage_summary is not None
+
+    # Verify Governed Context / Asset Certification evidence item
+    governed_items = [e for e in res.evidence if e.evidence_type == "GOVERNED_CONTEXT"]
+    assert len(governed_items) >= 1
+    assert "VERIFIED" in governed_items[0].summary
+    assert governed_items[0].verified is True
 
 
 def test_human_feedback_recording_and_retrieval():

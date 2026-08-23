@@ -932,36 +932,58 @@ export const AILabModal: React.FC = () => {
                 </div>
               ) : catalogData?.datasets ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {catalogData.datasets.map((d: any, idx: number) => (
-                    <div key={idx} className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-xs text-white">{d.dataset_name}</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
-                          {d.schema_version}
-                        </span>
-                      </div>
-
-                      <p className="text-[11px] font-mono text-slate-400 leading-relaxed">
-                        {d.description}
-                      </p>
-
-                      <div className="text-[10px] font-mono text-slate-400 space-y-1">
-                        <div>Owner: <span className="text-slate-300">{d.owner}</span> | Format: <span className="text-slate-300">{d.storage_format}</span></div>
-                        <div>Quality Score: <span className="text-emerald-400 font-bold">{(d.quality_score * 100).toFixed(1)}%</span> | Freshness SLA: <span className="text-cyan-400">{d.freshness_seconds}s</span></div>
-                      </div>
-
-                      <div className="pt-1 border-t border-slate-800/80">
-                        <span className="text-[10px] font-mono text-slate-500 block mb-1">Downstream AI Models:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {d.downstream_consumers.map((c: string, cIdx: number) => (
-                            <span key={cIdx} className="text-[9px] font-mono bg-slate-950 px-1.5 py-0.5 rounded text-cyan-300 border border-slate-800">
-                              {c}
+                  {catalogData.datasets.map((d: any, idx: number) => {
+                    const dStatus = (d.status || 'VERIFIED').toUpperCase();
+                    return (
+                      <div key={idx} className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-xs text-white">{d.dataset_name}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${
+                                dStatus === 'VERIFIED'
+                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                                  : dStatus === 'DRAFT'
+                                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                  : 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                              }`}
+                            >
+                              {dStatus}
                             </span>
-                          ))}
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+                              {d.schema_version}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] font-mono text-slate-400 leading-relaxed">
+                          {d.description}
+                        </p>
+
+                        {d.governance_policy && (
+                          <p className="text-[10px] font-mono text-slate-500 italic line-clamp-1 border-l border-slate-700 pl-2">
+                            Policy: {d.governance_policy}
+                          </p>
+                        )}
+
+                        <div className="text-[10px] font-mono text-slate-400 space-y-1">
+                          <div>Owner: <span className="text-slate-300">{d.owner}</span> | Format: <span className="text-slate-300">{d.storage_format}</span></div>
+                          <div>Quality Score: <span className="text-emerald-400 font-bold">{(d.quality_score * 100).toFixed(1)}%</span> | Freshness: <span className="text-cyan-400">{d.freshness_seconds}s</span></div>
+                        </div>
+
+                        <div className="pt-1 border-t border-slate-800/80">
+                          <span className="text-[10px] font-mono text-slate-500 block mb-1">Downstream AI Models:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {d.downstream_consumers.map((c: string, cIdx: number) => (
+                              <span key={cIdx} className="text-[9px] font-mono bg-slate-950 px-1.5 py-0.5 rounded text-cyan-300 border border-slate-800">
+                                {c}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : null}
             </div>

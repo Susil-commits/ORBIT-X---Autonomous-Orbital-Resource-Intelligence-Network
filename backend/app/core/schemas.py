@@ -543,13 +543,51 @@ class DataCatalogEntry(BaseModel):
     freshness_seconds: float
     quality_score: float
     sensitivity: str
+    status: str = "VERIFIED"  # "VERIFIED", "DRAFT", "DEPRECATED"
+    last_reviewed: str = "2026-08-22T12:00:00Z"
+    certification_badge: str = "CERTIFIED_GOLD"
+    governance_policy: Optional[str] = "Production agent decisions require VERIFIED assets only."
     columns: List[DataCatalogColumn]
     downstream_consumers: List[str]
+
+
+class ContextQualityMetrics(BaseModel):
+    metadata_completeness_pct: float
+    lineage_coverage_pct: float
+    freshness_sla_compliance_pct: float
+    overall_quality_score_pct: float
+    quality_score_pct: float
+    verified_asset_ratio_pct: float
+    retrieval_groundedness_pct: float
+    metadata_completeness: float
+    lineage_coverage: float
+    freshness_sla_compliance: float
+    quality_score: float
+    verified_asset_ratio: float
+    retrieval_groundedness: float
+    total_assets: int
+    verified_assets: int
+    draft_assets: int
+    deprecated_assets: int
+    evaluated_at_iso: str
+
+
+class GovernedContextStep(BaseModel):
+    step_number: int
+    step_name: str  # "discover_context", "identify_authoritative_dataset", "check_quality_freshness", "inspect_lineage", "retrieve_data", "reason"
+    status: str = "COMPLETED"
+    summary: str
+    target_asset: Optional[str] = None
+    evidence_collected: Optional[str] = None
 
 
 class DataCatalogResponse(BaseModel):
     catalog_version: str
     total_datasets: int
+    verified_count: int = 0
+    draft_count: int = 0
+    deprecated_count: int = 0
+    context_quality: Optional[ContextQualityMetrics] = None
     datasets: List[DataCatalogEntry]
 
 
@@ -598,7 +636,7 @@ class DataQualityReport(BaseModel):
 
 class BaselineModelScore(BaseModel):
     model_name: str
-    model_category: str  # "HEURISTIC", "CLASSICAL_ML", "DEEP_LEARNING", "HYBRID"
+    model_category: str  # "HEURISTIC", "CLASSICAL_ML", "DEEP_LEARNING"
     top1_agreement_pct: float
     mae: float
     accuracy_pct: float
@@ -609,12 +647,28 @@ class BaselineModelScore(BaseModel):
     description: str
 
 
+class DecisionSystemScore(BaseModel):
+    system_name: str
+    system_category: str = "DECISION_SYSTEM"  # "NEURAL_ONLY", "HYBRID_EXACT"
+    constraint_violations: str  # e.g., "3.4% boundary violations" or "0 (Modeled Invariants Enforced)"
+    feasibility_rate_pct: float  # e.g., 96.6% vs 100.0%
+    decision_utility_pct: float  # e.g., 84.5% vs 98.7%
+    high_priority_completion_pct: float = 100.0  # e.g., 88.2% vs 100.0%
+    optimization_latency_ms_p50: Optional[float] = None  # None/0.0 for pure ML, ~18.4ms for CP-SAT
+    end_to_end_latency_ms_p50: float  # e.g., 0.372ms vs 18.77ms
+    description: str
+
+
 class BaselineComparisonReport(BaseModel):
     timestamp_iso: str
     total_test_samples: int
     evaluated_missions: int
-    models: List[BaselineModelScore]
-    champion_model: str
+    ml_models: List[BaselineModelScore] = []
+    decision_systems: List[DecisionSystemScore] = []
+    models: List[BaselineModelScore] = []  # For backward-compatible API consumers
+    champion_ml_model: str = "ConstellationCrossAttentionNet"
+    champion_decision_system: str = "Cross-Attention + Google OR-Tools CP-SAT"
+    champion_model: str = "Hybrid Neural + CP-SAT"
     selection_rationale: str
 
 
@@ -665,6 +719,8 @@ class TrustLayerResponse(BaseModel):
     tools_used: List[str]
     source_records: List[str] = []
     lineage_summary: Optional[str] = None
+    governed_context_steps: List[GovernedContextStep] = []
+    context_quality: Optional[ContextQualityMetrics] = None
     requires_human_review: bool = False
     recommended_action: Optional[str] = None
     available_actions: List[str] = ["APPROVE", "REJECT", "INVESTIGATE"]

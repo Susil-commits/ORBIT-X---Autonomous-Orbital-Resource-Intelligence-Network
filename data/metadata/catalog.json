@@ -1,10 +1,14 @@
 {
-  "catalog_version": "2.1.0",
-  "updated_at_iso": "2026-08-22T16:00:00Z",
+  "catalog_version": "2.2.0",
+  "updated_at_iso": "2026-08-23T12:00:00Z",
   "datasets": [
     {
       "dataset_name": "satellite_telemetry",
       "owner": "flight-operations",
+      "status": "VERIFIED",
+      "last_reviewed": "2026-08-22T12:00:00Z",
+      "certification_badge": "CERTIFIED_GOLD",
+      "governance_policy": "Production agent decisions require VERIFIED assets with freshness < 15.0s.",
       "description": "High-frequency operational telemetry including bus voltage, solar current, subsystem temperatures, attitude jitter, and RF SNR.",
       "schema_version": "v2.0",
       "storage_format": "TimescaleDB / Redis Ring Buffer",
@@ -32,6 +36,10 @@
     {
       "dataset_name": "mission_requests",
       "owner": "mission-planning",
+      "status": "VERIFIED",
+      "last_reviewed": "2026-08-22T10:00:00Z",
+      "certification_badge": "CERTIFIED_GOLD",
+      "governance_policy": "Authoritative mission intake pipeline with signed operator validation.",
       "description": "Earth observation imaging and downlink mission specifications with target coordinates, priorities, and deadlines.",
       "schema_version": "v1.5",
       "storage_format": "PostgreSQL / JSON",
@@ -58,6 +66,10 @@
     {
       "dataset_name": "decision_history",
       "owner": "decision-intelligence",
+      "status": "VERIFIED",
+      "last_reviewed": "2026-08-22T14:30:00Z",
+      "certification_badge": "CERTIFIED_GOLD",
+      "governance_policy": "Immutable audit trail required for all autonomous replans and human review events.",
       "description": "Immutable operational log of mission schedule assignments, rejected candidates, solver rationale, and anomaly replans.",
       "schema_version": "v2.0",
       "storage_format": "PostgreSQL / In-memory Ring Buffer",
@@ -84,6 +96,10 @@
     {
       "dataset_name": "model_features",
       "owner": "ml-platform",
+      "status": "VERIFIED",
+      "last_reviewed": "2026-08-22T11:15:00Z",
+      "certification_badge": "CERTIFIED_GOLD",
+      "governance_policy": "Normalized multi-task feature store vetted for supervised neural ranking.",
       "description": "Normalized multi-task feature dataset pairing 10 satellite state dimensions with 8 mission demand dimensions for supervised fine-tuning.",
       "schema_version": "v2.2",
       "storage_format": "Parquet / JSON",
@@ -103,6 +119,51 @@
         "BidValueMLP",
         "XGBoostBaseline",
         "TreeSHAPExplainer"
+      ]
+    },
+    {
+      "dataset_name": "experimental_solar_flux_forecast",
+      "owner": "research-lab",
+      "status": "DRAFT",
+      "last_reviewed": "2026-08-15T09:00:00Z",
+      "certification_badge": "DRAFT_EXPLORATORY",
+      "governance_policy": "Exploratory research asset under active evaluation; agents must prefer VERIFIED assets over DRAFT for operational scheduling.",
+      "description": "Experimental space weather solar flare and geomagnetic flux prediction dataset under draft calibration.",
+      "schema_version": "v0.1-alpha",
+      "storage_format": "HDF5 / Parquet",
+      "freshness_seconds": 3600.0,
+      "quality_score": 0.740,
+      "sensitivity": "experimental",
+      "columns": [
+        {"name": "forecast_epoch_s", "type": "float", "description": "Forecast epoch timestamp in seconds"},
+        {"name": "kp_index_predicted", "type": "float", "description": "Planetary K-index geomagnetic disturbance forecast"},
+        {"name": "f10_7_cm_flux", "type": "float", "description": "Predicted 10.7cm solar radio flux intensity"},
+        {"name": "confidence_margin", "type": "float", "description": "Statistical uncertainty band"}
+      ],
+      "downstream_consumers": [
+        "AtmosphericDragResearchGroup",
+        "ExperimentalRadiationPredictor"
+      ]
+    },
+    {
+      "dataset_name": "legacy_v1_telemetry_csv",
+      "owner": "legacy-ops",
+      "status": "DEPRECATED",
+      "last_reviewed": "2026-01-10T00:00:00Z",
+      "certification_badge": "DEPRECATED_LEGACY",
+      "governance_policy": "Deprecated uncalibrated sensor format; replaced by satellite_telemetry. Forbidden for active decisions.",
+      "description": "Deprecated uncalibrated single-channel CSV sensor dumps from early prototype ground stations.",
+      "schema_version": "v1.0-deprecated",
+      "storage_format": "Flat CSV",
+      "freshness_seconds": 86400.0,
+      "quality_score": 0.650,
+      "sensitivity": "deprecated",
+      "columns": [
+        {"name": "raw_time", "type": "string", "description": "Unparsed timestamp string"},
+        {"name": "raw_channel_val", "type": "float", "description": "Unscaled ADC count value"}
+      ],
+      "downstream_consumers": [
+        "LegacyDataArchive"
       ]
     }
   ]

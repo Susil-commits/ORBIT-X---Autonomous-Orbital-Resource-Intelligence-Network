@@ -484,13 +484,51 @@ export interface DataCatalogEntry {
   freshness_seconds: number;
   quality_score: number;
   sensitivity: string;
+  status: 'VERIFIED' | 'DRAFT' | 'DEPRECATED' | string;
+  last_reviewed?: string;
+  certification_badge?: string;
+  governance_policy?: string;
   columns: DataCatalogColumn[];
   downstream_consumers: string[];
+}
+
+export interface ContextQualityMetrics {
+  metadata_completeness_pct: number;
+  lineage_coverage_pct: number;
+  freshness_sla_compliance_pct: number;
+  overall_quality_score_pct: number;
+  quality_score_pct?: number;
+  verified_asset_ratio_pct: number;
+  retrieval_groundedness_pct: number;
+  metadata_completeness: number;
+  lineage_coverage: number;
+  freshness_sla_compliance: number;
+  quality_score: number;
+  verified_asset_ratio: number;
+  retrieval_groundedness: number;
+  total_assets: number;
+  verified_assets: number;
+  draft_assets: number;
+  deprecated_assets: number;
+  evaluated_at_iso: string;
+}
+
+export interface GovernedContextStep {
+  step_number: number;
+  step_name: string;
+  status: string;
+  summary: string;
+  target_asset?: string | null;
+  evidence_collected?: string | null;
 }
 
 export interface DataCatalogResponse {
   catalog_version: string;
   total_datasets: number;
+  verified_count?: number;
+  draft_count?: number;
+  deprecated_count?: number;
+  context_quality?: ContextQualityMetrics;
   datasets: DataCatalogEntry[];
 }
 
@@ -539,7 +577,7 @@ export interface DataQualityReport {
 
 export interface BaselineModelScore {
   model_name: string;
-  model_category: 'HEURISTIC' | 'CLASSICAL_ML' | 'DEEP_LEARNING' | 'HYBRID' | string;
+  model_category: 'HEURISTIC' | 'CLASSICAL_ML' | 'DEEP_LEARNING' | string;
   top1_agreement_pct: number;
   mae: number;
   accuracy_pct: number;
@@ -550,11 +588,27 @@ export interface BaselineModelScore {
   description: string;
 }
 
+export interface DecisionSystemScore {
+  system_name: string;
+  system_category: 'NEURAL_ONLY' | 'HYBRID_EXACT' | string;
+  constraint_violations: string;
+  feasibility_rate_pct: number;
+  decision_utility_pct: number;
+  high_priority_completion_pct?: number;
+  optimization_latency_ms_p50?: number | null;
+  end_to_end_latency_ms_p50: number;
+  description: string;
+}
+
 export interface BaselineComparisonReport {
   timestamp_iso: string;
   total_test_samples: number;
   evaluated_missions: number;
-  models: BaselineModelScore[];
+  ml_models: BaselineModelScore[];
+  decision_systems: DecisionSystemScore[];
+  models?: BaselineModelScore[];
+  champion_ml_model?: string;
+  champion_decision_system?: string;
   champion_model: string;
   selection_rationale: string;
 }
@@ -606,6 +660,8 @@ export interface TrustLayerResponse {
   citations: Citation[];
   tools_used: string[];
   lineage_summary?: string | null;
+  governed_context_steps?: GovernedContextStep[];
+  context_quality?: ContextQualityMetrics;
   requires_human_review: boolean;
   recommended_action?: string | null;
 }
