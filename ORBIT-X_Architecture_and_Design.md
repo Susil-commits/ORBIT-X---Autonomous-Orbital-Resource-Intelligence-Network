@@ -90,7 +90,7 @@ Monitoring (Prometheus & OpenTelemetry)
 - **Explainable AI (TreeSHAP):** TreeSHAP feature attributions and attention heatmaps for local and global interpretability.
 
 ### 4.3 Constraint-Aware Optimization (CP-SAT)
-- **Separation of Concerns:** Deep learning produces fast probabilistic rankings; Google OR-Tools CP-SAT guarantees 100% hard physical constraint satisfaction (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$).
+- **Separation of Concerns:** Deep learning produces fast candidate rankings; Google OR-Tools CP-SAT enforces modeled hard physical constraints (battery $\ge 20\%$, thermal $\le 45^\circ\text{C}$, line-of-sight elevation $\ge 15^\circ$) whenever the optimization problem is feasible.
 
 ### 4.4 Semantic Context & Lineage Layer
 - **Entities & Relationships:** 10 core entity types (`Dataset`, `Mission`, `Satellite`, `TelemetryStream`, `Feature`, `Model`, `Prediction`, `Anomaly`, `Decision`, `Tool`) mapped into a directed property graph.

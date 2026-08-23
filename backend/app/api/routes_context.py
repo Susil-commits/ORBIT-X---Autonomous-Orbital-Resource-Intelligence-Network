@@ -122,3 +122,13 @@ async def get_feedback_history() -> List[Dict[str, Any]]:
     """Returns recorded human-in-the-loop review actions."""
     trust_engine = get_trust_layer_engine()
     return trust_engine.get_all_feedback()
+
+
+@router.get("/feedback/analytics")
+async def get_feedback_analytics() -> Dict[str, Any]:
+    """
+    Returns aggregated human-in-the-loop review metrics:
+    approval rate, rejection rate, investigation rate, and decision rationale breakdown.
+    """
+    trust_engine = get_trust_layer_engine()
+    return trust_engine.get_feedback_analytics()

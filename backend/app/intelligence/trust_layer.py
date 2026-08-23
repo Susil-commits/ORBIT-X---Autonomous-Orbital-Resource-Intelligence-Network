@@ -316,6 +316,47 @@ class TrustLayerEngine:
     def get_all_feedback(self) -> List[Dict[str, Any]]:
         return self._feedback_store
 
+    def get_feedback_analytics(self) -> Dict[str, Any]:
+        """
+        Calculates human-in-the-loop governance metrics:
+        approval rate, rejection rate, investigation rate, and reason distribution.
+        """
+        total = len(self._feedback_store)
+        if total == 0:
+            return {
+                "total_reviews": 0,
+                "approval_count": 0,
+                "rejection_count": 0,
+                "investigate_count": 0,
+                "approval_rate_pct": 100.0,
+                "rejection_rate_pct": 0.0,
+                "investigate_rate_pct": 0.0,
+                "reason_distribution": {},
+                "recent_feedback": [],
+            }
+
+        approvals = sum(1 for f in self._feedback_store if f.get("feedback_type") in ("APPROVE", "APPROVED"))
+        rejections = sum(1 for f in self._feedback_store if f.get("feedback_type") in ("REJECT", "REJECTED"))
+        investigates = sum(1 for f in self._feedback_store if f.get("feedback_type") in ("INVESTIGATE", "INVESTIGATING"))
+
+        reasons: Dict[str, int] = {}
+        for f in self._feedback_store:
+            notes = f.get("operator_notes", "") or "No notes provided"
+            category = "Nominal Agreement" if "nominal" in notes.lower() or "optimal" in notes.lower() else "Operator Override"
+            reasons[category] = reasons.get(category, 0) + 1
+
+        return {
+            "total_reviews": total,
+            "approval_count": approvals,
+            "rejection_count": rejections,
+            "investigate_count": investigates,
+            "approval_rate_pct": round((approvals / total) * 100.0, 1),
+            "rejection_rate_pct": round((rejections / total) * 100.0, 1),
+            "investigate_rate_pct": round((investigates / total) * 100.0, 1),
+            "reason_distribution": reasons,
+            "recent_feedback": self._feedback_store[-10:],
+        }
+
 
 # Singleton
 _trust_layer_instance: Optional[TrustLayerEngine] = None

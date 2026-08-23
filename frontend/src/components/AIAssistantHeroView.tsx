@@ -512,6 +512,26 @@ export const AIAssistantHeroView: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Explicit Decision Provenance Lineage Identifiers */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-slate-800 text-[11px] font-mono">
+                <div className="bg-slate-950 p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-slate-500 block text-[10px]">Telemetry Stream</span>
+                  <p className="text-cyan-300 font-bold truncate">TEL-SAT03-T042</p>
+                </div>
+                <div className="bg-slate-950 p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-slate-500 block text-[10px]">Prediction Prior</span>
+                  <p className="text-emerald-300 font-bold truncate">PRED-XATTN-094</p>
+                </div>
+                <div className="bg-slate-950 p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-slate-500 block text-[10px]">Anomaly Score</span>
+                  <p className="text-amber-300 font-bold truncate">ANOM-ISO-088</p>
+                </div>
+                <div className="bg-slate-950 p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-slate-500 block text-[10px]">Model Architecture</span>
+                  <p className="text-purple-300 font-bold truncate">CrossAttn v2.2</p>
+                </div>
+              </div>
             </div>
 
             {/* MCP Tools Invoked & Cross-Layer Navigation */}
