@@ -817,11 +817,14 @@ class TrustLayerResponse(BaseModel):
     tools_used: List[str]
     source_records: List[str] = []
     lineage_summary: Optional[str] = None
+    retrieved_context_summary: Optional[Dict[str, Any]] = None
+    shap_explanation_summary: Optional[Dict[str, float]] = None
     governed_context_steps: List[GovernedContextStep] = []
     context_quality: Optional[ContextQualityMetrics] = None
     requires_human_review: bool = False
     recommended_action: Optional[str] = None
     available_actions: List[str] = ["APPROVE", "REJECT", "INVESTIGATE"]
+
 
 
 class HumanFeedbackRequest(BaseModel):
@@ -839,3 +842,161 @@ class HumanFeedbackResponse(BaseModel):
     recorded_at_iso: str
 
 
+# ====================================================
+# Layer 5: Rigorous AI Evaluation & Benchmarking Models
+# ====================================================
+
+class MetricEvaluationRow(BaseModel):
+    metric_name: str = Field(..., description="Canonical metric identifier, e.g., Recall@5, NDCG@10, F1 Score")
+    formula: str = Field(..., description="Exact mathematical formula used to compute this metric")
+    baseline_value: float = Field(..., description="Empirical score of the baseline system")
+    improved_value: float = Field(..., description="Empirical score of the improved production system")
+    percentage_improvement: float = Field(..., description="Relative percentage change (+% for higher-better, -% for lower-better errors)")
+    unit: str = Field("%", description="Unit of measurement, e.g., %, ms, score")
+    higher_is_better: bool = Field(True, description="True if higher is better, False if lower error/latency is better")
+    sample_size: int = Field(..., description="Number of evaluated held-out test samples, missions, or queries")
+    p_value: Optional[float] = Field(None, description="Statistical significance p-value where applicable")
+    description: str = Field(..., description="Human-readable explanation of the metric and what it proves")
+
+
+class ComponentEvaluationEntry(BaseModel):
+    component_name: str = Field(..., description="AI subsystem name: RAG, Retrieval, Agent, MCP, Context, Anomaly Model, Ranking, Decision, API")
+    component_category: str = Field(..., description="Category tag: GENAI_RAG, REASONING_AGENT, CONTEXT_QUALITY, ML_DETECTION, NEURAL_RANKING, DECISION_SAFETY, SYSTEM_PERFORMANCE")
+    baseline_system: str = Field(..., description="Description of the baseline / legacy approach")
+    improved_system: str = Field(..., description="Description of the improved ORBIT-X production approach")
+    key_takeaway: str = Field(..., description="Executive takeaway summary of empirical findings")
+    metrics: List[MetricEvaluationRow] = Field(default_factory=list)
+
+
+class RigorousAIEvaluationReport(BaseModel):
+    report_id: str = Field(..., description="Unique evaluation report ID")
+    evaluated_at_iso: str = Field(..., description="ISO 8601 evaluation timestamp")
+    total_components: int = Field(..., description="Number of evaluated AI components (9 canonical)")
+    total_metrics_evaluated: int = Field(..., description="Total individual metrics calculated")
+    overall_status: str = Field("ALL_GATES_PASSED", description="Overall suite status")
+    executive_summary: str = Field(..., description="High-level narrative summary of benchmark results")
+    components: List[ComponentEvaluationEntry] = Field(default_factory=list)
+
+
+# ====================================================
+# Layer 6: Enterprise Agent Evaluation Harness Schemas
+# ====================================================
+
+class AgentBenchmarkCategory(str, Enum):
+    METADATA = "metadata_questions"
+    LINEAGE = "lineage_questions"
+    ANOMALY = "anomaly_questions"
+    OPERATIONAL = "operational_questions"
+    AMBIGUOUS = "ambiguous_questions"
+    STALE_DATA = "stale_data_questions"
+    UNAVAILABLE_DATA = "unavailable_data_questions"
+    ADVERSARIAL = "adversarial_questions"
+
+
+class AgentBenchmarkQuestion(BaseModel):
+    id: str = Field(..., description="Unique question identifier, e.g. Q-META-001")
+    category: AgentBenchmarkCategory = Field(..., description="One of the 8 canonical evaluation question categories")
+    question: str = Field(..., description="The operational or diagnostic prompt asked to the agent")
+    expected_tools: List[str] = Field(default_factory=list, description="List of expected expert MCP tools (e.g. get_dataset_metadata, get_lineage)")
+    required_evidence_types: List[str] = Field(default_factory=list, description="Required evidence pillars (telemetry, lineage, physics, shap, governance)")
+    ground_truth_entities: List[str] = Field(default_factory=list, description="Key entity IDs or terms expected in the grounded response")
+    is_adversarial: bool = Field(False, description="True if this question attempts prompt injection or safety bypass")
+    expect_rejection: bool = Field(False, description="True if agent must refuse or flag safety/policy violation")
+    freshness_sensitive: bool = Field(False, description="True if question tests detection of stale or deprecated data")
+    complexity_level: str = Field("MEDIUM", description="EASY, MEDIUM, or HARD")
+    notes: Optional[str] = Field(None, description="Evaluation rationale and validation criteria")
+
+
+class AgentHarnessQuestionResult(BaseModel):
+    question_id: str
+    category: str
+    query: str
+    response_text: str
+    tools_invoked: List[str] = Field(default_factory=list)
+    tool_accuracy: float = Field(..., description="Score [0.0 - 1.0] measuring precision/recall of tool selection")
+    groundedness: float = Field(..., description="Score [0.0 - 1.0] measuring ratio of cited facts vs assertions")
+    has_hallucination: bool = Field(False, description="True if unsupported claims or fabricated entities detected")
+    task_success: bool = Field(..., description="True if agent fulfilled intent while respecting safety policies")
+    evidence_completeness: float = Field(..., description="Ratio [0.0 - 1.0] of required evidence pillars present")
+    latency_ms: float = Field(..., description="End-to-end multi-source agent pipeline execution latency")
+    passed: bool = Field(..., description="Overall pass status for this test question")
+    feedback_reason: str = Field(..., description="Detailed explanation of evaluation scoring")
+
+
+class AgentHarnessCategoryScore(BaseModel):
+    category: str = Field(..., description="Benchmark category name")
+    category_display_name: str = Field(..., description="Human-friendly category title")
+    total_questions: int
+    passed_questions: int
+    task_success_rate: float = Field(..., description="Percentage of tasks successfully fulfilled")
+    tool_accuracy: float = Field(..., description="Average tool selection accuracy percentage")
+    groundedness: float = Field(..., description="Average groundedness percentage")
+    hallucination_rate: float = Field(..., description="Percentage of responses containing hallucinations")
+    evidence_completeness: float = Field(..., description="Average evidence completeness percentage")
+    avg_latency_ms: float = Field(..., description="Average response latency in milliseconds")
+
+
+class AgentEvaluationHarnessReport(BaseModel):
+    benchmark_id: str = Field(..., description="Unique harness execution run ID")
+    evaluated_at_iso: str = Field(..., description="Timestamp of execution")
+    total_questions: int = Field(..., description="Total questions benchmarked (120+)")
+    passed_questions: int = Field(..., description="Total questions passed all criteria")
+    overall_task_success_rate: float = Field(..., description="Overall Task Success Rate (%)")
+    overall_tool_accuracy: float = Field(..., description="Overall Tool Selection Accuracy (%)")
+    overall_groundedness: float = Field(..., description="Overall Groundedness (%)")
+    overall_hallucination_rate: float = Field(..., description="Overall Hallucination Rate (%)")
+    overall_evidence_completeness: float = Field(..., description="Overall Evidence Completeness (%)")
+    latency_p50_ms: float = Field(..., description="50th percentile latency in ms")
+    latency_p95_ms: float = Field(..., description="95th percentile latency in ms")
+    latency_p99_ms: float = Field(..., description="99th percentile latency in ms")
+    category_scores: List[AgentHarnessCategoryScore] = Field(default_factory=list)
+    failed_question_ids: List[str] = Field(default_factory=list)
+    question_results: List[AgentHarnessQuestionResult] = Field(default_factory=list)
+    harness_architecture: str = Field(
+        "User -> Agent -> [Retriever + MCP Tools + Context Layer + Database] -> Final Answer -> Harness [Groundedness, Tool Accuracy, Success, Hallucination, Latency, Evidence]"
+    )
+
+
+class AgentHarnessRunRequest(BaseModel):
+    category_filter: Optional[str] = Field(None, description="Optional category filter (e.g. metadata_questions)")
+    sample_limit: Optional[int] = Field(None, description="Optional limit of questions to run (defaults to all)")
+
+
+# ====================================================
+# Layer 7: Deliberate Failure Testing & Safe Degradation
+# ====================================================
+
+class DeliberateFailureCaseId(str, Enum):
+    CASE_1_STALE_DATA = "case_1_stale_data"
+    CASE_2_DEPRECATED_DATASET = "case_2_deprecated_dataset"
+    CASE_3_MISSING_LINEAGE = "case_3_missing_lineage"
+    CASE_4_MCP_TOOL_503 = "case_4_mcp_tool_503"
+    CASE_5_NONEXISTENT_SATELLITE = "case_5_nonexistent_satellite"
+
+
+class DeliberateFailureResult(BaseModel):
+    case_id: DeliberateFailureCaseId
+    case_name: str
+    injected_failure_description: str
+    target_component: str
+    error_state_payload: Dict[str, Any]
+    agent_prompt: str
+    agent_response: str
+    safe_behavior_observed: bool
+    safe_refusal_reason: str
+    fallback_mechanism_used: Optional[str] = None
+    retry_count: int = 0
+    passed: bool
+    latency_ms: float
+    audit_notes: str
+
+
+class DeliberateFailureSuiteReport(BaseModel):
+    suite_id: str
+    evaluated_at_iso: str
+    total_cases: int = 5
+    passed_cases: int
+    all_cases_passed: bool
+    safety_score_pct: float
+    summary: str
+    cases: List[DeliberateFailureResult]

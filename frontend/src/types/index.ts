@@ -751,4 +751,111 @@ export interface HumanFeedbackResponse {
   recorded_at_iso: string;
 }
 
+export interface MetricEvaluationRow {
+  metric_name: string;
+  formula: string;
+  baseline_value: number;
+  improved_value: number;
+  percentage_improvement: number;
+  unit: string;
+  higher_is_better: boolean;
+  sample_size: number;
+  p_value?: number | null;
+  description: string;
+}
+
+export interface ComponentEvaluationEntry {
+  component_name: string;
+  component_category: string;
+  baseline_system: string;
+  improved_system: string;
+  key_takeaway: string;
+  metrics: MetricEvaluationRow[];
+}
+
+export interface RigorousAIEvaluationReport {
+  report_id: string;
+  evaluated_at_iso: string;
+  total_components: number;
+  total_metrics_evaluated: number;
+  overall_status: string;
+  executive_summary: string;
+  components: ComponentEvaluationEntry[];
+}
+
+export interface AgentHarnessQuestionResult {
+  question_id: string;
+  category: string;
+  query: string;
+  response_text: string;
+  tools_invoked: string[];
+  tool_accuracy: number;
+  groundedness: number;
+  has_hallucination: boolean;
+  task_success: boolean;
+  evidence_completeness: number;
+  latency_ms: number;
+  passed: boolean;
+  feedback_reason: string;
+}
+
+export interface AgentHarnessCategoryScore {
+  category: string;
+  category_display_name: string;
+  total_questions: number;
+  passed_questions: number;
+  task_success_rate: number;
+  tool_accuracy: number;
+  groundedness: number;
+  hallucination_rate: number;
+  evidence_completeness: number;
+  avg_latency_ms: number;
+}
+
+export interface AgentEvaluationHarnessReport {
+  benchmark_id: string;
+  evaluated_at_iso: string;
+  total_questions: number;
+  passed_questions: number;
+  overall_task_success_rate: number;
+  overall_tool_accuracy: number;
+  overall_groundedness: number;
+  overall_hallucination_rate: number;
+  overall_evidence_completeness: number;
+  latency_p50_ms: number;
+  latency_p95_ms: number;
+  latency_p99_ms: number;
+  category_scores: AgentHarnessCategoryScore[];
+  failed_question_ids: string[];
+  question_results: AgentHarnessQuestionResult[];
+  harness_architecture: string;
+}
+
+export interface DeliberateFailureResult {
+  case_id: string;
+  case_name: string;
+  injected_failure_description: string;
+  target_component: string;
+  error_state_payload: Record<string, any>;
+  agent_prompt: string;
+  agent_response: string;
+  safe_behavior_observed: boolean;
+  safe_refusal_reason: string;
+  fallback_mechanism_used?: string | null;
+  retry_count: number;
+  passed: boolean;
+  latency_ms: number;
+  audit_notes: string;
+}
+
+export interface DeliberateFailureSuiteReport {
+  suite_id: string;
+  evaluated_at_iso: string;
+  total_cases: number;
+  passed_cases: number;
+  all_cases_passed: boolean;
+  safety_score_pct: number;
+  summary: string;
+  cases: DeliberateFailureResult[];
+}
 

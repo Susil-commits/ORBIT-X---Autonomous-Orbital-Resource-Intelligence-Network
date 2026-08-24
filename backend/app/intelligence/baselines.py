@@ -136,7 +136,20 @@ class BaselineModelSuite:
                     correct += 1
             return round((correct / num_eval_missions) * 100.0, 2)
 
+        # Helper to compute top-3 agreement
+        def calc_top3(preds: np.ndarray) -> float:
+            correct = 0
+            for m_id in valid_missions:
+                items = mission_groups[m_id]
+                cpsat_winner_sat = max(items, key=lambda it: (it[1].get("is_winner", 0), it[1]["target_cpsat_score"]))[1]["satellite_id"]
+                sorted_items = sorted(items, key=lambda it: preds[it[0]], reverse=True)
+                top3_sats = [it[1]["satellite_id"] for it in sorted_items[:3]]
+                if cpsat_winner_sat in top3_sats:
+                    correct += 1
+            return round((correct / num_eval_missions) * 100.0, 2)
+
         models_scores: List[BaselineModelScore] = []
+
 
         # ----------------------------------------------------
         # 1. Random Selection Baseline
@@ -273,16 +286,20 @@ class BaselineModelSuite:
         mis_x = np.array([s["mission_features"] for s in test_samples], dtype=np.float32)
         with torch.no_grad():
             ca_scores, win_logits, _, _ = ca_predictor.model(torch.from_numpy(sat_x), torch.from_numpy(mis_x))
-            ca_preds = ca_scores.numpy()
+            ca_scores_arr = ca_scores.numpy().flatten()
+            win_probs_arr = torch.sigmoid(win_logits).numpy().flatten()
+            # Combined score for ranking candidates: win probability + normalized valuation
+            ca_preds = win_probs_arr * 100.0 + (ca_scores_arr / max(1.0, np.max(ca_scores_arr) if len(ca_scores_arr) else 1.0) * 20.0)
         ca_lat_ms = ((time.perf_counter() - t0) / max(1, len(test_samples))) * 1000.0
         ca_top1 = calc_top1(ca_preds)
-        ca_mae = float(mean_absolute_error(y_true, ca_preds))
+        ca_mae = float(mean_absolute_error(y_true, ca_scores_arr))
         models_scores.append(
             BaselineModelScore(
                 model_name="ConstellationCrossAttentionNet",
                 model_category="DEEP_LEARNING",
                 top1_agreement_pct=ca_top1,
                 mae=round(ca_mae, 2),
+
                 accuracy_pct=round(ca_top1, 1),
                 f1_score=round(ca_top1 / 100.0 * 0.88, 3),
                 latency_ms_p50=round(ca_lat_ms, 3),

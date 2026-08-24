@@ -47,9 +47,97 @@ $$\text{Metadata} + \text{Semantics} + \text{Ownership} + \text{Trust Signals} +
 
 ### Asset Certification Lifecycle
 - **`VERIFIED` Assets**: Production-ready datasets (`satellite_telemetry`, `mission_requests`, `decision_history`, `model_features`) signed off with owner, quality scores ($\ge 0.985$), freshness SLAs ($<5$s), and strict schema versions.
-- **`DRAFT` Assets**: Exploratory research assets (`experimental_solar_flux_forecast`) under active calibration.
-- **`DEPRECATED` Assets**: Legacy uncalibrated formats (`legacy_v1_telemetry_csv`) forbidden for active decision making.
-- **Agent Preference Invariant**: Autonomous decision agents strictly prioritize `VERIFIED` assets over `DRAFT` assets during candidate ranking and constraint evaluation, attaching auditable trust evidence to all mission recommendations.
+---
+
+## 3. Visible & Queryable Data Lineage (Root-Cause Provenance)
+
+ORBIT-X provides **visible, queryable, and bi-directionally traversable data lineage**:
+
+```
+Raw Telemetry
+      ↓
+Cleaning & Validation
+      ↓
+Feature Table
+      ↓
+Anomaly Model
+      ↓
+Prediction
+      ↓
+Decision (CP-SAT)
+      ↓
+Agent Response
+```
+
+### Backward Root-Cause Provenance: *"Why was this decision made?"*
+
+When asked *"Why was this decision made?"* (`DEC-20260824-M204`), ORBIT-X traces backward through the DAG:
+1. **[Agent Response]** ──► Synthesized directive recommending SAT-17 with 91.0% confidence and 5 verifiable citations.
+2. **[Decision (CP-SAT)]** ──► Verified 0% constraint violations across 4 hard invariants (Battery 88.5% >= 20%, Window 78.4°, Slack +13.8m, Collision Pc < 1e-7).
+3. **[Prediction]** ──► Cross-Attention neural ranker scored SAT-17 at 94.2 (TreeSHAP: Health +32%, Fuel +24%, Visibility +19%, Latency +14%, Risk -8%).
+4. **[Anomaly Model]** ──► Isolation Forest confirmed SAT-17 nominal (-0.02) while flagging SAT-03 (+0.85 thermal spike).
+5. **[Feature Table]** ──► 18-dim normalized feature vector extracted from `features_operational_telemetry_v2`.
+6. **[Cleaning & Validation]** ──► DataQualityAgent confirmed zero schema drift, zero nulls, and matching checksum `0x94FA8C`.
+7. **[Raw Telemetry]** ──► Traced to calibrated frame `TEL-SAT17-T089` downlinked 3 min ago (SLA: 30 min | PASSED).
+
+### Column-Level Lineage (CLL) Table
+- `battery_soc` ──► `RangeCheck[0.05..1.0]` ──► `battery_soc_margin` ──► `CrossAttentionNet (Fuel +24%)` ──► `CP-SAT SoC >= 20% Floor`
+- `battery_temp_c` ──► `ThermistorDecouple` ──► `thermal_headroom_norm` ──► `IsolationForest (Health +32%)` ──► `CP-SAT Temp <= 45°C Ceiling`
+- `target_elevation_deg` ──► `SGP4 Orbit Geometry` ──► `look_angle_slack_norm` ──► `CrossAttentionNet (Vis +19%)` ──► `CP-SAT Max El >= 15° Window`
+- `deadline_iso` ──► `Clock Sync` ──► `target_deadline_slack_ratio` ──► `CrossAttentionNet (Lat +14%)` ──► `CP-SAT Pass + Dur <= Deadline`
+- `conjunction_miss_km` ──► `CDM Screening` ──► `collision_risk_penalty` ──► `CrossAttentionNet (Risk -8%)` ──► `CP-SAT Collision Risk Pc < 1e-7`
+
+---
+
+## 4. End-to-End Decision Intelligence Demo (11-Stage Pipeline)
+
+
+An interviewer-ready, comprehensive **End-to-End Decision Intelligence Demo** is implemented in both the web UI (`AIAssistantHeroView.tsx`) and the CLI script (`scripts/demo_decision_platform.py`).
+
+### Pipeline Architecture:
+```
+User question ──► Agent ──► Context discovery ──► Metadata ──► Lineage ──► Retrieval ──► FastMCP Tool ──► ML Model ──► CP-SAT Decision ──► Evidence ──► Final Answer
+```
+
+### Live Demo Output Cards (Hero Query: *"Which satellite should handle this mission?"*):
+
+1. **Question**:
+   `"Which satellite should handle this mission?"`
+
+2. **Retrieved Context & Governance**:
+   - `Satellite: SAT-17`
+   - `Health: 94% (Nominal, Isolation Forest Anomaly Score: -0.02)`
+   - `Data Freshness: 3 min (SLA: 30 min | Status: PASS)`
+   - `Model Version: v2.4 (ConstellationCrossAttentionNet)`
+   - `Owner: Mission Ops`
+   - `Certification: VERIFIED (Certified Gold Tier Asset)`
+   - `Lineage: 10-Entity Verified DAG (0 Orphan Nodes)`
+
+3. **Deterministic Decision (Google OR-Tools CP-SAT)**:
+   - `Selected Resource: SAT-17`
+   - `Confidence: 0.91 (91% High Confidence)`
+   - `Physical Constraints Checked`:
+     - `[✓] Battery Energy Floor: SAT-17 maintains 88.5% SoC >= 20.0% safety floor`
+     - `[✓] Line-of-Sight Window: Target pass max elevation 78.4° (window duration: 180s)`
+     - `[✓] Mission Deadline Slack: Pass starts in 4.2 min vs 18.0 min deadline`
+     - `[✓] Orbital Conjunction Risk: Zero conjunctions detected (Pc < 1e-7)`
+
+4. **Explanation (SHAP Feature Contributions)**:
+   - `Health:            +32%  [████████████████████████████████]`
+   - `Fuel / Power:      +24%  [████████████████████████]`
+   - `Visibility / LOS:  +19%  [███████████████████]`
+   - `Latency / Slack:   +14%  [██████████████]`
+   - `Risk / Collision:  -8%   [████████ (Penalty)]`
+
+5. **Evidence (Showing Exactly Where The Answer Came From)**:
+   - `[Telemetry: TEL-SAT17-T089]` — Real Pydantic v2 telemetry frame (SoC: 88.5%, Temp: 22.0°C, Bus: 28.4V, Freshness: 3 min).
+   - `[Catalog: satellite_telemetry]` — Metadata catalog entry (Owner: Mission Ops, Quality: 98.4%, Status: VERIFIED).
+   - `[Lineage: DAG-NODE-PROV-042]` — 10-node bidirectional graph (Sensor -> Feature Store -> Model -> CP-SAT).
+   - `[FastMCP: get_satellite_telemetry]` — FastMCP tool execution log (JSON-RPC 2.0 response code 200).
+   - `[Optimization: Google OR-Tools CP-SAT]` — Feasible integer program schedule (0% constraint violations).
+
+6. **Human-in-the-Loop Governance Actions**:
+   - `[Approve Decision]`, `[Reject]`, `[Investigate Lineage]` with instant PostgreSQL audit ledger persistence!
 
 ---
 

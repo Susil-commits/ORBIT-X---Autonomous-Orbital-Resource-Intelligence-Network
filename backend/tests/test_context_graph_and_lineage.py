@@ -304,3 +304,108 @@ def test_governed_context_step_execution_order():
     evidence_types = [e.evidence_type for e in res.evidence]
     assert "CONTEXT_GOVERNANCE_AUDIT" in evidence_types
     assert "GOVERNED_CONTEXT" in evidence_types
+
+
+def test_seven_stage_lineage_pipeline_forward_and_backward():
+    """Validates that get_seven_stage_pipeline_trace returns all 7 canonical stages in order with bidirectional traversal."""
+    engine = get_context_graph_engine()
+    trace = engine.get_seven_stage_pipeline_trace(decision_id="DEC-20260824-M204", mission_id="M-204", satellite_id="SAT-17")
+
+    assert trace["decision_id"] == "DEC-20260824-M204"
+    assert trace["mission_id"] == "M-204"
+    assert trace["satellite_id"] == "SAT-17"
+
+    stages = trace["pipeline_stages"]
+    assert len(stages) == 7
+
+    stage_ids = [s["stage_id"] for s in stages]
+    expected_stage_ids = [
+        "raw_telemetry",
+        "cleaning_validation",
+        "feature_table",
+        "anomaly_model",
+        "prediction",
+        "decision",
+        "agent_response",
+    ]
+    assert stage_ids == expected_stage_ids
+
+    # Forward and backward order validation
+    assert trace["forward_flow_order"] == expected_stage_ids
+    assert trace["backward_trace_order"] == list(reversed(expected_stage_ids))
+
+    # Validate each stage has verified status and operational metrics
+    for stage in stages:
+        assert stage["asset_status"] == "VERIFIED"
+        assert stage["quality_score"] >= 0.95
+        assert len(stage["operational_metrics"]) >= 3
+        assert len(stage["transformation_description"]) > 10
+
+    # Validate specific values in stages
+    raw_stage = next(s for s in stages if s["stage_id"] == "raw_telemetry")
+    assert raw_stage["operational_metrics"]["battery_soc"] == "88.5%"
+    assert "orbitx.telemetry.sat-17" in raw_stage["asset_name"] or "sat17" in raw_stage["asset_name"].replace("-", "")
+
+    opt_stage = next(s for s in stages if s["stage_id"] == "decision")
+    assert opt_stage["operational_metrics"]["solver_status"] == "FEASIBLE_AND_OPTIMAL"
+    assert opt_stage["operational_metrics"]["hard_safety_violations"] == "0"
+
+
+
+def test_why_was_this_decision_made_root_cause_narrative():
+    """Validates that querying 'Why was this decision made?' produces an auditable root-cause explanation."""
+    engine = get_context_graph_engine()
+    res = engine.query_lineage("Why was this decision made?")
+
+    assert res["query_type"] == "BACKWARD_PROVENANCE_ROOT_CAUSE"
+    assert "Why was this decision made?" in res["headline"]
+    assert "ROOT-CAUSE PROVENANCE AUDIT" in res["explanation"]
+    assert "SAT-17" in res["explanation"]
+    assert "Agent Response" in res["explanation"]
+    assert "Decision (CP-SAT)" in res["explanation"]
+    assert "Prediction" in res["explanation"]
+    assert "Anomaly Model" in res["explanation"]
+    assert "Feature Table" in res["explanation"]
+    assert "Cleaning & Validation" in res["explanation"]
+    assert "Raw Telemetry" in res["explanation"]
+
+    assert len(res["active_pipeline"]["pipeline_stages"]) == 7
+
+
+def test_column_level_lineage_derivation_mapping():
+    """Validates Column-Level Lineage (CLL) connecting raw columns to features, models, and decision invariants."""
+    engine = get_context_graph_engine()
+    cll = engine.get_column_level_lineage()
+
+    assert len(cll) >= 5
+    soc_entry = next(c for c in cll if c["source_column"] == "battery_soc")
+    assert soc_entry["feature_name"] == "battery_soc_margin"
+    assert "ConstellationCrossAttentionNet" in soc_entry["model_consumer"]
+    assert "sat_soc >= 0.20" in soc_entry["decision_invariant"]
+    assert soc_entry["governance_status"] == "VERIFIED"
+
+    temp_entry = next(c for c in cll if c["source_column"] == "battery_temp_c")
+    assert temp_entry["feature_name"] == "thermal_headroom_norm"
+    assert "TelemetryIsolationForest" in temp_entry["model_consumer"]
+    assert "temp_c <= 45.0°C" in temp_entry["decision_invariant"]
+
+    elev_entry = next(c for c in cll if c["source_column"] == "target_elevation_deg")
+    assert elev_entry["feature_name"] == "look_angle_slack_norm"
+    assert "max_elevation >= 15.0°" in elev_entry["decision_invariant"]
+
+
+def test_natural_language_lineage_query_engine():
+    """Validates that query_lineage handles different query modalities: why, column, drift."""
+    engine = get_context_graph_engine()
+
+    # Query 1: Column trace
+    res_col = engine.query_lineage("Trace battery_soc from raw sensor")
+    assert res_col["query_type"] == "COLUMN_LEVEL_DERIVATION"
+    assert len(res_col["column_lineage"]) >= 5
+
+    # Query 2: Impact / blast radius analysis
+    res_drift = engine.query_lineage("What if telemetry drifts?")
+    assert res_drift["query_type"] == "FORWARD_IMPACT_BLAST_RADIUS"
+    assert "dependencies" in res_drift
+    assert "downstream_consumers" in res_drift["dependencies"]
+

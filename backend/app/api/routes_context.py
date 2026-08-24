@@ -201,3 +201,57 @@ async def get_feedback_analytics() -> Dict[str, Any]:
     """
     trust_engine = get_trust_layer_engine()
     return trust_engine.get_feedback_analytics()
+
+
+@router.get("/lineage/pipeline")
+async def get_seven_stage_lineage_pipeline(
+    decision_id: str = "DEC-20260824-M204",
+    mission_id: Optional[str] = "M-204",
+    satellite_id: Optional[str] = "SAT-17",
+) -> Dict[str, Any]:
+    """
+    Returns the visible and queryable 7-stage end-to-end data lineage pipeline:
+    Raw Telemetry -> Cleaning & Validation -> Feature Table -> Anomaly Model -> Prediction -> Decision -> Agent Response.
+    """
+    engine = get_context_graph_engine()
+    return engine.get_seven_stage_pipeline_trace(decision_id=decision_id, mission_id=mission_id, satellite_id=satellite_id)
+
+
+@router.get("/lineage/column-level")
+async def get_column_level_lineage() -> List[Dict[str, Any]]:
+    """
+    Returns Column-Level Lineage (CLL) tracking raw sensor fields through cleaning,
+    feature extraction, ML modeling, and CP-SAT decision constraints.
+    """
+    engine = get_context_graph_engine()
+    return engine.get_column_level_lineage()
+
+
+@router.get("/lineage/query")
+async def query_lineage_get(q: str = "Why was this decision made?") -> Dict[str, Any]:
+    """
+    Answers natural language queries about data lineage and root-cause provenance:
+    e.g. 'Why was this decision made?', 'Trace battery_soc', 'What if telemetry drifts?'
+    """
+    engine = get_context_graph_engine()
+    return engine.query_lineage(query_str=q)
+
+
+@router.post("/lineage/query")
+async def query_lineage_post(body: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Answers natural language queries about data lineage and root-cause provenance.
+    """
+    query_str = body.get("query", "Why was this decision made?")
+    engine = get_context_graph_engine()
+    return engine.query_lineage(query_str=query_str)
+
+
+@router.get("/lineage/dependencies/{dataset_name}")
+async def get_dataset_dependencies(dataset_name: str) -> Dict[str, Any]:
+    """
+    Returns downstream ML models, feature tables, and pipelines dependent on a dataset.
+    """
+    engine = get_context_graph_engine()
+    return engine.get_dataset_dependencies(dataset_name=dataset_name)
+
