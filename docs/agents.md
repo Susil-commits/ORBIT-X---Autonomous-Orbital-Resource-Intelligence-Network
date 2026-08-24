@@ -72,7 +72,7 @@ To query operational flight rules, anomaly logs, and past mission debriefs with 
 ### 3.1 Retrieval Scoring Formula
 For a given query $q$ across documents $d \in \mathcal{D}$:
 
-$$\text{RRF\_Score}(d) = \frac{1}{k + \text{Rank}_{\text{Dense}}(d)} + \frac{1}{k + \text{Rank}_{\text{BM25}}(d)}$$
+$$\text{RRF Score}(d) = \frac{1}{k + \text{Rank}_{\text{Dense}}(d)} + \frac{1}{k + \text{Rank}_{\text{BM25}}(d)}$$
 
 where smoothing constant $k = 60$.
 

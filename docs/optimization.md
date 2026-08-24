@@ -65,7 +65,7 @@ $$\max \sum_{m \in \mathcal{M}} \sum_{s \in \mathcal{S}} \left( p_m \cdot w_{m,s
    where $E_{\text{min}}(s) = 0.35 \cdot E_{\text{capacity}}(s)$ (maximum $65\%$ DoD).
 
 4. **Thermal Dissipation Limit**:
-   $$\sum_{m \in \mathcal{M}} x_{m,s} \cdot \Delta T_{\text{payload}}(m) \le T_{\text{max\_rise}}$$
+   $$\sum_{m \in \mathcal{M}} x_{m,s} \cdot \Delta T_{\text{payload}}(m) \le T_{\text{max rise}}$$
 
 5. **Inter-Satellite Laser Link (ISL) Bandwidth**:
    $$\sum_{m \in \mathcal{M}} x_{m,s} \cdot \text{DataVolume}(m) \le \text{Bandwidth}_{\text{ISL}}(s) \cdot \Delta t_{\text{contact}}$$
