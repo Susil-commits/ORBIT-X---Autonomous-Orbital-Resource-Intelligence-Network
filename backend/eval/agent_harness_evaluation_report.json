@@ -1,6 +1,6 @@
 {
-  "benchmark_id": "HARNESS-20260825-042025",
-  "evaluated_at_iso": "2026-08-25T04:20:25.249809+00:00",
+  "benchmark_id": "HARNESS-20260825-045420",
+  "evaluated_at_iso": "2026-08-25T04:54:20.103214+00:00",
   "total_questions": 128,
   "passed_questions": 128,
   "overall_task_success_rate": 100.0,
@@ -10,7 +10,7 @@
   "overall_evidence_completeness": 90.3,
   "latency_p50_ms": 0.0,
   "latency_p95_ms": 0.0,
-  "latency_p99_ms": 0.01,
+  "latency_p99_ms": 0.0,
   "category_scores": [
     {
       "category": "metadata_questions",
@@ -1813,7 +1813,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },

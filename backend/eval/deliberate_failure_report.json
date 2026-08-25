@@ -1,6 +1,6 @@
 {
-  "suite_id": "FAILURE-TEST-20260825-042031",
-  "evaluated_at_iso": "2026-08-25T04:20:31.369332+00:00",
+  "suite_id": "FAILURE-TEST-20260825-045426",
+  "evaluated_at_iso": "2026-08-25T04:54:26.191296+00:00",
   "total_cases": 5,
   "passed_cases": 5,
   "all_cases_passed": true,
@@ -30,7 +30,7 @@
       "fallback_mechanism_used": "Execution Halted + Flight Director Alert Triggered",
       "retry_count": 0,
       "passed": true,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "audit_notes": "Verified strict compliance with Context Governance Rule 1.4 (Zero tolerance for stale flight telemetry)."
     },
     {
