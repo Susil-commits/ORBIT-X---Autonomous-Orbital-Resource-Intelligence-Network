@@ -117,7 +117,7 @@ ORBIT-X measures context quality across **5 authoritative mathematical dimension
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Metadata Completeness** | $\frac{\sum \text{populated required schema fields}}{\sum \text{expected contract fields}}$ | $52.4\%$ | **$100.0\%$** (+90.8%) | $\ge 90.0\%$ | **PASS** |
 | **Lineage Coverage** | $\frac{\text{connected canonical nodes}}{\text{total canonical context nodes (10)}}$ | $30.0\%$ | **$100.0\%$** (+233.3%) | $\ge 90.0\%$ | **PASS** |
-| **Freshness SLA Compliance** | $\frac{\text{assets within max latency SLA \& non-deprecated}}{\text{total evaluated entities}}$ | $58.3\%$ | **$93.3\%$** (+60.0%) | $\ge 75.0\%$ | **PASS** |
+| **Freshness SLA Compliance** | $\frac{\text{assets within max latency SLA and non-deprecated}}{\text{total evaluated entities}}$ | $58.3\%$ | **$93.3\%$** (+60.0%) | $\ge 75.0\%$ | **PASS** |
 | **Retrieval Groundedness** | $\frac{\text{probes returning certified VERIFIED schema-matched hits}}{\text{total probe queries}}$ | $60.0\%$ | **$100.0\%$** (+66.7%) | $\ge 80.0\%$ | **PASS** |
 | **Stale Context Rate** | $\frac{\text{DEPRECATED assets} + \text{SLA violations}}{\text{total evaluated entities}}$ | $41.7\%$ | **$6.7\%$** (-84.0%) | $\le 25.0\%$ | **PASS** |
 | **Composite Quality Index** | $0.25\text{M} + 0.25\text{L} + 0.20\text{F} + 0.20\text{G} + 0.10(1 - \text{S})$ | $50.8\%$ | **$98.0\%$** (+92.9%) | $\ge 85.0\%$ | **PASS** |
