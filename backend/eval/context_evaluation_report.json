@@ -1,0 +1,159 @@
+{
+  "evaluation_title": "ORBIT-X Formal Context Evaluation Report",
+  "evaluated_at_iso": "2026-08-25T04:24:37.967714+00:00",
+  "overall_status": "PASSED",
+  "quality_gates": {
+    "min_metadata_completeness_pct": 90.0,
+    "min_lineage_coverage_pct": 90.0,
+    "min_freshness_sla_compliance_pct": 75.0,
+    "min_retrieval_groundedness_pct": 80.0,
+    "max_stale_context_rate_pct": 25.0,
+    "min_composite_quality_score_pct": 85.0
+  },
+  "summary_scores": {
+    "metadata_completeness_pct": 100.0,
+    "lineage_coverage_pct": 100.0,
+    "freshness_sla_compliance_pct": 93.3,
+    "retrieval_groundedness_pct": 100.0,
+    "stale_context_rate_pct": 6.7,
+    "composite_quality_score_pct": 98.0
+  },
+  "gate_results": {
+    "Metadata Completeness": {
+      "measured_pct": 100.0,
+      "operator": ">=",
+      "threshold_pct": 90.0,
+      "passed": true
+    },
+    "Lineage Coverage": {
+      "measured_pct": 100.0,
+      "operator": ">=",
+      "threshold_pct": 90.0,
+      "passed": true
+    },
+    "Freshness SLA Compliance": {
+      "measured_pct": 93.3,
+      "operator": ">=",
+      "threshold_pct": 75.0,
+      "passed": true
+    },
+    "Retrieval Groundedness": {
+      "measured_pct": 100.0,
+      "operator": ">=",
+      "threshold_pct": 80.0,
+      "passed": true
+    },
+    "Stale Context Rate": {
+      "measured_pct": 6.7,
+      "operator": "<=",
+      "threshold_pct": 25.0,
+      "passed": true
+    },
+    "Composite Quality Index": {
+      "measured_pct": 98.0,
+      "operator": ">=",
+      "threshold_pct": 85.0,
+      "passed": true
+    }
+  },
+  "detailed_metrics": {
+    "metadata_completeness": {
+      "metric_name": "metadata_completeness",
+      "score": 1.0,
+      "score_pct": 100.0,
+      "total_expected_fields": 88,
+      "populated_fields": 88,
+      "evaluated_assets_count": 5,
+      "details": {
+        "populated_ratio": "88/88"
+      }
+    },
+    "lineage_coverage": {
+      "metric_name": "lineage_coverage",
+      "score": 1.0,
+      "score_pct": 100.0,
+      "total_canonical_nodes": 10,
+      "connected_nodes": 10,
+      "total_edges": 11,
+      "details": {
+        "connected_node_ids": [
+          "node_anomaly",
+          "node_dataset",
+          "node_feature",
+          "node_model",
+          "node_prediction",
+          "node_mission",
+          "node_telemetry_stream",
+          "node_satellite",
+          "node_decision",
+          "node_tool"
+        ]
+      }
+    },
+    "freshness": {
+      "metric_name": "freshness_sla_compliance",
+      "score": 0.9333,
+      "score_pct": 93.3,
+      "total_evaluated_entities": 15,
+      "compliant_entities_count": 14,
+      "violations_count": 1,
+      "details": {
+        "violations": [
+          "Dataset:legacy_v1_telemetry_csv (86400.0s, status:DEPRECATED)"
+        ]
+      }
+    },
+    "retrieval_groundedness": {
+      "metric_name": "retrieval_groundedness",
+      "score": 1.0,
+      "score_pct": 100.0,
+      "total_probes": 5,
+      "grounded_hits": 5,
+      "probes_evaluated": [
+        {
+          "query": "telemetry",
+          "top_asset": "satellite_telemetry",
+          "status": "VERIFIED",
+          "grounded": true
+        },
+        {
+          "query": "mission priority",
+          "top_asset": "mission_requests",
+          "status": "VERIFIED",
+          "grounded": true
+        },
+        {
+          "query": "decision audit",
+          "top_asset": "decision_audit_log",
+          "status": "VERIFIED",
+          "grounded": true
+        },
+        {
+          "query": "battery voltage",
+          "top_asset": "satellite_telemetry",
+          "status": "VERIFIED",
+          "grounded": true
+        },
+        {
+          "query": "cross attention ranker",
+          "top_asset": "satellite_telemetry",
+          "status": "VERIFIED",
+          "grounded": true
+        }
+      ]
+    },
+    "stale_context_rate": {
+      "metric_name": "stale_context_rate",
+      "rate": 0.0667,
+      "rate_pct": 6.7,
+      "total_evaluated_entities": 15,
+      "stale_entities_count": 1,
+      "stale_entities": [
+        "Dataset:legacy_v1_telemetry_csv (DEPRECATED, 86400.0s)"
+      ]
+    },
+    "composite_quality_score": 0.98,
+    "composite_quality_score_pct": 98.0,
+    "evaluated_at_iso": "2026-08-25T04:24:37.967714+00:00"
+  }
+}

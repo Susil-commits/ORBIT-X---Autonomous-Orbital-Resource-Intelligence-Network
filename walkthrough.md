@@ -167,6 +167,11 @@ Evaluates the end-to-end decision system under operational constraints:
 
 ## 4. Verification & Testing Summary
 
-- **PyTest Backend Suite**: **92 / 92 Tests Passing (100% pass rate)**.
-- **Frontend TypeScript Build**: `npx tsc --noEmit` exited with **0 errors**.
+- **PyTest Backend Suite**: **136 / 136 Tests Passing (100% pass rate)**.
+- **Formal Context Evaluation Suite (`eval/run_context_eval.py`)**: **100% Quality Gates Passed** (Metadata Completeness: 100.0%, Lineage Coverage: 100.0%, Freshness: 93.3%, Groundedness: 100.0%, Stale Rate: 6.7%, Composite: 98.0%).
+- **AI Regression Harness (`eval/run_eval.py`)**: All CP-SAT benchmarks, BidValueMLP held-out agreement, TreeSHAP drift, and Keplerian orbital physics verified.
+- **Deliberate Failure Suite (`eval/run_deliberate_failure_suite.py`)**: 5/5 Critical failure modes safely handled (100% safe degradation).
+- **128-Probe Agent Harness (`eval/run_agent_harness_benchmark.py`)**: 128/128 Probes passed across 8 operational categories.
+- **Frontend TypeScript Build**: `tsc -b && vite build` exited with **0 errors**.
 - **MCP Tool Suite**: 12 registered tools including `get_dataset_metadata`, `get_governed_assets`, `search_telemetry`, `get_anomaly`, `get_prediction`, `explain_prediction`, `run_optimizer`.
+

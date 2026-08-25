@@ -1,5 +1,6 @@
 """Unit Tests for Deterministic, Non-Invented Context Quality Evaluator & Modular Evaluation Package."""
 
+import json
 import pytest
 from app.context.evaluation.context_evaluator import (
     ContextQualityEvaluator,
@@ -211,3 +212,63 @@ def test_context_quality_synthetic_drift_sensitivity():
     assert metrics.deprecated_assets == 1
     assert metrics.verified_asset_ratio == 0.50
     assert metrics.stale_assets_count >= 1
+
+
+def test_formal_context_evaluation_runner_and_gates():
+    """Validates the formal context evaluation CLI runner and quality gate assertions."""
+    from eval.run_context_eval import run_formal_context_evaluation, QUALITY_GATES, REPORT_FILE
+    import os
+
+    report, gate_summary, has_failures = run_formal_context_evaluation()
+
+    assert not has_failures, f"Context quality evaluation failed gates: {gate_summary}"
+    assert report.composite_quality_score_pct >= QUALITY_GATES["min_composite_quality_score_pct"]
+    assert report.metadata_completeness.score_pct >= QUALITY_GATES["min_metadata_completeness_pct"]
+    assert report.lineage_coverage.score_pct >= QUALITY_GATES["min_lineage_coverage_pct"]
+    assert report.freshness.score_pct >= QUALITY_GATES["min_freshness_sla_compliance_pct"]
+    assert report.retrieval_groundedness.score_pct >= QUALITY_GATES["min_retrieval_groundedness_pct"]
+    assert report.stale_context_rate.rate_pct <= QUALITY_GATES["max_stale_context_rate_pct"]
+
+    # Verify JSON report file was generated
+    assert REPORT_FILE.exists()
+    with open(REPORT_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        assert data["overall_status"] == "PASSED"
+        assert "summary_scores" in data
+
+
+def test_context_asset_status_governance_lifecycle():
+    """Validates VERIFIED, DRAFT, and DEPRECATED lifecycle governance rules."""
+    from context.schemas import AssetStatus, GovernedAsset
+    from context.discovery.search import DataDiscoveryEngine
+    from context.metadata.catalog import SemanticMetadataCatalog
+
+    catalog = SemanticMetadataCatalog()
+    all_assets = catalog.list_datasets()
+
+    verified_assets = [a for a in all_assets if a.status == AssetStatus.VERIFIED]
+    draft_assets = [a for a in all_assets if a.status == AssetStatus.DRAFT]
+    deprecated_assets = [a for a in all_assets if a.status == AssetStatus.DEPRECATED]
+
+    # Verify state partitions
+    assert len(verified_assets) >= 3, "Production requires at least 3 certified verified assets."
+    assert len(draft_assets) >= 1, "Catalog includes candidate DRAFT assets."
+    assert len(deprecated_assets) >= 1, "Catalog includes legacy DEPRECATED assets for safety testing."
+
+    # Verify governance rules
+    for v in verified_assets:
+        assert v.quality_score >= 0.90
+        assert v.freshness_s <= 3600.0
+
+    for d in deprecated_assets:
+        assert "deprecated" in d.schema_version.lower() or "legacy" in d.description.lower()
+        assert "forbidden" in d.governance_policy.lower() or "replaced" in d.governance_policy.lower()
+
+    # Search gating behavior
+    engine = DataDiscoveryEngine(catalog)
+    # Require verified must only return VERIFIED
+    strict_results = engine.search("telemetry", require_verified=True)
+    assert all(r.status == AssetStatus.VERIFIED for r in strict_results)
+    assert not any(r.status == AssetStatus.DEPRECATED for r in strict_results)
+    assert not any(r.status == AssetStatus.DRAFT for r in strict_results)
+

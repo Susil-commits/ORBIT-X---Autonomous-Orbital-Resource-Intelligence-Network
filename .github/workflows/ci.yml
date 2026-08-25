@@ -44,10 +44,15 @@ jobs:
             ${{ runner.os }}-hf-all-MiniLM-L6-v2-
             ${{ runner.os }}-hf-
 
-      - name: Run Backend Unit Tests (Pytest 55/55)
+      - name: Run Backend Unit Tests (Pytest 136/136 Suite)
         working-directory: ./backend
         run: |
           uv run pytest tests -v
+
+      - name: Run Formal Context Quality & Governance Eval Harness
+        working-directory: ./backend
+        run: |
+          uv run python eval/run_context_eval.py
 
       - name: Run AI & Policy Regression Eval Harness
         working-directory: ./backend
