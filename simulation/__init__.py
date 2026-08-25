@@ -1,11 +1,11 @@
 """ORBIT-X Simulation & Evaluation Environment Package.
 
-Underneath the AI-native platform, provides authentic operational simulation:
+Provides an operational simulation testbed for the decision intelligence platform:
 - Telemetry Generation
 - Orbital SGP4 Mechanics & TLE Pipelines
 - ISL Laser Mesh Topologies
 - Thermal / Battery Physical Constraints
-- Extreme Scenario Injection for AI Stress-Testing
+- Extreme Scenario Injection for Decision Stress-Testing
 """
 
 from simulation.telemetry.generator import TelemetryStreamGenerator

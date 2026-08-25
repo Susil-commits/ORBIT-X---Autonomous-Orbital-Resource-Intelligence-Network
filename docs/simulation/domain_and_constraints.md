@@ -1,7 +1,7 @@
 # Simulation Domain & Operational Constraints
 
 ## 1. Domain Positioning
-In the ORBIT-X architecture, the satellite constellation simulation environment serves as the **operational dataset and constraint testbed**. It generates high-velocity, multivariate telemetry streams and enforces physical boundary constraints used to train, benchmark, stress-test, and evaluate the AI-native decision intelligence platform.
+In the ORBIT-X architecture, the satellite constellation simulation environment serves as the **operational dataset and constraint testbed**. It generates high-velocity, multivariate telemetry streams and enforces physical boundary constraints used to train, benchmark, stress-test, and evaluate the decision intelligence platform.
 
 ---
 

@@ -1,7 +1,9 @@
 # ORBIT-X
 > ### Context-Aware Decision Intelligence Platform
 >
-> **A production-style AI system that turns noisy operational data into governed, explainable decisions using metadata, lineage, ML, retrieval, agents, and deterministic constraints.**
+> **A production-style system turning high-velocity operational data into governed, mathematically-grounded actions through a 7-stage decision pipeline:**
+>
+> $$\textbf{Context} \longrightarrow \textbf{Retrieval} \longrightarrow \textbf{Tool} \longrightarrow \textbf{Reasoning} \longrightarrow \textbf{Constraint} \longrightarrow \textbf{Decision} \longrightarrow \textbf{Evidence}$$
 >
 > *Evaluated through high-stakes autonomous satellite constellation operations.*
 
@@ -37,19 +39,20 @@
 
 ### Why Operational AI Fails Without Context
 
-Operational AI often fails not because models lack capacity, but because **models operate without enough context**.
+Operational AI often fails not because models lack capacity, but because **models operate without structured execution context**.
 
 A machine learning prediction may be statistically optimal, yet still produce a catastrophic operational decision when:
-- 📉 **The underlying dataset is stale** (violating freshness SLAs).
-- 🔄 **The model checkpoint is outdated** or uncalibrated against live sensor drift.
-- ⛓️ **Required lineage is missing**, leaving decisions ungrounded and un-auditable.
-- ⚠️ **Sensor quality is poor**, contaminated by dropouts, noise, or undetected excursions.
-- 🛑 **A physical constraint is violated** (energy floors, thermal ceilings, slew dynamics).
-- 🤖 **The agent cannot verify its evidence**, hallucinating unsupported tool actions.
+- 📉 **Context is stale or unverified** (violating freshness SLAs or missing cryptographic lineage).
+- 🔍 **Retrieval is ungrounded** (hallucinated mission requirements, out-of-date manuals).
+- 🛠️ **Tool actions are unchecked** (unvalidated API calls without explicit schema contracts).
+- 🧠 **Reasoning is uncalibrated** (ignoring subsystem health degradation or multi-objective trade-offs).
+- 🛑 **Physical constraints are violated** (violating energy floors, thermal limits, or slew envelopes).
+- ⚖️ **Decisions lack safe fallback** (acting blindly without uncertainty bounds or refusal state machines).
+- 🔍 **Evidence is missing** (black-box predictions lacking feature attributions or audit provenance).
 
-ORBIT-X solves this by strictly decoupling:
+ORBIT-X eliminates these failure modes by enforcing the canonical 7-stage decision intelligence pipeline:
 
-$$\textbf{prediction} \longrightarrow \textbf{context} \longrightarrow \textbf{reasoning} \longrightarrow \textbf{constraints} \longrightarrow \textbf{decision} \longrightarrow \textbf{evidence}$$
+$$\textbf{Context} \longrightarrow \textbf{Retrieval} \longrightarrow \textbf{Tool} \longrightarrow \textbf{Reasoning} \longrightarrow \textbf{Constraint} \longrightarrow \textbf{Decision} \longrightarrow \textbf{Evidence}$$
 
 ### The Proving Ground: Satellite Constellation Operations
 To rigorously benchmark this architecture under extreme operational friction, ORBIT-X is evaluated on autonomous Earth-observation satellite constellations:
@@ -61,38 +64,34 @@ To rigorously benchmark this architecture under extreme operational friction, OR
 
 ## 2. 90-Second Demo
 
-Here is how an operator or autonomous agent query executes end-to-end through the governed context and decision pipeline in **$<50\text{ ms}$**:
+Here is how an operator or autonomous agent query executes end-to-end through the 7-stage pipeline in **$<50\text{ ms}$**:
 
 ```yaml
 Query: "Which satellite should execute priority flood monitoring Mission M-204 and why?"
 
-[1. DATA]             • Ingested 14 telemetry channels across 12 constellation assets
-                      • Propagated Keplerian pass geometry over target lat/long (34.05°N, -118.25°W)
+[1. CONTEXT]    • Checked schema 'features_operational_telemetry_v2' (Status: VERIFIED)
+                • Verified telemetry freshness (<12.4s SLA) and cryptographic lineage hash (a8f4c9...)
 
-[2. METADATA/QUALITY] • Verified telemetry schemas against DataQualityAgent contracts
-                      • Confirmed non-null readings on all battery, thermal, and gyro channels
+[2. RETRIEVAL]  • FastMCP Hybrid Dense/Sparse RAG fetched optical payload specs & ground contacts
+                • Target coordinates: 34.05°N, -118.25°W | Contact window: 320s line-of-sight
 
-[3. CONTEXT/LINEAGE]  • FastMCP retrieved schema 'features_operational_telemetry_v2' (Status: VERIFIED)
-                      • Verified telemetry freshness (<12.4s SLA) and cryptographic lineage hash
+[3. TOOL]       • FastMCP executed `get_satellite_health` & `get_orbital_pass_geometry`
+                • Verified optical payload memory (64% available) & confirmed no emergency locks
 
-[4. ML & HEALTH AI]   • Spacecraft Health AI: SAT-03 is NOMINAL (score: -0.02, zero sensor excursions)
-                      • Cross-Attention Neural Ranking: SAT-03 ranked Top-1 with 94.2% utility score
+[4. REASONING]  • Spacecraft Health AI (Isolation Forest): SAT-03 is NOMINAL (score: -0.02, 0 excursions)
+                • Cross-Attention Neural Ranking: SAT-03 ranked Top-1 with 94.2% utility score
 
-[5. RETRIEVAL]        • FastMCP Hybrid Dense/Sparse RAG fetched operational payload specs & ground contacts
+[5. CONSTRAINT] • Google OR-Tools CP-SAT confirmed 100% hard constraint feasibility:
+                  [✓] Battery SoC Floor: 88.5% >= 20.0%
+                  [✓] Thermal Margin: 22.0°C <= 45.0°C
+                  [✓] Slew Rate Limit: 1.1°/s <= 1.8°/s
+                  [✓] Line-of-Sight Window: 320s contact window verified
 
-[6. AGENT & TOOLS]    • Agent verified optical payload memory (64% available) & contact window (320s)
-                      • Confirmed no active emergency locks or operator holds
+[6. DECISION]   • Certified Operational Dispatch: SAT-03 assigned to Mission M-204 (<1.4ms serving)
+                • Conformal Coverage: 90% confidence interval [0.86, 0.96] | Refusal status: NOMINAL
 
-[7. CP-SAT SOLVER]    • Google OR-Tools CP-SAT confirmed 100% hard constraint feasibility:
-                        [✓] Battery SoC Floor: 88.5% >= 20.0%
-                        [✓] Thermal Margin: 22.0°C <= 45.0°C
-                        [✓] Slew Rate Limit: 1.1°/s <= 1.8°/s
-                        [✓] Line-of-Sight Window: 320s contact window verified
-
-[8. DECISION]         • Certified Operational Dispatch: SAT-03 assigned to Mission M-204 (<1.4ms serving)
-
-[9. EVIDENCE & AUDIT] • TreeSHAP Attribution: +42% Elevation Geometry, +28% Battery Reserve, +18% Slew
-                      • Cryptographic Provenance DAG: a8f4c910... (100% auditable)
+[7. EVIDENCE]   • TreeSHAP Attribution: +42% Elevation Geometry, +28% Battery Reserve, +18% Slew
+                • Cryptographic Provenance DAG: a8f4c910... (100% auditable record committed)
 ```
 
 ---
@@ -102,23 +101,29 @@ Query: "Which satellite should execute priority flood monitoring Mission M-204 a
 ### The Entire System in One Picture
 
 ```
-DATA (Operational Streams & Physics Dynamics)
-  ↓
-Metadata + Quality (Schema Contracts, Validation Gates)
-  ↓
-Context Graph + Lineage (3-State Lifecycles, Freshness SLAs, DAG Lineage)
-  ↓
-ML / Anomaly Detection (Cross-Attention Candidate Scoring, Isolation Forest Health AI)
-  ↓
-Hybrid Retrieval (FastMCP Semantic Catalog, Dense + BM25 RRF)
-  ↓
-Agent + Tools (Autonomous Tool-Augmented Reasoning with Anti-Hallucination)
-  ↓
-Constraint Solver (Google OR-Tools CP-SAT Deterministic Engine)
-  ↓
-Decision (Certified, Conflict-Free Operational Schedule in <50ms)
-  ↓
-Evidence + Audit (TreeSHAP Attributions & Cryptographic DAG Trace)
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               THE 7-STAGE DECISION PIPELINE                            │
+│                                                                                        │
+│  [1. CONTEXT]    Data Contracts • 3-State Lifecycles • Freshness SLAs • Lineage DAG    │
+│        │                                                                               │
+│        ▼                                                                               │
+│  [2. RETRIEVAL]  FastMCP Semantic Catalog • Hybrid Dense Embeddings + BM25 RRF         │
+│        │                                                                               │
+│        ▼                                                                               │
+│  [3. TOOL]       FastMCP Standardized Tool Interface • Schema Validation Gates         │
+│        │                                                                               │
+│        ▼                                                                               │
+│  [4. REASONING]  Cross-Attention Neural Ranking • Isolation Forest Health AI           │
+│        │                                                                               │
+│        ▼                                                                               │
+│  [5. CONSTRAINT] Google OR-Tools CP-SAT Engine • 100% Invariant Guarantee (0.0% Viola) │
+│        │                                                                               │
+│        ▼                                                                               │
+│  [6. DECISION]   Certified Dispatch in <50ms • Conformal Bounds • Refusal State Machine│
+│        │                                                                               │
+│        ▼                                                                               │
+│  [7. EVIDENCE]   TreeSHAP Attributions • Cryptographic Provenance DAG • Audit Ledger   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -452,20 +457,22 @@ The codebase is organized cleanly to mirror the context-aware decision intellige
 
 ```
 ORBITX/
-├── data/ & simulation/        ──► [1. DATA & PHYSICS] Ingestion, Keplerian propagator, thermal ODE
-├── context/                   ──► [2. METADATA & 3. CONTEXT GRAPH] Governed lifecycles, SLAs, DAG lineage
-├── ml/                        ──► [4. ML & GOVERNANCE]
+├── context/                   ──► [1. CONTEXT] Governed lifecycles, freshness SLAs, metadata contracts, lineage DAG
+├── genai/catalog/             ──► [2. RETRIEVAL] FastMCP semantic catalog & hybrid dense + BM25 RRF
+├── agents/tools/ & mcp/       ──► [3. TOOL] Standardized FastMCP tool registry & schema contracts
+├── ml/ & agents/              ──► [4. REASONING] Cross-Attention ranking, Isolation Forest health AI, agent loop
 │   ├── models/                ──► Domain models: ranking/, anomaly/, forecasting/
 │   ├── registry/              ──► Enterprise Model Registry (model_card.json & model_registry.py)
 │   └── evaluation/            ──► 5-paradigm ranking baseline comparisons
-├── genai/ & agents/           ──► [5. RETRIEVAL & 6. AGENTS] FastMCP semantic catalog & autonomous loop
-├── optimization/ & decision/  ──► [7. SOLVER & 8. DECISION] Google OR-Tools CP-SAT engine & dispatch
-├── backend/app/xai/           ──► [9. EVIDENCE & AUDIT] TreeSHAP attributions & cryptographic provenance
+├── optimization/              ──► [5. CONSTRAINT] Google OR-Tools CP-SAT deterministic solver
+├── decision/                  ──► [6. DECISION] Certified operational dispatch, calibrated confidence & refusal engine
+├── backend/app/xai/           ──► [7. EVIDENCE] TreeSHAP attributions & cryptographic provenance DAG
 │
+├── simulation/ & data/        ──► Operational physics testbed (Keplerian orbits, Stefan-Boltzmann ODE)
 ├── backend/                   ──► FastAPI async ASGI service, REST endpoints, Redis & Postgres connectors
 ├── frontend/                  ──► React 19 + TypeScript + Vite + Three.js 3D Constellation Dashboard
-├── benchmarks/ & eval/        ──► Formal evaluation suites, deliberate failure tests, synthetic generators
-└── docs/                      ──► Deep-dive engineering specifications and mathematical proofs
+├── benchmarks/ & eval/        ──► 128-probe agent harness, context evaluation, baseline comparisons
+└── docs/                      ──► Deep-dive engineering specifications, ablation studies & proofs
 ```
 
 ---

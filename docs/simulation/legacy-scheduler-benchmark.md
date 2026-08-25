@@ -13,15 +13,15 @@ This document archives the historical 6-scheduler evaluation metrics in the simu
 | **Hybrid Neural + CP-SAT** | Hybrid AI / Optimization | **2,572.3** | **83.3%** | **100.0%** | 21.45 ms | **0.0% (Zero)** |
 | **Google CP-SAT (Pure)** | Constraint Programming | **2,572.3** | **83.3%** | **100.0%** | 12.12 ms | **0.0% (Zero)** |
 
-## 2. Transition to Core AI Platform
+## 2. Transition to Decision Intelligence Platform
 
-In the target AI-native architecture:
+In the target 7-stage architecture:
 - Scheduling algorithms are treated as optimization and simulation testbed features.
 - The core platform centers on:
-  1. Data Ingestion, Metadata & Lineage
-  2. Feature Engineering & Anomaly Detection (Isolation Forest)
-  3. Predictive Machine Learning (Cross-Attention Network, XGBoost, Random Forest, MLP)
-  4. Explainability (TreeSHAP & Attention XAI)
+  1. Data Ingestion, Metadata Contracts & Lineage DAG
+  2. Semantic Context Catalog & Hybrid Retrieval (FastMCP)
+  3. Standardized Tool Interfaces & Sandboxed Execution
+  4. Predictive Machine Learning (Cross-Attention Network) & Anomaly Detection (Isolation Forest)
   5. Constraint Optimization (Google CP-SAT)
-  6. Context-Aware RAG & Autonomous Tool Agents (MCP)
-  7. Human-in-the-Loop Review & Feedback Loop
+  6. Calibrated Decision Dispatch & Refusal State Machine
+  7. TreeSHAP Attribution & Cryptographic Provenance Audit Trail

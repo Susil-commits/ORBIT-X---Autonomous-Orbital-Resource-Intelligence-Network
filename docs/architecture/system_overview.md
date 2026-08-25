@@ -2,7 +2,9 @@
 
 ## 1. High-Level Architecture
 
-ORBIT-X is designed as a modular, production-ready **AI-Native Decision Intelligence Platform**. It ingests high-velocity operational data, validates quality, discovers context, predicts candidate feasibility with deep learning, guarantees safety with CP-SAT constraint programming, and provides explainable, auditable agent workflows via Model Context Protocol (MCP).
+ORBIT-X is designed as a modular, production-ready **Context-Aware Decision Intelligence Platform**. It ingests high-velocity operational data, validates quality, discovers context, predicts candidate feasibility with deep learning, guarantees safety with CP-SAT constraint programming, and provides explainable, auditable agent workflows via the Model Context Protocol (FastMCP) through a 7-stage execution chain:
+
+$$\textbf{Context} \longrightarrow \textbf{Retrieval} \longrightarrow \textbf{Tool} \longrightarrow \textbf{Reasoning} \longrightarrow \textbf{Constraint} \longrightarrow \textbf{Decision} \longrightarrow \textbf{Evidence}$$
 
 ```
                          ORBIT-X PLATFORM ARCHITECTURE

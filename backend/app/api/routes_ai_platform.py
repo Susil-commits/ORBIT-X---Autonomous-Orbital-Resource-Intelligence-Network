@@ -1,4 +1,4 @@
-"""FastAPI Router exposing the canonical AI-Native Decision Platform APIs:
+"""FastAPI Router exposing the canonical Decision Intelligence Platform APIs:
 
 - /api/data
 - /api/metadata
@@ -39,7 +39,7 @@ from agents.tools.mcp_tools import get_ai_tools_registry
 from decision.human_review.governance import HumanGovernanceEngine, OperatorReviewSubmission
 from decision.feedback.loop import FeedbackLoopManager
 
-router = APIRouter(tags=["AI-Native Decision Platform"])
+router = APIRouter(tags=["Decision Intelligence Platform"])
 
 _agent_orchestrator = AgentOrchestrator()
 _governance_engine = HumanGovernanceEngine()

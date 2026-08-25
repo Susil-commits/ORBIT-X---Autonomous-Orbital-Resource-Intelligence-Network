@@ -1,6 +1,6 @@
 {
-  "suite_id": "FAILURE-TEST-20260825-051734",
-  "evaluated_at_iso": "2026-08-25T05:17:34.375122+00:00",
+  "suite_id": "FAILURE-TEST-20260825-054842",
+  "evaluated_at_iso": "2026-08-25T05:48:42.483168+00:00",
   "total_cases": 5,
   "passed_cases": 5,
   "all_cases_passed": true,
@@ -30,7 +30,7 @@
       "fallback_mechanism_used": "Execution Halted + Flight Director Alert Triggered",
       "retry_count": 0,
       "passed": true,
-      "latency_ms": 0.0,
+      "latency_ms": 0.02,
       "audit_notes": "Verified strict compliance with Context Governance Rule 1.4 (Zero tolerance for stale flight telemetry)."
     },
     {
@@ -53,7 +53,7 @@
       "fallback_mechanism_used": "Successor Asset Recommendation (satellite_telemetry v2.0)",
       "retry_count": 0,
       "passed": true,
-      "latency_ms": 0.0,
+      "latency_ms": 0.02,
       "audit_notes": "Verified compliance with Data Catalog Governance Policy (VERIFIED tier enforcement)."
     },
     {
@@ -99,7 +99,7 @@
       "fallback_mechanism_used": "Onboard Cached Physics Baseline + Safe Mode Holding Pattern",
       "retry_count": 2,
       "passed": true,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "audit_notes": "Verified zero unhandled exceptions on 503 service outage and seamless fallback activation."
     },
     {

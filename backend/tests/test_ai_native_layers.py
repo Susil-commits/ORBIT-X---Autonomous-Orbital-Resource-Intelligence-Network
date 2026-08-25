@@ -1,11 +1,11 @@
-"""Tests for the ORBIT-X AI-Native Modular Architecture Layers.
+"""Tests for the ORBIT-X Modular Decision Intelligence Architecture Layers.
 
 Validates:
 - Data Layer: Pydantic schemas, validation, cleaning, feature engineering
 - ML Layer: Cross-Attention neural ranker, XGBoost tabular ranker, TreeSHAP
 - Anomaly Detection Layer: Isolation Forest detector & risk penalty scoring
 - Context Layer: Semantic metadata catalog, data discovery, lineage DAG
-- Agents & MCP Layer: AI tools registry, agent orchestration loop
+- Agents & MCP Layer: FastMCP tools registry, agent orchestration loop
 - Decision Layer: Human governance review, continuous feedback loop
 - Simulation Layer: Telemetry generation & physics propagation
 """
@@ -124,7 +124,7 @@ def test_context_metadata_and_lineage():
 
 
 def test_agents_and_tools_registry():
-    """Validates standard AI-native tools registry and orchestrator loop."""
+    """Validates standard FastMCP tools registry and orchestrator loop."""
     tools = get_ai_tools_registry()
     meta = tools.get_dataset_metadata("satellite_telemetry")
     assert "columns" in meta

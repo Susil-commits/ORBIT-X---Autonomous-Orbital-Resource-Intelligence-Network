@@ -2,8 +2,8 @@
 
 > **AI Reliability Principle**: AI safety isn't only about getting correct answers; it is also about failing safely.
 
-**Suite ID**: `FAILURE-TEST-20260825-051734`  
-**Evaluated At**: `2026-08-25T05:17:34.375122+00:00`  
+**Suite ID**: `FAILURE-TEST-20260825-054842`  
+**Evaluated At**: `2026-08-25T05:48:42.483168+00:00`  
 **Total Failure Scenarios**: `5`  
 **Passed Scenarios**: `5/5` (**100.0%**)  
 **Overall Status**: ✅ **100% SAFE DEGRADATION VERIFIED**
@@ -34,7 +34,7 @@
 - **Retries Attempted**: `0`
 - **Safe Refusal Verified**: `True`
 - **Audit Notes**: Verified strict compliance with Context Governance Rule 1.4 (Zero tolerance for stale flight telemetry).
-- **Latency**: `0.0 ms`
+- **Latency**: `0.02 ms`
 
 ### Case 2 — Deprecated Dataset Rejection
 - **Target Component**: `Context Layer / Data Catalog Governance`
@@ -46,7 +46,7 @@
 - **Retries Attempted**: `0`
 - **Safe Refusal Verified**: `True`
 - **Audit Notes**: Verified compliance with Data Catalog Governance Policy (VERIFIED tier enforcement).
-- **Latency**: `0.0 ms`
+- **Latency**: `0.02 ms`
 
 ### Case 3 — Missing Lineage & Broken Provenance
 - **Target Component**: `Context Layer / Lineage Engine`
@@ -70,7 +70,7 @@
 - **Retries Attempted**: `2`
 - **Safe Refusal Verified**: `True`
 - **Audit Notes**: Verified zero unhandled exceptions on 503 service outage and seamless fallback activation.
-- **Latency**: `0.0 ms`
+- **Latency**: `0.01 ms`
 
 ### Case 5 — Hallucination Attempt (Nonexistent Satellite)
 - **Target Component**: `Trust Layer / Anti-Hallucination Registry Verifier`

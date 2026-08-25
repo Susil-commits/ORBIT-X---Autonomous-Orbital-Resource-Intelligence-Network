@@ -1,4 +1,4 @@
-"""Standardized AI-Native Tool Interface for Agents and MCP.
+"""Standardized Tool Interface for Agents and FastMCP.
 
 Exposes domain-independent tool interfaces that any LLM agent or MCP client can call:
 - get_dataset_metadata()

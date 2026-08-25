@@ -1,8 +1,10 @@
-# ORBIT-X Target Architecture: AI-Native Decision Intelligence Platform
+# ORBIT-X Target Architecture: Context-Aware Decision Intelligence Platform
 
 ## 1. Executive Summary & Identity
 
-**ORBIT-X** is an end-to-end **AI-Native Decision Intelligence Platform** designed to transform high-velocity operational data into grounded, explainable, and constraint-satisfying decisions. 
+**ORBIT-X** is an end-to-end **Context-Aware Decision Intelligence Platform** designed to transform high-velocity operational data into grounded, explainable, and constraint-satisfying decisions via the canonical 7-stage cognitive pipeline:
+
+$$\textbf{Context} \longrightarrow \textbf{Retrieval} \longrightarrow \textbf{Tool} \longrightarrow \textbf{Reasoning} \longrightarrow \textbf{Constraint} \longrightarrow \textbf{Decision} \longrightarrow \textbf{Evidence}$$
 
 A high-fidelity orbital mechanics simulator serves as the ground-truth **evaluation environment and telemetry generator**, providing realistic operational constraints, communication mesh dynamics, and fault scenarios to evaluate the platform without coupling its core abstractions to aerospace physics.
 

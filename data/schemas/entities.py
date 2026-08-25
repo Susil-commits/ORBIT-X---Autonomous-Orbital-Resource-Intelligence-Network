@@ -1,4 +1,4 @@
-"""Explicit Data Schemas for the ORBIT-X AI-Native Data Platform.
+"""Explicit Data Schemas for the ORBIT-X Decision Intelligence Platform.
 
 Defines Pydantic v2 data models for Telemetry, MissionRequest, OperationalState,
 Anomaly, Prediction, Decision, and Human Feedback records.

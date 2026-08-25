@@ -1,6 +1,6 @@
-"""Model Context Protocol (MCP) Server for ORBIT-X.
+"""Model Context Protocol (FastMCP) Server for ORBIT-X.
 
-Exposes canonical AI-native tools and operational endpoints:
+Exposes canonical decision intelligence tools and operational endpoints:
 - get_dataset_metadata()
 - search_telemetry()
 - get_anomaly()
@@ -36,7 +36,7 @@ mcp = MCPServer("ORBIT-X AI Decision Intelligence Server")
 
 
 # ----------------------------------------------------------------------
-# Canonical AI-Native Tools
+# Canonical Decision Intelligence Tools
 # ----------------------------------------------------------------------
 
 @mcp.tool()

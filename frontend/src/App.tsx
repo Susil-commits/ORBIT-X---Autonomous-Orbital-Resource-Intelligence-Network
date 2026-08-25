@@ -14,7 +14,7 @@ import { TargetDispatchModal } from './components/TargetDispatchModal';
 import { ISLNetworkHUD } from './components/ISLNetworkHUD';
 import { MissionRAGDrawer } from './components/MissionRAGDrawer';
 
-// AI-Native Primary Views
+// Decision Intelligence Primary Views
 import { AIAssistantHeroView } from './components/AIAssistantHeroView';
 import { DecisionExplorerView } from './components/DecisionExplorerView';
 import { DataDiscoveryLineageView } from './components/DataDiscoveryLineageView';
