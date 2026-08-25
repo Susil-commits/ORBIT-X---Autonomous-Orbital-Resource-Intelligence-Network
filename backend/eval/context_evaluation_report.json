@@ -1,6 +1,6 @@
 {
   "evaluation_title": "ORBIT-X Formal Context Evaluation Report",
-  "evaluated_at_iso": "2026-08-25T04:54:25.588930+00:00",
+  "evaluated_at_iso": "2026-08-25T05:17:33.673740+00:00",
   "overall_status": "PASSED",
   "quality_gates": {
     "min_metadata_completeness_pct": 90.0,
@@ -77,16 +77,16 @@
       "total_edges": 11,
       "details": {
         "connected_node_ids": [
+          "node_anomaly",
           "node_decision",
-          "node_model",
-          "node_satellite",
-          "node_prediction",
-          "node_telemetry_stream",
+          "node_dataset",
           "node_feature",
           "node_tool",
+          "node_prediction",
+          "node_telemetry_stream",
+          "node_model",
           "node_mission",
-          "node_anomaly",
-          "node_dataset"
+          "node_satellite"
         ]
       }
     },
@@ -154,6 +154,6 @@
     },
     "composite_quality_score": 0.98,
     "composite_quality_score_pct": 98.0,
-    "evaluated_at_iso": "2026-08-25T04:54:25.588413+00:00"
+    "evaluated_at_iso": "2026-08-25T05:17:33.673740+00:00"
   }
 }

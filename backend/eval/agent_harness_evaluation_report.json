@@ -1,6 +1,6 @@
 {
-  "benchmark_id": "HARNESS-20260825-045420",
-  "evaluated_at_iso": "2026-08-25T04:54:20.103214+00:00",
+  "benchmark_id": "HARNESS-20260825-051727",
+  "evaluated_at_iso": "2026-08-25T05:17:27.941548+00:00",
   "total_questions": 128,
   "passed_questions": 128,
   "overall_task_success_rate": 100.0,
@@ -10,7 +10,7 @@
   "overall_evidence_completeness": 90.3,
   "latency_p50_ms": 0.0,
   "latency_p95_ms": 0.0,
-  "latency_p99_ms": 0.0,
+  "latency_p99_ms": 0.02,
   "category_scores": [
     {
       "category": "metadata_questions",
@@ -58,7 +58,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 87.5,
-      "avg_latency_ms": 0.0
+      "avg_latency_ms": 0.01
     },
     {
       "category": "ambiguous_questions",
@@ -645,7 +645,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -681,7 +681,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -969,7 +969,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.09,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/4)."
     },
@@ -1114,7 +1114,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.02,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -2046,7 +2046,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },

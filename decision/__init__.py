@@ -1,11 +1,22 @@
 """ORBIT-X Decision Intelligence Subsystem.
 
 Combines neural candidate ranking with Google OR-Tools CP-SAT deterministic
-constraint optimization, human-in-the-loop governance, and continuous feedback alignment.
+constraint optimization, probability calibration, first-class refusal governance,
+and continuous feedback alignment.
 """
 
 from decision.human_review.governance import HumanGovernanceEngine, OperatorReviewSubmission
 from decision.feedback.loop import FeedbackLoopManager
+from backend.app.intelligence.calibrated_decision_engine import (
+    CalibratedDecisionEngine,
+    CalibratedDecision,
+    DecisionAction,
+    ConstraintStatus,
+    RefusalCategory,
+    UncertaintyBreakdown,
+    EvidencePillar,
+    get_calibrated_decision_engine,
+)
 
 # Backward-compatible re-exports
 from backend.app.intelligence.optimizer import (
@@ -25,6 +36,14 @@ DecisionAuditLogger = DecisionLogger
 DecisionRecord = LoggedDecisionEvent
 
 __all__ = [
+    "CalibratedDecisionEngine",
+    "CalibratedDecision",
+    "DecisionAction",
+    "ConstraintStatus",
+    "RefusalCategory",
+    "UncertaintyBreakdown",
+    "EvidencePillar",
+    "get_calibrated_decision_engine",
     "HumanGovernanceEngine",
     "OperatorReviewSubmission",
     "FeedbackLoopManager",

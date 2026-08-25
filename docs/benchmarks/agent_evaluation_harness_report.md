@@ -2,8 +2,8 @@
 
 > **Multi-Source Autonomous Agent Evaluation**: Measures Groundedness, Tool Accuracy, Task Success, Hallucination Rate, Latency, and Evidence Completeness across 128 curated operational benchmark questions.
 
-**Benchmark ID**: `HARNESS-20260825-045420`  
-**Evaluated At**: `2026-08-25T04:54:20.103214+00:00`  
+**Benchmark ID**: `HARNESS-20260825-051727`  
+**Evaluated At**: `2026-08-25T05:17:27.941548+00:00`  
 **Total Questions**: `128` (128 across 8 categories)  
 **Passed Questions**: `128/128` (**100.0%**)  
 
@@ -38,7 +38,7 @@ User → Agent →──────┤
 | **Evidence Completeness** | **90.3%** | $\ge 90.0\%$ | PASSED |
 | **Pipeline Latency (p50)** | **0.0 ms** | $\le 20.0\text{ ms}$ | PASSED |
 | **Pipeline Latency (p95)** | **0.0 ms** | $\le 50.0\text{ ms}$ | PASSED |
-| **Pipeline Latency (p99)** | **0.0 ms** | $\le 120.0\text{ ms}$ | PASSED |
+| **Pipeline Latency (p99)** | **0.02 ms** | $\le 120.0\text{ ms}$ | PASSED |
 
 ---
 
@@ -49,7 +49,7 @@ User → Agent →──────┤
 | **Metadata & Catalog Schemas** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 100.0% | 0.0 ms |
 | **Lineage & Provenance Graph** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 87.5% | 0.0 ms |
 | **Telemetry Health & Anomaly Triage** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 87.5% | 0.0 ms |
-| **Mission Scheduling & Physics Constraints** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 87.5% | 0.0 ms |
+| **Mission Scheduling & Physics Constraints** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 87.5% | 0.01 ms |
 | **Ambiguous & Underspecified Prompts** | N=16 | 100.0% | 100.0% | 100.0% | 90.0% | 0.0% | 65.6% | 0.0 ms |
 | **Freshness SLA & Stale Data Guardrails** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 96.9% | 0.0 ms |
 | **Missing & Out-of-Domain Sensor Data** | N=16 | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 97.5% | 0.0 ms |

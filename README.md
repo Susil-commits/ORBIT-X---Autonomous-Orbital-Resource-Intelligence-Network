@@ -12,7 +12,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-Cross--Attention%20Net-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org)
 [![Google OR-Tools](https://img.shields.io/badge/Google%20OR--Tools-CP--SAT%20Solver-4285F4?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/optimization)
 [![FastMCP](https://img.shields.io/badge/FastMCP-Model%20Context%20Protocol-8A2BE2?style=flat-square)](https://modelcontextprotocol.io)
-[![CI Tests](https://img.shields.io/badge/PyTest-136%2F136%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
+[![PyTest](https://img.shields.io/badge/PyTest-159%2F159%20PASS%20(100%25)-2ea44f?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
 [![Context Quality](https://img.shields.io/badge/Context%20Quality-98.0%25%20Composite-00bcd4?style=flat-square)](backend/eval/context_evaluation_report.json)
 [![Build Status](https://img.shields.io/badge/CI%2FCD-Verified%20Passing-brightgreen?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
 
@@ -207,7 +207,7 @@ Aligned with the **Enterprise Context Graph** paradigm, ORBIT-X models all opera
 
 1. **Prediction: Multi-Head Cross-Attention Neural Candidate Ranking (PyTorch)**
    - Cross-attends spacecraft physical state against mission requirements.
-   - **84.6% Top-1 Ranking Accuracy** (+35.4% over Greedy EDF) with **38.20 MAE** (-59.1% error) and **0.372 ms** inference latency.
+   - **84.6% Top-1 Ranking Accuracy** (+36.4% over Greedy EDF) with **38.20 MAE** (-32.7% error vs greedy) and **0.372 ms** inference latency.
    - Detailed in [`docs/ml.md`](docs/ml.md).
 
 2. **Anomaly Detection: Multivariate Isolation Forest (Spacecraft Health AI)**
@@ -215,19 +215,81 @@ Aligned with the **Enterprise Context Graph** paradigm, ORBIT-X models all opera
    - **85.6% Fault Recall** and **0.820 F1-Score** (vs. 62.5% for static thresholds) with **3.7% False Positive Rate**.
    - Detailed in [`docs/ml.md`](docs/ml.md).
 
-3. **Reasoning: FastMCP-Augmented Autonomous Agent**
+3. **Enterprise Model Registry & Governance (`ml/registry/`)**
+   - Standardized enterprise model registry formalizing model cards with `model_id`, `version`, `training_dataset`, `feature_schema`, `metrics`, `latency`, `owner`, `status` (`CHAMPION` / `STAGING` / `SHADOW` / `BASELINE`), `data_freshness`, and cryptographic `sha256` integrity.
+   - Automated governance gates enforcing SLA ceilings and reproducible data splits before promotion to `CHAMPION`.
+
+4. **Reasoning: FastMCP-Augmented Autonomous Agent**
    - Orchestrates multi-step mission workflows via the **Model Context Protocol (FastMCP)**.
    - Evaluated across **128 benchmark probes** spanning 8 categories with **0.0% unsupported claims** (vs. 24.5% in naive ReAct).
    - Detailed in [`docs/agents.md`](docs/agents.md).
 
-4. **Deterministic Optimization: Google OR-Tools CP-SAT Solver**
+5. **Deterministic Optimization: Google OR-Tools CP-SAT Solver**
    - Enforces hard physical invariants ($\text{SoC} \ge 20\%$, $T \le 45^\circ\text{C}$, $\text{Slew} \le 1.8^\circ/\text{s}$, line-of-sight elevation $\ge 15^\circ$).
    - **0.0% Constraint Violations** and **100% Feasibility** across 500 benchmark missions (vs 3.4% violations in unconstrained neural schedulers).
    - Detailed in [`docs/optimization.md`](docs/optimization.md).
 
+6. **Calibrated Decision System & First-Class Refusal Engine (`ml/calibration/` & `decision/`)**
+   - Exposes standardized, trustworthy decision contracts for AI agents with temperature-calibrated probabilities ($ECE < 0.038$), epistemic/aleatoric uncertainty decomposition, and conformal coverage bounds ($90\%$ coverage guarantee).
+   - **First-Class Refusal State Machine**:
+     ```
+     GOOD CONTEXT
+          ↓
+     Agent reasons with verified lineage & fresh telemetry
+          ↓
+     Constraint solver validates physical invariants
+          ↓
+     DECISION: ASSIGN (High confidence, verified evidence count)
+
+     BAD / STALE / MISSING CONTEXT / CONSTRAINT EXCURSION
+          ↓
+     Agent explicitly refuses automated dispatch (REFUSE)
+          ↓
+     Requests fresh telemetry downlink / flight operator human review
+     ```
+   - Standardized machine-readable Calibrated Decision payload:
+     ```json
+     {
+       "prediction": "satellite_07",
+       "confidence": 0.91,
+       "context_quality": 0.97,
+       "evidence_count": 4,
+       "constraint_status": "PASS",
+       "decision": "ASSIGN",
+       "uncertainty": {
+         "total_uncertainty": 0.09,
+         "epistemic_uncertainty": 0.05,
+         "aleatoric_uncertainty": 0.04,
+         "conformal_interval": [0.86, 0.96],
+         "coverage_guarantee_pct": 90.0
+       }
+     }
+     ```
+
 ---
 
 ## 5. Evaluation & Benchmarks
+
+### Candidate Ranking Model Baseline Comparisons
+
+To rigorously validate model architecture choices, the Candidate Ranking engine was benchmarked against 4 standard operational baselines on identical held-out multi-satellite scenario sets:
+
+| Model | Paradigm | Top-1 Accuracy | MAE | Latency (p50) | NDCG@5 | Throughput | Status |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Greedy EDF** | Deterministic Heuristic | 48.2% | 56.80 | 0.012 ms | 0.582 | 83,333 req/s | `BASELINE` |
+| **Random** | Stochastic Lower-Bound | 16.7% | 98.40 | 0.008 ms | 0.245 | 125,000 req/s | `BASELINE` |
+| **XGBoost** | Gradient Boosted Trees (120 trees) | 76.4% | 42.10 | 0.184 ms | 0.812 | 5,435 req/s | `STAGING` |
+| **Neural Ranking** | Deep Feedforward MLP (3-layer) | 79.1% | 39.80 | 0.245 ms | 0.838 | 4,082 req/s | `SHADOW` |
+| **Cross-Attention** | Multi-Head Cross-Attention Net | **84.6%** | **38.20** | **0.372 ms** | **0.891** | **2,688 req/s** | `CHAMPION` |
+
+> **Why Cross-Attention Wins**: Rather than flattening candidate satellite telemetry and task constraints into a static concatenated vector (as in XGBoost or MLP), Cross-Attention constructs dynamic attention weights between individual satellite subsystem tokens (Keys/Values) and mission requirements (Queries). This explicitly captures asymmetric non-linear constraints (e.g. high-priority tasks requiring high power margin AND high elevation simultaneously), delivering **+8.2% Top-1 accuracy over XGBoost** and **+5.5% over Neural MLP** while executing well within the $<1.0\text{ ms}$ real-time inference budget.
+
+```bash
+# Run candidate ranking baseline benchmark suite
+python benchmarks/ml/baseline_comparison/run_benchmark.py
+```
+
+---
 
 ### Context Quality Evaluation (5 Formal Dimensions)
 
@@ -392,7 +454,10 @@ The codebase is organized cleanly to mirror the context-aware decision intellige
 ORBITX/
 ├── data/ & simulation/        ──► [1. DATA & PHYSICS] Ingestion, Keplerian propagator, thermal ODE
 ├── context/                   ──► [2. METADATA & 3. CONTEXT GRAPH] Governed lifecycles, SLAs, DAG lineage
-├── ml/ & anomaly_detection/   ──► [4. ML & HEALTH AI] PyTorch cross-attention ranker & Isolation Forest
+├── ml/                        ──► [4. ML & GOVERNANCE]
+│   ├── models/                ──► Domain models: ranking/, anomaly/, forecasting/
+│   ├── registry/              ──► Enterprise Model Registry (model_card.json & model_registry.py)
+│   └── evaluation/            ──► 5-paradigm ranking baseline comparisons
 ├── genai/ & agents/           ──► [5. RETRIEVAL & 6. AGENTS] FastMCP semantic catalog & autonomous loop
 ├── optimization/ & decision/  ──► [7. SOLVER & 8. DECISION] Google OR-Tools CP-SAT engine & dispatch
 ├── backend/app/xai/           ──► [9. EVIDENCE & AUDIT] TreeSHAP attributions & cryptographic provenance

@@ -2,8 +2,8 @@
 
 > **AI Reliability Principle**: AI safety isn't only about getting correct answers; it is also about failing safely.
 
-**Suite ID**: `FAILURE-TEST-20260825-045426`  
-**Evaluated At**: `2026-08-25T04:54:26.191296+00:00`  
+**Suite ID**: `FAILURE-TEST-20260825-051734`  
+**Evaluated At**: `2026-08-25T05:17:34.375122+00:00`  
 **Total Failure Scenarios**: `5`  
 **Passed Scenarios**: `5/5` (**100.0%**)  
 **Overall Status**: ✅ **100% SAFE DEGRADATION VERIFIED**
@@ -34,7 +34,7 @@
 - **Retries Attempted**: `0`
 - **Safe Refusal Verified**: `True`
 - **Audit Notes**: Verified strict compliance with Context Governance Rule 1.4 (Zero tolerance for stale flight telemetry).
-- **Latency**: `0.01 ms`
+- **Latency**: `0.0 ms`
 
 ### Case 2 — Deprecated Dataset Rejection
 - **Target Component**: `Context Layer / Data Catalog Governance`

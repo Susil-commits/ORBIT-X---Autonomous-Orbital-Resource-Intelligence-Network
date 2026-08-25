@@ -166,7 +166,7 @@ async def get_active_anomalies():
 
 
 # ----------------------------------------------------------------------
-# 5. /api/decisions
+# 5. /api/decisions & Calibrated Decision / Refusal Engine
 # ----------------------------------------------------------------------
 
 @router.get("/api/decisions/recent")
@@ -175,6 +175,75 @@ async def get_recent_decisions(limit: int = Query(10, ge=1, le=100)):
     sim = get_simulator()
     explanations = [e.model_dump() for e in sim.recent_explanations[:limit]]
     return {"total": len(explanations), "decisions": explanations}
+
+
+@router.get("/api/decisions/calibrated/preview")
+async def get_calibrated_decision_preview():
+    """
+    Returns an authoritative calibrated decision object showcasing:
+    prediction, confidence, uncertainty, context_quality, evidence_count, constraint_status, and decision.
+    """
+    from app.intelligence.calibrated_decision_engine import get_calibrated_decision_engine
+    engine = get_calibrated_decision_engine()
+    decision = engine.evaluate_decision(
+        mission_id="M-204",
+        mission_requirements={"priority": 4.0, "deadline_slack_s": 1500.0},
+        candidate_satellites=[
+            {"id": "satellite_07", "battery_soc": 0.88, "battery_temp_c": 22.0, "max_elevation_deg": 72.0},
+            {"id": "satellite_02", "battery_soc": 0.65, "battery_temp_c": 24.0, "max_elevation_deg": 48.0},
+            {"id": "satellite_05", "battery_soc": 0.52, "battery_temp_c": 26.0, "max_elevation_deg": 35.0},
+        ],
+        context_metadata={"telemetry_age_s": 4.2, "dataset_status": "VERIFIED", "lineage_hash": "a8f4c910b3e72d1f90e6a1bc5d2903fe"},
+    )
+    return decision.model_dump()
+
+
+@router.post("/api/decisions/evaluate")
+async def evaluate_calibrated_decision(
+    mission_id: str = Query("M-204"),
+    priority: float = Query(4.0),
+    telemetry_age_s: float = Query(4.2),
+    dataset_status: str = Query("VERIFIED"),
+    lineage_hash: Optional[str] = Query("a8f4c910b3e72d1f90e6a1bc5d2903fe"),
+):
+    """
+    Evaluates mission allocation through Context Verification, Neural Calibration,
+    Uncertainty Bounds, Constraint Validation, and First-Class Refusal Gates.
+    """
+    from app.intelligence.calibrated_decision_engine import get_calibrated_decision_engine
+    sim = get_simulator()
+    candidates = [
+        {"id": s.id, "battery_soc": s.battery.soc, "battery_temp_c": s.telemetry.battery_temp_c, "health_status": s.health_status.value}
+        for s in sim.satellites
+    ]
+    engine = get_calibrated_decision_engine()
+    decision = engine.evaluate_decision(
+        mission_id=mission_id,
+        mission_requirements={"priority": priority},
+        candidate_satellites=candidates,
+        context_metadata={
+            "telemetry_age_s": telemetry_age_s,
+            "dataset_status": dataset_status,
+            "lineage_hash": lineage_hash,
+        },
+    )
+    return decision.model_dump()
+
+
+@router.get("/api/decisions/refusal-policy")
+async def get_refusal_policies():
+    """Returns machine-readable refusal taxonomy and safe degradation rules."""
+    return {
+        "framework": "Atlan-inspired Machine-Readable Context Decision Governance",
+        "refusal_categories": [
+            {"category": "STALE_TELEMETRY", "trigger": "Telemetry age > 1800s SLA ceiling", "action": "REFUSE -> Poll fresh downlink"},
+            {"category": "DEPRECATED_DATASET", "trigger": "Dataset status == DEPRECATED", "action": "REFUSE -> Fallback to verified catalog"},
+            {"category": "MISSING_LINEAGE", "trigger": "Cryptographic DAG hash missing/invalid", "action": "REFUSE -> Operator provenance re-sign"},
+            {"category": "HARD_CONSTRAINT_VIOLATION", "trigger": "SoC < 20% or Temp > 45C", "action": "REFUSE -> Route to alternative satellite"},
+            {"category": "HIGH_MODEL_UNCERTAINTY", "trigger": "Epistemic uncertainty > 0.30", "action": "ESCALATE -> Flight director confirmation"},
+            {"category": "NONEXISTENT_ENTITY", "trigger": "Target ID missing from catalog", "action": "REFUSE -> Anti-hallucination block"},
+        ]
+    }
 
 
 # ----------------------------------------------------------------------
