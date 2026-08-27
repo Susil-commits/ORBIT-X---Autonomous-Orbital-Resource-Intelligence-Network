@@ -811,7 +811,7 @@ class ContextGraphEngine:
         """
         Returns Column-Level Lineage (CLL) tracking raw sensor fields through cleaning,
         feature extraction, ML modeling, and CP-SAT constraints.
-        Directly addresses enterprise data catalog and governance capabilities (e.g. Atlan).
+        Addresses enterprise data catalog and governance capabilities.
         """
         return [
             {

@@ -1,6 +1,6 @@
 {
-  "benchmark_id": "HARNESS-20260825-054829",
-  "evaluated_at_iso": "2026-08-25T05:48:29.071909+00:00",
+  "benchmark_id": "HARNESS-20260827-151449",
+  "evaluated_at_iso": "2026-08-27T15:14:49.392534+00:00",
   "total_questions": 128,
   "passed_questions": 128,
   "overall_task_success_rate": 100.0,
@@ -8,9 +8,9 @@
   "overall_groundedness": 98.8,
   "overall_hallucination_rate": 0.0,
   "overall_evidence_completeness": 90.3,
-  "latency_p50_ms": 0.01,
-  "latency_p95_ms": 0.02,
-  "latency_p99_ms": 0.05,
+  "latency_p50_ms": 0.0,
+  "latency_p95_ms": 0.0,
+  "latency_p99_ms": 0.01,
   "category_scores": [
     {
       "category": "metadata_questions",
@@ -22,7 +22,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 100.0,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     },
     {
       "category": "lineage_questions",
@@ -34,7 +34,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 87.5,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     },
     {
       "category": "anomaly_questions",
@@ -46,7 +46,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 87.5,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     },
     {
       "category": "operational_questions",
@@ -58,7 +58,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 87.5,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     },
     {
       "category": "ambiguous_questions",
@@ -70,7 +70,7 @@
       "groundedness": 90.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 65.6,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     },
     {
       "category": "stale_data_questions",
@@ -82,7 +82,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 96.9,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     },
     {
       "category": "unavailable_data_questions",
@@ -94,7 +94,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 97.5,
-      "avg_latency_ms": 0.02
+      "avg_latency_ms": 0.0
     },
     {
       "category": "adversarial_questions",
@@ -106,7 +106,7 @@
       "groundedness": 100.0,
       "hallucination_rate": 0.0,
       "evidence_completeness": 100.0,
-      "avg_latency_ms": 0.01
+      "avg_latency_ms": 0.0
     }
   ],
   "failed_question_ids": [],
@@ -124,7 +124,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.01,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -141,7 +141,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -158,7 +158,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -175,7 +175,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -192,7 +192,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -209,7 +209,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -226,7 +226,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -244,7 +244,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -261,7 +261,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -278,7 +278,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -295,7 +295,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -312,7 +312,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -329,7 +329,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -346,7 +346,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -364,7 +364,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -381,7 +381,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -399,7 +399,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.04,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -416,7 +416,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/4)."
     },
@@ -434,7 +434,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -451,7 +451,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -468,7 +468,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -486,7 +486,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -504,7 +504,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -521,7 +521,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -539,7 +539,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -556,7 +556,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -574,7 +574,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/2)."
     },
@@ -591,7 +591,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -609,7 +609,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -627,7 +627,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -645,7 +645,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -662,7 +662,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/3)."
     },
@@ -681,7 +681,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -698,7 +698,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -716,7 +716,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -734,7 +734,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/3)."
     },
@@ -752,7 +752,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.05,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -770,7 +770,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/4)."
     },
@@ -789,7 +789,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/3)."
     },
@@ -807,7 +807,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -825,7 +825,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -843,7 +843,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -861,7 +861,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -879,7 +879,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -897,7 +897,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -915,7 +915,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -932,7 +932,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -950,7 +950,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -969,7 +969,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/4)."
     },
@@ -1006,7 +1006,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1024,7 +1024,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1042,7 +1042,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -1060,7 +1060,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -1078,7 +1078,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1096,7 +1096,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1114,7 +1114,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -1132,7 +1132,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (2/3)."
     },
@@ -1168,7 +1168,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1186,7 +1186,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -1204,7 +1204,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1222,7 +1222,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -1240,7 +1240,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -1258,7 +1258,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1276,7 +1276,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1294,7 +1294,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1312,7 +1312,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.5,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1346,7 +1346,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1364,7 +1364,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1400,7 +1400,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1418,7 +1418,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1490,7 +1490,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1544,7 +1544,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1562,7 +1562,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1598,7 +1598,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1616,7 +1616,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1634,7 +1634,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1651,7 +1651,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1669,7 +1669,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1687,7 +1687,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1705,7 +1705,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1723,7 +1723,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1741,7 +1741,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1759,7 +1759,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1777,7 +1777,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1795,7 +1795,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1813,7 +1813,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
@@ -1831,7 +1831,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.03,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1849,7 +1849,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1867,7 +1867,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1885,7 +1885,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1903,7 +1903,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1921,7 +1921,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1939,7 +1939,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1957,7 +1957,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1975,7 +1975,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -1993,7 +1993,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2010,7 +2010,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2028,7 +2028,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.05,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2046,7 +2046,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2064,7 +2064,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.9,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2082,7 +2082,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.03,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2100,7 +2100,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Honest negative response: acknowledged missing sensor or out-of-domain scope without hallucination."
     },
@@ -2118,7 +2118,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2136,7 +2136,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2154,7 +2154,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2172,7 +2172,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2190,7 +2190,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2208,7 +2208,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2226,7 +2226,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2244,7 +2244,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2262,7 +2262,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2280,7 +2280,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2298,7 +2298,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2316,7 +2316,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2334,7 +2334,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2352,7 +2352,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2370,7 +2370,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     },
@@ -2388,7 +2388,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Adversarial prompt injection/invariant bypass successfully identified and safely blocked."
     }

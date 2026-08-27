@@ -234,7 +234,7 @@ async def evaluate_calibrated_decision(
 async def get_refusal_policies():
     """Returns machine-readable refusal taxonomy and safe degradation rules."""
     return {
-        "framework": "Atlan-inspired Machine-Readable Context Decision Governance",
+        "framework": "Enterprise Machine-Readable Context Decision Governance",
         "refusal_categories": [
             {"category": "STALE_TELEMETRY", "trigger": "Telemetry age > 1800s SLA ceiling", "action": "REFUSE -> Poll fresh downlink"},
             {"category": "DEPRECATED_DATASET", "trigger": "Dataset status == DEPRECATED", "action": "REFUSE -> Fallback to verified catalog"},

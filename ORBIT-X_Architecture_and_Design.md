@@ -2,9 +2,9 @@
 
 ## 1. System Overview
 
-**ORBIT-X** is a production-style Decision Intelligence Platform that converts high-velocity operational telemetry into governed, mathematically-grounded actions.
+**ORBIT-X is an autonomous decision intelligence platform that turns real-time operational data into safe, mathematically-grounded actions.** Instead of relying on ungrounded heuristics or black-box models that can hallucinate and violate physical operating limits, ORBIT-X verifies data freshness and lineage, reasons over live system state, enforces hard physical constraints with mathematical solvers, and provides full cryptographic audit trails.
 
-Rather than relying on ungrounded heuristic or purely neural black-box dispatch, the system enforces a strict 7-stage cognitive execution pipeline:
+Evaluated on high-stakes autonomous satellite constellation operations through a governed 7-stage decision pipeline:
 
 $$\textbf{Context} \longrightarrow \textbf{Retrieval} \longrightarrow \textbf{Tool} \longrightarrow \textbf{Reasoning} \longrightarrow \textbf{Constraint} \longrightarrow \textbf{Decision} \longrightarrow \textbf{Evidence}$$
 

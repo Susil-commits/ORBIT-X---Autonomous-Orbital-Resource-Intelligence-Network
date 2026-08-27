@@ -1,11 +1,12 @@
 # ORBIT-X
 > ### Context-Aware Decision Intelligence Platform
 >
-> **A production-style system turning high-velocity operational data into governed, mathematically-grounded actions through a 7-stage decision pipeline:**
+> **ORBIT-X is an autonomous decision intelligence platform that turns real-time operational data into safe, mathematically-grounded actions.** Instead of relying on ungrounded heuristics or black-box models that can hallucinate and violate physical operating limits, ORBIT-X verifies data freshness and lineage, reasons over live system state, enforces hard physical constraints with mathematical solvers, and provides full cryptographic audit trails.
+>
+> Evaluated on high-stakes autonomous satellite constellation operations through a governed 7-stage decision pipeline:
 >
 > $$\textbf{Context} \longrightarrow \textbf{Retrieval} \longrightarrow \textbf{Tool} \longrightarrow \textbf{Reasoning} \longrightarrow \textbf{Constraint} \longrightarrow \textbf{Decision} \longrightarrow \textbf{Evidence}$$
->
-> *Evaluated through high-stakes autonomous satellite constellation operations.*
+
 
 <div align="center">
 
@@ -400,7 +401,7 @@ uv run python eval/run_context_eval.py
 - **Context & Reasoning Layer:** FastMCP (Model Context Protocol), SentenceTransformers (`all-MiniLM-L6-v2`), Rank-BM25.
 - **Backend & Serving:** Python 3.12, FastAPI (Async ASGI), Redis 7 (Pub/Sub & Distributed Locks), PostgreSQL 16 (TimescaleDB).
 - **Frontend & Visualization:** React 19, TypeScript 5, Vite, Three.js / Globe.gl (3D Orbit View), Lucide Icons.
-- **Testing & Infrastructure:** PyTest (136 unit tests), GitHub Actions CI/CD, Docker & Docker Compose.
+- **Testing & Infrastructure:** PyTest (159 unit tests), GitHub Actions CI/CD, Docker & Docker Compose.
 
 ---
 
@@ -418,7 +419,7 @@ uv sync --python 3.12
 
 #### 2. Run Full CI-Backed Test & Evaluation Suite
 ```bash
-# 1. Run all 136 PyTest Unit Tests (100% PASS)
+# 1. Run all 159 PyTest Unit Tests (100% PASS)
 uv run pytest tests -v
 
 # 2. Run Formal Context Quality & Governance Harness (98% Composite Quality)

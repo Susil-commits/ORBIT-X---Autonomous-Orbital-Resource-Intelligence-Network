@@ -19,8 +19,8 @@ python -m pytest backend/tests/test_rigorous_ai_evaluation.py backend/tests/test
 
 | AI Subsystem | Metric | Mathematical Formula | Baseline System | Improved ORBIT-X System | Relative Delta | Sample Size |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Hybrid RAG** | **Recall@5** | $\frac{\sum \|R_5 \cap \text{Rel}_q\|}{\sum \|\text{Rel}_q\|}$ | $33.0\%$ (Dense Only) | **$37.0\%$ (Dense+BM25)** | **+12.1%** | $N=40$ |
-| **Hybrid RAG** | **MRR** | $\frac{1}{\|Q\|} \sum \frac{1}{\text{rank}_1}$ | $0.653$ (Dense Only) | **$0.744$ (Dense+BM25)** | **+13.8%** | $N=40$ |
+| **Hybrid RAG** | **Recall@5** | $\frac{\sum \vert R_5 \cap \text{Rel}_q \vert}{\sum \vert \text{Rel}_q \vert}$ | $33.0\%$ (Dense Only) | **$37.0\%$ (Dense+BM25)** | **+12.1%** | $N=40$ |
+| **Hybrid RAG** | **MRR** | $\frac{1}{\vert Q \vert} \sum \frac{1}{\text{rank}_1}$ | $0.653$ (Dense Only) | **$0.744$ (Dense+BM25)** | **+13.8%** | $N=40$ |
 | **Retrieval Ranking** | **NDCG@10** | $\frac{\text{DCG}_{10}}{\text{IDCG}_{10}}$ | $0.793$ (BM25) | **$0.965$ (Hybrid RRF)** | **+21.6%** | $N=40$ |
 | **Agent Reasoning** | **Task Success Rate** | $\frac{N_{\text{valid actions}}}{N_{\text{total requests}}}$ | $72.0\%$ (Naive ReAct) | **$100.0\%$ (Trust Layer)** | **+38.9%** | $N=5$ |
 | **Agent Reasoning** | **Tool Selection** | $\frac{N_{\text{correct tools}}}{N_{\text{expected tools}}}$ | $68.5\%$ (Naive ReAct) | **$100.0\%$ (FastMCP Envelopes)**| **+46.0%** | $N=5$ |
@@ -32,7 +32,7 @@ python -m pytest backend/tests/test_rigorous_ai_evaluation.py backend/tests/test
 | **Anomaly Detection** | **F1 Score** | $\frac{2 \cdot P \cdot R}{P + R}$ | $0.666$ ($3\sigma$ Threshold) | **$0.820$ (Isolation Forest)**| **+23.2%** | $N=1160$|
 | **Anomaly Detection** | **False Positive Rate** | $\frac{FP}{FP + TN}$ | $7.8\%$ ($3\sigma$ Threshold) | **$3.7\%$ (Isolation Forest)** | **-52.6%** | $N=1160$|
 | **Neural Ranking** | **Top-1 Accuracy** | $\frac{N_{\text{correct rank 1}}}{N_{\text{missions}}}$ | $62.5\%$ (Greedy EDF) | **$84.6\%$ (CrossAttention)** | **+35.4%** | $N=16$ |
-| **Neural Ranking** | **MAE** | $\frac{1}{N} \sum \|y - \hat{y}\|$ | $93.48$ (Greedy EDF) | **$38.20$ (CrossAttention)** | **-59.1%** | $N=50$ |
+| **Neural Ranking** | **MAE** | $\frac{1}{N} \sum \vert y - \hat{y} \vert$ | $93.48$ (Greedy EDF) | **$38.20$ (CrossAttention)** | **-59.1%** | $N=50$ |
 | **Constraint Solver** | **Constraint Violation** | $\frac{N_{\text{violating actions}}}{N_{\text{decisions}}}$ | $3.4\%$ (Unchecked ML) | **$0.0\%$ (CP-SAT Solver)** | **-100.0%** | $N=100$ |
 | **API Serving** | **p95 Latency** | $95^{\text{th}}\text{ percentile (ms)}$ | $48.5\text{ ms}$ (Sync Blocking) | **$3.2\text{ ms}$ (Async In-Memory)**| **-93.4%** | $N=250$ |
 
