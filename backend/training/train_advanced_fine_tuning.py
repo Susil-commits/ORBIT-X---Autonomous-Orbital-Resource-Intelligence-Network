@@ -2,7 +2,8 @@
 
 Trains ConstellationCrossAttentionNet with Cosine Annealing with Warm Restarts,
 Multi-Task Loss Balancing (Smooth L1 + BCE with Logits + Physics MSE), Adaptive AdamW,
-and logs comprehensive evaluation metrics (Top-1 CP-SAT Agreement Rate, MAE, R², Win Accuracy).
+and supports Parameter-Efficient Fine-Tuning (PEFT) via Low-Rank Adaptation (LoRA)
+on multi-head feature cross-attention projection layers.
 """
 
 import os
@@ -17,6 +18,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
+
+try:
+    from peft import LoraConfig, get_peft_model, PeftModel
+except Exception:
+    LoraConfig = None
+    get_peft_model = None
+    PeftModel = None
 
 # Ensure backend root is on python path
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +44,7 @@ from training.advanced_dataset_generator import (
 )
 
 FINETUNE_STATUS_FILE = BACKEND_DIR / "data" / "finetune_status.json"
+LORA_CHECKPOINT_DIR = MODELS_DIR / "lora_cross_attention"
 
 
 class MultiTaskConstellationDataset(Dataset):
@@ -63,6 +72,53 @@ class MultiTaskConstellationDataset(Dataset):
             torch.tensor(self.target_win[idx], dtype=torch.float32),
             torch.from_numpy(self.target_physics[idx]),
         )
+
+
+def apply_lora_to_cross_attention(
+    model: nn.Module,
+    rank: int = 8,
+    lora_alpha: int = 16,
+    target_modules: Optional[List[str]] = None,
+) -> Tuple[nn.Module, Dict[str, Any]]:
+    """
+    Applies PEFT Low-Rank Adaptation (LoRA) adapters to Cross-Attention projection matrices.
+    Freezes base backbone weights and enables parameter-efficient training.
+    """
+    if LoraConfig is None or get_peft_model is None:
+        raise ImportError("peft is required for LoRA adaptation. Install with 'pip install peft'.")
+
+    target_modules = target_modules or ["q_proj", "v_proj", "out_proj"]
+    lora_config = LoraConfig(
+        r=rank,
+        lora_alpha=lora_alpha,
+        target_modules=target_modules,
+        lora_dropout=0.05,
+        bias="none",
+    )
+
+    lora_model = get_peft_model(model, lora_config)
+
+    trainable_params = sum(p.numel() for p in lora_model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in lora_model.parameters())
+    reduction_pct = 100.0 * (1.0 - (trainable_params / max(1, total_params)))
+
+    lora_stats = {
+        "is_lora": True,
+        "lora_rank": rank,
+        "lora_alpha": lora_alpha,
+        "target_modules": target_modules,
+        "trainable_params": trainable_params,
+        "total_params": total_params,
+        "trainable_pct": round(100.0 * trainable_params / max(1, total_params), 2),
+        "parameter_reduction_pct": round(reduction_pct, 2),
+    }
+
+    print(
+        f"[PEFT LoRA] Applied rank={rank} adapters to {target_modules} | "
+        f"Trainable: {trainable_params:,} / {total_params:,} ({lora_stats['trainable_pct']}%) | "
+        f"Parameter Savings: {lora_stats['parameter_reduction_pct']}%"
+    )
+    return lora_model, lora_stats
 
 
 def evaluate_cross_attention_model(
@@ -93,8 +149,8 @@ def evaluate_cross_attention_model(
             torch.from_numpy(sat_test),
             torch.from_numpy(mis_test),
         )
-        pred_scores = scores.numpy()
-        pred_wins = (torch.sigmoid(win_logits).numpy() >= 0.5).astype(float)
+        pred_scores = scores.cpu().numpy()
+        pred_wins = (torch.sigmoid(win_logits).cpu().numpy() >= 0.5).astype(float)
 
     mae = float(np.mean(np.abs(pred_scores - y_scores)))
     rmse = float(np.sqrt(np.mean((pred_scores - y_scores) ** 2)))
@@ -147,9 +203,13 @@ def train_cross_attention_network(
     batch_size: int = 32,
     lr: float = 0.0015,
     num_scenarios_if_missing: int = 70,
+    use_lora: bool = False,
+    lora_rank: int = 8,
+    lora_alpha: int = 16,
 ) -> Dict[str, Any]:
     """
     Executes end-to-end multi-task supervised fine-tuning with Cosine Annealing.
+    Supports Parameter-Efficient Fine-Tuning (PEFT) via LoRA when use_lora=True.
     """
     if data_path is None:
         data_path = ADVANCED_DATASET_FILE
@@ -187,14 +247,27 @@ def train_cross_attention_network(
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     torch.manual_seed(42)
-    model = ConstellationCrossAttentionNet(
+    base_model = ConstellationCrossAttentionNet(
         sat_dim=len(SATELLITE_FEATURE_NAMES),
         mis_dim=len(MISSION_FEATURE_NAMES),
         d_token=32,
         num_heads=4,
     )
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    lora_stats = None
+    if use_lora:
+        model, lora_stats = apply_lora_to_cross_attention(
+            base_model,
+            rank=lora_rank,
+            lora_alpha=lora_alpha,
+            target_modules=["q_proj", "v_proj", "out_proj"],
+        )
+    else:
+        model = base_model
+
+    # Optimizer on trainable parameters only
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.AdamW(trainable_params, lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
         optimizer,
         T_0=10,
@@ -213,7 +286,8 @@ def train_cross_attention_network(
     best_state_dict = None
     best_metrics = None
 
-    print(f"\nTraining ConstellationCrossAttentionNet with Cosine Annealing for {epochs} epochs...")
+    tuning_type = "PEFT LoRA Fine-Tuning" if use_lora else "Full Supervised Fine-Tuning"
+    print(f"\nTraining ConstellationCrossAttentionNet with {tuning_type} for {epochs} epochs...")
     model.train()
 
     for epoch in range(1, epochs + 1):
@@ -231,7 +305,7 @@ def train_cross_attention_network(
             total_loss = l_score + (0.8 * l_win) + (0.05 * l_phys)
             total_loss.backward()
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=1.0)
             optimizer.step()
 
             epoch_loss += total_loss.item() * len(sat_b)
@@ -274,13 +348,16 @@ def train_cross_attention_network(
         final_metrics = best_metrics
     else:
         final_metrics = evaluate_cross_attention_model(model, test_samples)
-    print(f"\n================ Fine-Tuning Evaluation Results ================")
+
+    print(f"\n================ Fine-Tuning Evaluation Results ({tuning_type}) ================")
     print(f" Top-1 Assignment Agreement Rate: {final_metrics['top1_agreement_pct']:.1f}%")
     print(f" Test MAE vs CP-SAT Value:        {final_metrics['mae']:.3f}")
     print(f" Test R² Score:                   {final_metrics['r2_score']:.3f}")
     print(f" Win Classification Accuracy:     {final_metrics['win_accuracy_pct']:.1f}%")
     print(f" Evaluated Missions:              {final_metrics['evaluated_missions']}")
-    print(f"================================================================\n")
+    if lora_stats:
+        print(f" Parameter Reduction:             {lora_stats['parameter_reduction_pct']}% (Trainable: {lora_stats['trainable_params']:,})")
+    print(f"===============================================================================\n")
 
     # Save model checkpoint and metadata
     output_model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -297,6 +374,7 @@ def train_cross_attention_network(
         "trained_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "model_architecture": "ConstellationCrossAttentionNet(Sat:10, Mis:8, Emb:64, Heads:4)",
         "scheduler": "CosineAnnealingWarmRestarts",
+        "peft_lora": lora_stats or {"is_lora": False},
     }
 
     checkpoint = {
@@ -304,6 +382,12 @@ def train_cross_attention_network(
         "metadata": metadata,
     }
     torch.save(checkpoint, output_model_path)
+
+    # Save LoRA adapter directory if PEFT
+    if use_lora and hasattr(model, "save_pretrained"):
+        LORA_CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+        model.save_pretrained(str(LORA_CHECKPOINT_DIR))
+        print(f"Saved PEFT LoRA adapter weights to {LORA_CHECKPOINT_DIR}")
 
     # Compute SHA-256 hash
     with open(output_model_path, "rb") as f:
@@ -315,13 +399,14 @@ def train_cross_attention_network(
         "is_training": False,
         "current_epoch": epochs,
         "total_epochs": epochs,
-        "active_model_name": "ConstellationCrossAttentionNet",
+        "active_model_name": "ConstellationCrossAttentionNet-LoRA" if use_lora else "ConstellationCrossAttentionNet",
         "model_hash": model_hash,
         "dataset_sample_count": len(samples),
         "latest_metrics": final_metrics,
         "loss_history": loss_history,
         "last_trained_utc": metadata["trained_at_utc"],
         "scheduler_type": "CosineAnnealingWarmRestarts",
+        "peft_lora_stats": lora_stats,
     }
 
     FINETUNE_STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -333,4 +418,4 @@ def train_cross_attention_network(
 
 
 if __name__ == "__main__":
-    train_cross_attention_network(epochs=35, batch_size=32)
+    train_cross_attention_network(epochs=35, batch_size=32, use_lora=True)

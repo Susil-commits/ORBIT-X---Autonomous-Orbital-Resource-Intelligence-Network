@@ -1,19 +1,40 @@
 """Hybrid Dense + Sparse (BM25) RAG & Mission Decision History Engine for ORBIT-X.
 
-Combines dense vector embeddings from SentenceTransformers with BM25 lexical token matching
+Combines FAISS dense vector indexing (IndexFlatIP) with BM25 lexical token matching
 using Reciprocal Rank Fusion (RRF) for precise retrieval across operational constellation logs,
 conjunction avoidance records, and anomaly diagnostics with verifiable citations.
+Exposes standard LangChain BaseRetriever interface for LCEL interoperability.
 """
 
+import os
 import re
+import json
 import math
+from pathlib import Path
 from collections import Counter
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
+
+try:
+    import faiss
+except Exception:
+    faiss = None
+
 try:
     from sentence_transformers import SentenceTransformer
 except Exception:
     SentenceTransformer = None
+
+try:
+    from langchain_core.retrievers import BaseRetriever
+    from langchain_core.documents import Document
+    from langchain_core.callbacks import CallbackManagerForRetrieverRun
+    from pydantic import Field
+except Exception:
+    BaseRetriever = object
+    Document = None
+    CallbackManagerForRetrieverRun = None
+    Field = None
 
 from app.core.config import settings
 from app.core.schemas import (
@@ -26,6 +47,10 @@ from app.intelligence.decision_logger import (
     LoggedDecisionEvent,
     get_decision_logger,
 )
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+DEFAULT_FAISS_INDEX_PATH = BACKEND_DIR / "data" / "faiss_dense_index.bin"
+DEFAULT_FAISS_META_PATH = BACKEND_DIR / "data" / "faiss_index_meta.json"
 
 
 class BM25Retriever:
@@ -99,23 +124,73 @@ class BM25Retriever:
 
 class HybridMissionQAEngine:
     """
-    Hybrid Dense + BM25 RAG engine with Reciprocal Rank Fusion (RRF) and verifiable citation attribution.
+    Hybrid Dense (FAISS IndexFlatIP) + BM25 RAG engine with Reciprocal Rank Fusion (RRF)
+    and verifiable citation attribution.
     """
 
-    def __init__(self, logger: Optional[DecisionLogger] = None):
+    def __init__(
+        self,
+        logger: Optional[DecisionLogger] = None,
+        index_path: Optional[Path] = None,
+        meta_path: Optional[Path] = None,
+    ):
         self.logger = logger or get_decision_logger()
         self.model_name = settings.EMBEDDING_MODEL
-        print(f"Initializing HybridMissionQAEngine with dense embedder '{self.model_name}' and BM25...", flush=True)
+        print(f"Initializing HybridMissionQAEngine with FAISS dense embedder '{self.model_name}' and BM25...", flush=True)
         self.embedder = SentenceTransformer(self.model_name) if SentenceTransformer is not None else None
         self.bm25 = BM25Retriever()
         self.cached_embeddings: Optional[np.ndarray] = None
         self.cached_event_count: int = 0
         self.cached_event_ids: List[str] = []
+        
+        # FAISS Index Configuration
+        self.index_path = index_path or DEFAULT_FAISS_INDEX_PATH
+        self.meta_path = meta_path or DEFAULT_FAISS_META_PATH
+        self.faiss_index: Optional[Any] = None
+        self.embedding_dim: int = 384
+
+        # Attempt to load warm FAISS index from disk if available
+        self._load_faiss_index()
+
+    def _save_faiss_index(self):
+        """Persists the FAISS dense index and metadata to disk."""
+        if faiss is not None and self.faiss_index is not None:
+            try:
+                self.index_path.parent.mkdir(parents=True, exist_ok=True)
+                faiss.write_index(self.faiss_index, str(self.index_path))
+                meta = {
+                    "event_ids": self.cached_event_ids,
+                    "count": self.cached_event_count,
+                    "model_name": self.model_name,
+                    "dim": self.embedding_dim,
+                }
+                with open(self.meta_path, "w", encoding="utf-8") as f:
+                    json.dump(meta, f, indent=2)
+            except Exception as e:
+                print(f"Warning: Failed to persist FAISS index to {self.index_path}: {e}", flush=True)
+
+    def _load_faiss_index(self) -> bool:
+        """Loads a persisted FAISS dense index from disk if present."""
+        if faiss is not None and self.index_path.exists() and self.meta_path.exists():
+            try:
+                with open(self.meta_path, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                if meta.get("model_name") == self.model_name:
+                    self.faiss_index = faiss.read_index(str(self.index_path))
+                    self.cached_event_ids = meta.get("event_ids", [])
+                    self.cached_event_count = meta.get("count", 0)
+                    self.embedding_dim = meta.get("dim", 384)
+                    return True
+            except Exception as e:
+                print(f"Warning: Failed to load FAISS index from {self.index_path}: {e}", flush=True)
+        return False
 
     def _sync_index(self, events: List[LoggedDecisionEvent]) -> np.ndarray:
-        """Syncs dense embeddings and BM25 inverted index with latest logged events."""
+        """Syncs FAISS dense index and BM25 inverted index with latest logged events."""
         event_ids = [e.record_id for e in events]
-        if self.cached_embeddings is not None and event_ids == self.cached_event_ids:
+        if self.cached_embeddings is not None and event_ids == self.cached_event_ids and (
+            faiss is None or self.faiss_index is not None
+        ):
             return self.cached_embeddings
 
         texts = [
@@ -125,18 +200,28 @@ class HybridMissionQAEngine:
             for e in events
         ]
 
-        # 1. Dense Embeddings
-        if self.embedder is not None:
+        # 1. Dense Embeddings & FAISS IndexFlatIP
+        if self.embedder is not None and len(texts) > 0:
             dense_embs = self.embedder.encode(texts, normalize_embeddings=True)
             self.cached_embeddings = np.array(dense_embs, dtype=np.float32)
+            self.embedding_dim = self.cached_embeddings.shape[1]
         else:
-            self.cached_embeddings = np.zeros((len(texts), 384), dtype=np.float32)
+            self.cached_embeddings = np.zeros((len(texts), self.embedding_dim), dtype=np.float32)
+
+        if faiss is not None and len(self.cached_embeddings) > 0:
+            index = faiss.IndexFlatIP(self.embedding_dim)
+            index.add(self.cached_embeddings)
+            self.faiss_index = index
+            self.cached_event_count = len(events)
+            self.cached_event_ids = event_ids
+            self._save_faiss_index()
+        else:
+            self.cached_event_count = len(events)
+            self.cached_event_ids = event_ids
 
         # 2. BM25 Inverted Index
         self.bm25.fit(texts)
 
-        self.cached_event_count = len(events)
-        self.cached_event_ids = event_ids
         return self.cached_embeddings
 
     def ask(
@@ -149,7 +234,7 @@ class HybridMissionQAEngine:
         bm25_weight: float = 0.4,
     ) -> MissionQAResponse:
         """
-        Executes hybrid dense + BM25 search with Reciprocal Rank Fusion and factual synthesis.
+        Executes hybrid dense (FAISS) + BM25 search with Reciprocal Rank Fusion and factual synthesis.
         """
         all_events = self.logger.get_all_events()
         if not all_events:
@@ -182,13 +267,21 @@ class HybridMissionQAEngine:
                 retrieved_records_count=0,
             )
 
-        # Sync dense + BM25 indices
+        # Sync FAISS dense + BM25 indices
         event_embeddings = self._sync_index(all_events)
 
-        # 1. Dense Scores
+        # 1. Dense Scores via FAISS IndexFlatIP
         if self.embedder is not None:
-            query_emb = self.embedder.encode([query], normalize_embeddings=True)[0]
-            dense_scores = np.dot(event_embeddings, query_emb)
+            query_emb = self.embedder.encode([query], normalize_embeddings=True)[0].astype(np.float32)
+            if faiss is not None and self.faiss_index is not None and self.faiss_index.ntotal > 0:
+                k_search = min(len(all_events), self.faiss_index.ntotal)
+                distances, indices = self.faiss_index.search(query_emb.reshape(1, -1), k_search)
+                dense_scores = np.zeros(len(all_events), dtype=np.float32)
+                for dist, idx in zip(distances[0], indices[0]):
+                    if 0 <= idx < len(dense_scores):
+                        dense_scores[idx] = float(dist)
+            else:
+                dense_scores = np.dot(event_embeddings, query_emb)
         else:
             dense_scores = np.zeros(len(all_events), dtype=np.float32)
 
@@ -232,6 +325,7 @@ class HybridMissionQAEngine:
                 )
 
         if not citations:
+            best_d_score = float(dense_scores[np.argmax(dense_scores)]) if len(dense_scores) > 0 else 0.0
             return MissionQAResponse(
                 query=query,
                 answer=(
@@ -239,7 +333,7 @@ class HybridMissionQAEngine:
                     f"with sufficient factual relevance."
                 ),
                 grounded=False,
-                confidence_score=round(float(dense_scores[np.argmax(dense_scores)]), 3),
+                confidence_score=round(best_d_score, 3),
                 citations=[],
                 retrieved_records_count=0,
             )
@@ -254,7 +348,7 @@ class HybridMissionQAEngine:
             )
 
         synthesized_text = (
-            f"Based on {len(top_events)} verified operational decision records via Hybrid Dense+BM25 RAG:\n\n"
+            f"Based on {len(top_events)} verified operational decision records via FAISS Dense+BM25 RAG:\n\n"
             + "\n\n".join(answer_lines)
         )
 
@@ -268,6 +362,85 @@ class HybridMissionQAEngine:
             citations=citations,
             retrieved_records_count=len(citations),
         )
+
+    def as_langchain_retriever(
+        self,
+        top_k: int = 5,
+        satellite_filter: Optional[str] = None,
+        min_severity: Optional[str] = None,
+        dense_weight: float = 0.6,
+        bm25_weight: float = 0.4,
+    ) -> Any:
+        """Returns a LangChain BaseRetriever wrapper for this hybrid QA engine."""
+        return MissionRAGRetriever(
+            qa_engine=self,
+            top_k=top_k,
+            satellite_filter=satellite_filter,
+            min_severity=min_severity,
+            dense_weight=dense_weight,
+            bm25_weight=bm25_weight,
+        )
+
+
+# ---------------------------------------------------------------------------
+# LangChain BaseRetriever Integration
+# ---------------------------------------------------------------------------
+
+if BaseRetriever is not object:
+    class MissionRAGRetriever(BaseRetriever):
+        """LangChain BaseRetriever wrapper around FAISS + BM25 Hybrid Mission QA Engine."""
+
+        qa_engine: Any = Field(default_factory=lambda: get_hybrid_mission_qa_engine())
+        top_k: int = 5
+        satellite_filter: Optional[str] = None
+        min_severity: Optional[str] = None
+        dense_weight: float = 0.6
+        bm25_weight: float = 0.4
+
+        def _get_relevant_documents(
+            self,
+            query: str,
+            *,
+            run_manager: Optional[CallbackManagerForRetrieverRun] = None,
+        ) -> List[Document]:
+            qa_res = self.qa_engine.ask(
+                query=query,
+                top_k=self.top_k,
+                satellite_filter=self.satellite_filter,
+                min_severity=self.min_severity,
+                dense_weight=self.dense_weight,
+                bm25_weight=self.bm25_weight,
+            )
+            docs: List[Document] = []
+            for cite in qa_res.citations:
+                doc = Document(
+                    page_content=f"Record {cite.record_id} | Tick {cite.tick} | T+{cite.sim_time_s:.0f}s | {cite.event_type}: {cite.summary}",
+                    metadata={
+                        "record_id": cite.record_id,
+                        "tick": cite.tick,
+                        "sim_time_s": cite.sim_time_s,
+                        "event_type": cite.event_type,
+                        "relevance_score": cite.relevance_score,
+                        "query": query,
+                        "grounded": qa_res.grounded,
+                        "confidence_score": qa_res.confidence_score,
+                    },
+                )
+                docs.append(doc)
+            return docs
+
+        async def _aget_relevant_documents(
+            self,
+            query: str,
+            *,
+            run_manager: Optional[Any] = None,
+        ) -> List[Document]:
+            return self._get_relevant_documents(query)
+else:
+    class MissionRAGRetriever:
+        """Fallback when LangChain is not installed."""
+        def __init__(self, *args, **kwargs):
+            pass
 
 
 # Global singleton
@@ -284,4 +457,3 @@ def get_hybrid_mission_qa_engine() -> HybridMissionQAEngine:
 # Backward-compatible aliases
 get_mission_qa_engine = get_hybrid_mission_qa_engine
 MissionQAEngine = HybridMissionQAEngine
-

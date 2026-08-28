@@ -439,5 +439,32 @@
     "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
     "suggested_alternative_satellite": null,
     "recorded_at_iso": "2026-08-27T15:21:54.577156+00:00"
+  },
+  {
+    "feedback_id": "FB-027bd108",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-28T05:59:22.528715+00:00"
+  },
+  {
+    "feedback_id": "FB-a1a584d4",
+    "decision_record_id": "DEC-20260828-EODISASTER01",
+    "mission_id": "EO-DISASTER-01",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Approved via End-to-End Decision Intelligence Demo.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-28T06:03:29.545198+00:00"
+  },
+  {
+    "feedback_id": "FB-abdd2e04",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-28T06:12:47.555433+00:00"
   }
 ]

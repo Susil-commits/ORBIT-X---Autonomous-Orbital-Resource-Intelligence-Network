@@ -2,8 +2,8 @@
 
 > **AI Reliability Principle**: AI safety isn't only about getting correct answers; it is also about failing safely.
 
-**Suite ID**: `FAILURE-TEST-20260827-151718`  
-**Evaluated At**: `2026-08-27T15:17:18.236304+00:00`  
+**Suite ID**: `FAILURE-TEST-20260828-061247`  
+**Evaluated At**: `2026-08-28T06:12:47.581560+00:00`  
 **Total Failure Scenarios**: `5`  
 **Passed Scenarios**: `5/5` (**100.0%**)  
 **Overall Status**: ✅ **100% SAFE DEGRADATION VERIFIED**
@@ -46,7 +46,7 @@
 - **Retries Attempted**: `0`
 - **Safe Refusal Verified**: `True`
 - **Audit Notes**: Verified compliance with Data Catalog Governance Policy (VERIFIED tier enforcement).
-- **Latency**: `0.0 ms`
+- **Latency**: `0.01 ms`
 
 ### Case 3 — Missing Lineage & Broken Provenance
 - **Target Component**: `Context Layer / Lineage Engine`

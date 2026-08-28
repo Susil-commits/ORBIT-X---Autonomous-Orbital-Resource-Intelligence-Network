@@ -4,37 +4,42 @@ This document walks through the **Ask ORBIT-X Hero Decision Workflow**, the **Go
 
 ---
 
-## 1. Hero Workflow Walkthrough: "Ask ORBIT-X"
+## 1. Hero Workflow Walkthrough: "Ask ORBIT-X" (LangGraph StateGraph)
 
 ### Target Scenario:
 > **Operator Query**: *"Why is Mission M-204 at risk and what should we do?"*
 
 ```
-1. Ingest Governed Context & Verified Telemetry (VERIFIED assets only per policy)
-                      │
-                      ▼
-2. Run Multivariate Isolation Forest (Detect SAT-03 +3.2σ thermal anomaly)
-                      │
-                      ▼
-3. Multi-Head Cross-Attention Neural Ranking (SAT-01: 0.942, SAT-04: 0.887)
-                      │
-                      ▼
-4. Generate TreeSHAP Attribution (Why SAT-01 chosen vs why SAT-03 rejected)
-                      │
-                      ▼
-5. Solve CP-SAT Integer Programming (Explicitly modeled physical constraints enforced)
-                      │
-                      ▼
-6. Assemble Governed Evidence & Citations (Certified datasets, RAG records, model hashes)
-                      │
-                      ▼
-7. Synthesize Grounded Operational Recommendation with Confidence Scoring
-                      │
-                      ▼
-8. Present Human Operator Review Controls ([Approve] / [Reject] / [Investigate])
-                      │
-                      ▼
-9. Persist Decision Audit & Operator Feedback to PostgreSQL Ledger
+                    [LangGraph StateGraph Execution Flow]
+
+1. Classify Intent & Extract Entities (Intent Routing: Risk Audit vs General Query)
+                                  │
+                                  ▼
+2. Query Semantic Metadata Catalog (VERIFIED assets only per policy)
+                                  │
+                                  ▼
+3. Search Telemetry Feeds (Candidate telemetry window extraction)
+                                  │
+                                  ▼ (Conditional Edge)
+4. Run Multivariate Isolation Forest (Detect SAT-03 +3.2σ thermal anomaly)
+                                  │
+                                  ▼
+5. Multi-Head Cross-Attention Neural Ranking (SAT-01: 0.942, SAT-04: 0.887)
+                                  │
+                                  ▼
+6. Generate TreeSHAP Attribution (Why SAT-01 chosen vs why SAT-03 rejected)
+                                  │
+                                  ▼
+7. Solve CP-SAT Integer Programming (Explicitly modeled physical constraints enforced)
+                                  │
+                                  ▼
+8. Trace Lineage DAG & Assemble Governed Evidence (FAISS-indexed dense vectors fused with BM25 via RRF)
+                                  │
+                                  ▼
+9. Synthesize Grounded Operational Recommendation with Confidence Scoring
+                                  │
+                                  ▼
+10. Package Auditable Trust Envelope ([Approve] / [Reject] / [Investigate])
 ```
 
 ---
@@ -132,6 +137,7 @@ User question ──► Agent ──► Context discovery ──► Metadata ─
 5. **Evidence (Showing Exactly Where The Answer Came From)**:
    - `[Telemetry: TEL-SAT17-T089]` — Real Pydantic v2 telemetry frame (SoC: 88.5%, Temp: 22.0°C, Bus: 28.4V, Freshness: 3 min).
    - `[Catalog: satellite_telemetry]` — Metadata catalog entry (Owner: Mission Ops, Quality: 98.4%, Status: VERIFIED).
+   - `[RAG: FAISS + BM25 RRF]` — FAISS-indexed dense vectors fused with BM25 via Reciprocal Rank Fusion & LangChain BaseRetriever citations.
    - `[Lineage: DAG-NODE-PROV-042]` — 10-node bidirectional graph (Sensor -> Feature Store -> Model -> CP-SAT).
    - `[FastMCP: get_satellite_telemetry]` — FastMCP tool execution log (JSON-RPC 2.0 response code 200).
    - `[Optimization: Google OR-Tools CP-SAT]` — Feasible integer program schedule (0% constraint violations).
@@ -167,7 +173,7 @@ Evaluates the end-to-end decision system under operational constraints:
 
 ## 4. Verification & Testing Summary
 
-- **PyTest Backend Suite**: **159 / 159 Tests Passing (100% pass rate)**.
+- **PyTest Backend Suite**: **166 / 166 Tests Passing (100% pass rate)** across FAISS, LangGraph, LangChain, and PEFT LoRA modules.
 - **Formal Context Evaluation Suite (`eval/run_context_eval.py`)**: **100% Quality Gates Passed** (Metadata Completeness: 100.0%, Lineage Coverage: 100.0%, Freshness: 93.3%, Groundedness: 100.0%, Stale Rate: 6.7%, Composite: 98.0%).
 - **AI Regression Harness (`eval/run_eval.py`)**: All CP-SAT benchmarks, BidValueMLP held-out agreement, TreeSHAP drift, and Keplerian orbital physics verified.
 - **Deliberate Failure Suite (`eval/run_deliberate_failure_suite.py`)**: 5/5 Critical failure modes safely handled (100% safe degradation).

@@ -1,7 +1,17 @@
 """FastAPI Router for Multi-Agent Auction & Bidding Inspector."""
 
+import sys
+from pathlib import Path
 from fastapi import APIRouter
 from typing import List, Dict
+
+# Ensure project root is in sys.path
+_backend_dir = Path(__file__).resolve().parent.parent.parent
+_root_dir = _backend_dir.parent
+for _p in [str(_backend_dir), str(_root_dir)]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 
 from app.core.schemas import AccessWindow, WindowType
 from app.simulation.simulator import get_simulator
@@ -38,3 +48,15 @@ async def get_auction_ledger():
         candidate_windows_map=candidate_windows_map,
     )
     return results
+
+
+@router.post("/swarm")
+async def run_multi_agent_swarm_arbitration():
+    """
+    Executes collaborative LangGraph Multi-Agent Constellation Swarm deliberation
+    across Thermal, ISL Mesh, Astrodynamics, and Flight Director specialist agents.
+    """
+    from agents.swarm.multi_agent_swarm import get_multi_agent_swarm_coordinator
+    coordinator = get_multi_agent_swarm_coordinator()
+    return coordinator.run_swarm_arbitration()
+

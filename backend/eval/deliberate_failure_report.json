@@ -1,6 +1,6 @@
 {
-  "suite_id": "FAILURE-TEST-20260827-151718",
-  "evaluated_at_iso": "2026-08-27T15:17:18.236304+00:00",
+  "suite_id": "FAILURE-TEST-20260828-061247",
+  "evaluated_at_iso": "2026-08-28T06:12:47.581560+00:00",
   "total_cases": 5,
   "passed_cases": 5,
   "all_cases_passed": true,
@@ -53,7 +53,7 @@
       "fallback_mechanism_used": "Successor Asset Recommendation (satellite_telemetry v2.0)",
       "retry_count": 0,
       "passed": true,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "audit_notes": "Verified compliance with Data Catalog Governance Policy (VERIFIED tier enforcement)."
     },
     {

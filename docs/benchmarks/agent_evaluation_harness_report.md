@@ -2,8 +2,8 @@
 
 > **Multi-Source Autonomous Agent Evaluation**: Measures Groundedness, Tool Accuracy, Task Success, Hallucination Rate, Latency, and Evidence Completeness across 128 curated operational benchmark questions.
 
-**Benchmark ID**: `HARNESS-20260827-151449`  
-**Evaluated At**: `2026-08-27T15:14:49.392534+00:00`  
+**Benchmark ID**: `HARNESS-20260828-061240`  
+**Evaluated At**: `2026-08-28T06:12:40.945709+00:00`  
 **Total Questions**: `128` (128 across 8 categories)  
 **Passed Questions**: `128/128` (**100.0%**)  
 

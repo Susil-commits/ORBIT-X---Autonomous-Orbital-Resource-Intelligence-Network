@@ -1,9 +1,14 @@
-"""Tests for Hybrid Dense + BM25 RAG & Mission QA Engine."""
+"""Tests for Hybrid Dense (FAISS) + BM25 RAG & Mission QA Engine."""
 
+import os
+import tempfile
+from pathlib import Path
 import pytest
+
 from app.intelligence.hybrid_mission_rag import (
     BM25Retriever,
     HybridMissionQAEngine,
+    MissionRAGRetriever,
     get_hybrid_mission_qa_engine,
 )
 from app.intelligence.decision_logger import DecisionLogger
@@ -24,7 +29,7 @@ def test_bm25_retriever():
     assert scores[1] > scores[2]
 
 
-def test_hybrid_qa_engine():
+def test_hybrid_qa_engine_with_faiss():
     logger = DecisionLogger()
     logger.log_event(
         event_type="MISSION_ASSIGNMENT",
@@ -50,6 +55,65 @@ def test_hybrid_qa_engine():
     assert res.grounded is True
     assert len(res.citations) > 0
     assert "SAT-01" in res.answer
+    assert qa.faiss_index is not None
+    assert qa.faiss_index.ntotal >= 2
+
+
+def test_faiss_index_disk_persistence():
+    """Tests saving and reloading FAISS dense index from disk."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        index_file = Path(tmpdir) / "test_faiss.bin"
+        meta_file = Path(tmpdir) / "test_faiss_meta.json"
+
+        logger = DecisionLogger()
+        logger.log_event(
+            event_type="COLLISION_AVOIDANCE",
+            tick=50,
+            sim_time_s=500.0,
+            summary="SAT-04 executed 12m/s delta-V burn for debris avoidance.",
+            satellite_id="SAT-04",
+            severity="HIGH",
+        )
+
+        qa1 = HybridMissionQAEngine(logger=logger, index_path=index_file, meta_path=meta_file)
+        res1 = qa1.ask("debris burn maneuver SAT-04")
+        assert res1.grounded is True
+        assert index_file.exists()
+        assert meta_file.exists()
+
+        # Reload in a new instance
+        qa2 = HybridMissionQAEngine(logger=logger, index_path=index_file, meta_path=meta_file)
+        assert qa2.faiss_index is not None
+        assert qa2.cached_event_count == len(logger.get_all_events())
+        res2 = qa2.ask("debris burn maneuver SAT-04")
+        assert res2.grounded is True
+        assert len(res2.citations) >= 1
+
+
+def test_langchain_base_retriever_interface():
+    """Validates LangChain BaseRetriever compliance and Document generation."""
+    logger = DecisionLogger()
+    logger.log_event(
+        event_type="SOLAR_FLARE_MITIGATION",
+        tick=80,
+        sim_time_s=800.0,
+        summary="SAT-02 entered safe hold due to X-class solar flare detection.",
+        satellite_id="SAT-02",
+        severity="CRITICAL",
+    )
+
+    qa = HybridMissionQAEngine(logger=logger)
+    retriever = qa.as_langchain_retriever(top_k=2)
+    assert isinstance(retriever, MissionRAGRetriever)
+
+    # Invoke standard LangChain retriever interface
+    docs = retriever.invoke("solar flare safe hold SAT-02")
+    assert len(docs) >= 1
+    doc = docs[0]
+    assert "SAT-02" in doc.page_content
+    assert doc.metadata["event_type"] == "SOLAR_FLARE_MITIGATION"
+    assert doc.metadata["grounded"] is True
+    assert doc.metadata["relevance_score"] > 0.0
 
 
 def test_hybrid_qa_refusal():

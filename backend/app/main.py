@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import uuid
 import asyncio
@@ -7,6 +8,14 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Set
+
+# Ensure backend and project root are in sys.path
+backend_dir = Path(__file__).resolve().parent.parent
+root_dir = backend_dir.parent
+for p in [str(backend_dir), str(root_dir)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware

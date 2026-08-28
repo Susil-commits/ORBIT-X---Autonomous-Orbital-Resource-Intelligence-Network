@@ -1,6 +1,6 @@
 {
-  "benchmark_id": "HARNESS-20260827-151449",
-  "evaluated_at_iso": "2026-08-27T15:14:49.392534+00:00",
+  "benchmark_id": "HARNESS-20260828-061240",
+  "evaluated_at_iso": "2026-08-28T06:12:40.945709+00:00",
   "total_questions": 128,
   "passed_questions": 128,
   "overall_task_success_rate": 100.0,
@@ -399,7 +399,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.02,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -681,7 +681,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -988,7 +988,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1150,7 +1150,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1329,7 +1329,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1382,7 +1382,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1400,7 +1400,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.0,
-      "latency_ms": 0.0,
+      "latency_ms": 0.01,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },
@@ -1580,7 +1580,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Detected stale/deprecated dataset and applied appropriate SLA guardrail."
     },
