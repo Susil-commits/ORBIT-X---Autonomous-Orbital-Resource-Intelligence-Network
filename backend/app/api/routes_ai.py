@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import json
@@ -6,6 +7,8 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks, Header, Depends, 
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 # Ensure project root is in sys.path
 _backend_dir = Path(__file__).resolve().parent.parent.parent
@@ -197,8 +200,8 @@ async def get_finetuning_status():
             with open(FINETUNE_STATUS_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 return FineTuningStatusResponse(**data)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to load fine-tuning status from %s: %s", FINETUNE_STATUS_FILE, e)
 
     # Default initial status
     sample_count = 0
@@ -206,7 +209,8 @@ async def get_finetuning_status():
         try:
             with open(ADVANCED_DATASET_FILE, "r", encoding="utf-8") as f:
                 sample_count = len(json.load(f).get("samples", []))
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to read sample count from %s: %s", ADVANCED_DATASET_FILE, e)
             sample_count = 0
 
     return FineTuningStatusResponse(

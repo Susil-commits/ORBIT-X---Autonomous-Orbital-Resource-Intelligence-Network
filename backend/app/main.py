@@ -309,9 +309,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 if cmd.get("action") == "step":
                     tick = await sim.step_async(dt_seconds=cmd.get("dt", 1.0))
                     await websocket.send_text(json.dumps(tick.model_dump()))
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed to handle client websocket command: %s", e)
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
-    except Exception:
+    except Exception as e:
+        logger.debug("Websocket connection closed with exception: %s", e)
         ws_manager.disconnect(websocket)
