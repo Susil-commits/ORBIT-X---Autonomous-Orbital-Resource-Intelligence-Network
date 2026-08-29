@@ -27,8 +27,6 @@ dependencies = [
     "sgp4>=2.23",
     "skyfield>=1.48",
     "mcp>=1.0.0",
-    "pytest>=8.3.0",
-    "pytest-asyncio>=0.24.0",
     "slowapi>=0.1.10",
     "matplotlib>=3.8.0",
     "aiokafka>=0.12.0",
@@ -45,6 +43,12 @@ dependencies = [
     "langchain-core>=0.3.0",
     "langchain-community>=0.3.0",
     "peft>=0.13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
 ]
 
 [build-system]

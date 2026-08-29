@@ -5,6 +5,7 @@ import type {
   FineTuningStatusResponse,
   PINNBatteryThermalResponse,
 } from '../types';
+import { API_BASE } from '../config';
 import {
   Brain,
   Zap,
@@ -120,7 +121,7 @@ export const AILabModal: React.FC = () => {
   const loadCatalog = useCallback(async () => {
     setIsLoadingCatalog(true);
     try {
-      const res = await fetch('http://localhost:8000/api/context/catalog');
+      const res = await fetch(`${API_BASE}/api/context/catalog`);
       if (res.ok) {
         const data = await res.json();
         setCatalogData(data);
@@ -135,7 +136,7 @@ export const AILabModal: React.FC = () => {
   const runQualityAudit = async () => {
     setIsLoadingCatalog(true);
     try {
-      const res = await fetch('http://localhost:8000/api/context/quality/audit');
+      const res = await fetch(`${API_BASE}/api/context/quality/audit`);
       if (res.ok) {
         const data = await res.json();
         setQualityReport(data);
@@ -150,7 +151,7 @@ export const AILabModal: React.FC = () => {
   const loadLineage = async (missionId: string = 'EO-M204') => {
     setIsLoadingCatalog(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/context/lineage/${missionId}`);
+      const res = await fetch(`${API_BASE}/api/context/lineage/${missionId}`);
       if (res.ok) {
         const data = await res.json();
         setLineageData(data);

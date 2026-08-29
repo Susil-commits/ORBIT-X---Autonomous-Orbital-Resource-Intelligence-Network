@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import type { CandidateEvaluation, NeuralBidPreviewResponse } from '../types';
+import { API_BASE } from '../config';
 
 export const ExplainabilityModal: React.FC = () => {
   const show = useSimulationStore((s) => s.showExplainModal);
@@ -34,7 +35,7 @@ export const ExplainabilityModal: React.FC = () => {
     const fetchNeuralBid = async () => {
       setIsLoadingNeural(true);
       try {
-        const res = await fetch('http://localhost:8000/api/ai/preview_bid', {
+        const res = await fetch(`${API_BASE}/api/ai/preview_bid`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

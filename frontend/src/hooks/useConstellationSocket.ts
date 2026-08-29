@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useSimulationStore } from './useSimulationStore';
+import { WS_BASE } from '../config';
 import type { ConstellationTick } from '../types';
 
-const WS_URL = 'ws://localhost:8000/ws/constellation';
+const WS_URL = `${WS_BASE}/ws/constellation`;
 const MAX_RECONNECT_DELAY_MS = 30_000;
 
 export function useConstellationSocket() {

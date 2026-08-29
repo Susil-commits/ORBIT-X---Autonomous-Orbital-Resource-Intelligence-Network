@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE } from '../config';
 import type {
   ConstellationTick,
   DecisionExplanation,
@@ -29,8 +30,12 @@ interface SimulationStore {
   isLoadingAuctions: boolean;
   isConnected: boolean;
   activeTab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation';
+  /** Last API error message, shown in the UI. Cleared on next successful action. */
+  lastError: string | null;
+
   setActiveTab: (tab: 'assistant' | 'decision' | 'data' | 'traces' | 'monitoring' | 'simulation') => void;
-  
+  clearError: () => void;
+
   // Modal Setters
   setTickData: (data: ConstellationTick) => void;
   setSelectedSatelliteId: (id: string | null) => void;
@@ -45,7 +50,7 @@ interface SimulationStore {
   setShowAILabModal: (show: boolean) => void;
   setDispatchCoordinates: (coords: { lat: number; lon: number } | null) => void;
   setIsConnected: (connected: boolean) => void;
-  
+
   // API Actions
   startSim: () => Promise<void>;
   pauseSim: () => Promise<void>;
@@ -72,7 +77,12 @@ interface SimulationStore {
   exportDossier: () => void;
 }
 
-const API_BASE = 'http://localhost:8000';
+/** Shared error handler: logs to console and sets lastError in store. */
+function handleError(set: (partial: Partial<SimulationStore>) => void, label: string, e: unknown) {
+  const msg = e instanceof Error ? e.message : String(e);
+  console.error(`[ORBIT-X] ${label}:`, e);
+  set({ lastError: `${label}: ${msg}` });
+}
 
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
   tickData: null,
@@ -95,7 +105,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   isLoadingAuctions: false,
   isConnected: false,
   activeTab: 'assistant',
+  lastError: null,
+
   setActiveTab: (tab) => set({ activeTab: tab }),
+  clearError: () => set({ lastError: null }),
 
   setTickData: (data) => {
     const src = (data.data_source as any) || (data.satellites?.[0]?.data_source as any) || 'synthetic';
@@ -117,16 +130,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   startSim: async () => {
     try {
       await fetch(`${API_BASE}/api/simulation/start`, { method: 'POST' });
+      set({ lastError: null });
     } catch (e) {
-      console.error('Failed to start simulation', e);
+      handleError(set, 'Failed to start simulation', e);
     }
   },
 
   pauseSim: async () => {
     try {
       await fetch(`${API_BASE}/api/simulation/pause`, { method: 'POST' });
+      set({ lastError: null });
     } catch (e) {
-      console.error('Failed to pause simulation', e);
+      handleError(set, 'Failed to pause simulation', e);
     }
   },
 
@@ -134,9 +149,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     try {
       const res = await fetch(`${API_BASE}/api/simulation/step?dt=1.0`, { method: 'POST' });
       const data = await res.json();
-      set({ tickData: data });
+      set({ tickData: data, lastError: null });
     } catch (e) {
-      console.error('Failed to step simulation', e);
+      handleError(set, 'Failed to step simulation', e);
     }
   },
 
@@ -145,10 +160,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       await fetch(`${API_BASE}/api/simulation/speed?speed=${speed}`, { method: 'POST' });
       const currentTick = get().tickData;
       if (currentTick) {
-        set({ tickData: { ...currentTick, speed_multiplier: speed } });
+        set({ tickData: { ...currentTick, speed_multiplier: speed }, lastError: null });
       }
     } catch (e) {
-      console.error('Failed to set speed', e);
+      handleError(set, 'Failed to set speed', e);
     }
   },
 
@@ -157,8 +172,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       await fetch(`${API_BASE}/api/simulation/reset`, { method: 'POST' });
       // Don't assign the reset status response to tickData — it's not a ConstellationTick.
       // The WebSocket will push the fresh tick automatically.
+      set({ lastError: null });
     } catch (e) {
-      console.error('Failed to reset simulation', e);
+      handleError(set, 'Failed to reset simulation', e);
     }
   },
 
@@ -168,9 +184,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         method: 'POST',
       });
       if (!res.ok) throw new Error('Failed to switch constellation data source');
-      set({ constellationSource: source });
+      set({ constellationSource: source, lastError: null });
     } catch (e) {
-      console.error('Failed to switch constellation source', e);
+      handleError(set, 'Failed to switch constellation source', e);
     }
   },
 
@@ -179,8 +195,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       await fetch(`${API_BASE}/api/simulation/inject_fault?sat_id=${satId}&fault_type=${faultType}`, {
         method: 'POST',
       });
+      set({ lastError: null });
     } catch (e) {
-      console.error('Failed to inject fault', e);
+      handleError(set, 'Failed to inject fault', e);
     }
   },
 
@@ -190,16 +207,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         ? `${API_BASE}/api/simulation/clear_faults?sat_id=${satId}`
         : `${API_BASE}/api/simulation/clear_faults`;
       await fetch(url, { method: 'POST' });
+      set({ lastError: null });
     } catch (e) {
-      console.error('Failed to clear faults', e);
+      handleError(set, 'Failed to clear faults', e);
     }
   },
 
   addRandomMission: async () => {
     try {
       await fetch(`${API_BASE}/api/missions/random`, { method: 'POST' });
+      set({ lastError: null });
     } catch (e) {
-      console.error('Failed to add random mission', e);
+      handleError(set, 'Failed to add random mission', e);
     }
   },
 
@@ -208,10 +227,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const res = await fetch(`${API_BASE}/api/missions/explain/${missionId}`);
       if (res.ok) {
         const data = await res.json();
-        set({ activeExplanation: data, showExplainModal: true });
+        set({ activeExplanation: data, showExplainModal: true, lastError: null });
       }
     } catch (e) {
-      console.error('Failed to fetch explanation', e);
+      handleError(set, 'Failed to fetch explanation', e);
     }
   },
 
@@ -220,9 +239,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     try {
       const res = await fetch(`${API_BASE}/api/benchmarks/run`);
       const data = await res.json();
-      set({ benchmarkResults: data, isBenchmarking: false });
+      set({ benchmarkResults: data, isBenchmarking: false, lastError: null });
     } catch (e) {
-      console.error('Failed to run benchmarks', e);
+      handleError(set, 'Failed to run benchmarks', e);
       set({ isBenchmarking: false });
     }
   },
@@ -232,9 +251,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     try {
       const res = await fetch(`${API_BASE}/api/multi-agent/auction`);
       const data = await res.json();
-      set({ auctionResults: data, isLoadingAuctions: false });
+      set({ auctionResults: data, isLoadingAuctions: false, lastError: null });
     } catch (e) {
-      console.error('Failed to fetch auctions', e);
+      handleError(set, 'Failed to fetch auctions', e);
       set({ isLoadingAuctions: false });
     }
   },
@@ -249,10 +268,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const data = await res.json();
       const currentTick = get().tickData;
       if (currentTick) {
-        set({ tickData: { ...currentTick, active_scenario: data } });
+        set({ tickData: { ...currentTick, active_scenario: data }, lastError: null });
       }
     } catch (e) {
-      console.error('Failed to trigger scenario', e);
+      handleError(set, 'Failed to trigger scenario', e);
     }
   },
 
@@ -262,10 +281,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const data = await res.json();
       const currentTick = get().tickData;
       if (currentTick) {
-        set({ tickData: { ...currentTick, active_scenario: data } });
+        set({ tickData: { ...currentTick, active_scenario: data }, lastError: null });
       }
     } catch (e) {
-      console.error('Failed to reset scenario', e);
+      handleError(set, 'Failed to reset scenario', e);
     }
   },
 
@@ -276,20 +295,19 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
       });
-      set({ showDispatchModal: false, dispatchCoordinates: null });
+      set({ showDispatchModal: false, dispatchCoordinates: null, lastError: null });
     } catch (e) {
-      console.error('Failed to dispatch target', e);
+      handleError(set, 'Failed to dispatch target', e);
     }
   },
 
   triggerAgentHealing: async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/ai/agent/inspect_and_heal`, {
-        method: 'POST',
-      });
+      const res = await fetch(`${API_BASE}/api/ai/agent/inspect_and_heal`, { method: 'POST' });
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to trigger self-healing agent', e);
+      handleError(set, 'Failed to trigger self-healing agent', e);
       return null;
     }
   },
@@ -297,9 +315,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   fetchISSVerification: async () => {
     try {
       const res = await fetch(`${API_BASE}/api/constellation/iss_verification`);
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to fetch ISS verification', e);
+      handleError(set, 'Failed to fetch ISS verification', e);
       return null;
     }
   },
@@ -311,9 +330,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
       });
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to fetch cross-attention prediction', e);
+      handleError(set, 'Failed to fetch cross-attention prediction', e);
       return null;
     }
   },
@@ -321,9 +341,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   fetchFineTuningStatus: async () => {
     try {
       const res = await fetch(`${API_BASE}/api/ai/finetune/status`);
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to fetch fine-tuning status', e);
+      handleError(set, 'Failed to fetch fine-tuning status', e);
       return null;
     }
   },
@@ -335,9 +356,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
       });
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to trigger fine-tuning', e);
+      handleError(set, 'Failed to trigger fine-tuning', e);
       return null;
     }
   },
@@ -349,9 +371,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
       });
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to fetch PINN prediction', e);
+      handleError(set, 'Failed to fetch PINN prediction', e);
       return null;
     }
   },
@@ -363,9 +386,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
       });
+      set({ lastError: null });
       return await res.json();
     } catch (e) {
-      console.error('Failed to execute hybrid RAG QA', e);
+      handleError(set, 'Failed to execute hybrid RAG QA', e);
       return null;
     }
   },

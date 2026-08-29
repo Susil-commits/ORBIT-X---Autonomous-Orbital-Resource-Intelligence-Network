@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../config';
 import {
   GitBranch,
   Database,
@@ -294,7 +295,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
 
   useEffect(() => {
     // Fetch 7-stage pipeline
-    fetch('http://localhost:8000/api/context/lineage/pipeline')
+    fetch(`${API_BASE}/api/context/lineage/pipeline`)
       .then((res) => res.json())
       .then((data) => {
         if (data.pipeline_stages) setPipelineStages(data.pipeline_stages);
@@ -304,7 +305,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
       });
 
     // Fetch column-level lineage
-    fetch('http://localhost:8000/api/context/lineage/column-level')
+    fetch(`${API_BASE}/api/context/lineage/column-level`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setColumnLineage(data);
@@ -314,7 +315,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
       });
 
     // Fetch context quality metrics
-    fetch('http://localhost:8000/api/context/quality/metrics')
+    fetch(`${API_BASE}/api/context/quality/metrics`)
       .then((res) => res.json())
       .then((data) => setContextMetrics(data))
       .catch(() => {
@@ -333,7 +334,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
       });
 
     // Fetch catalog
-    fetch('http://localhost:8000/api/context/catalog')
+    fetch(`${API_BASE}/api/context/catalog`)
       .then((res) => res.json())
       .then((data) => {
         if (data.datasets) setCatalog(data.datasets);
@@ -374,7 +375,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
       });
 
     // Fetch quality audit
-    fetch('http://localhost:8000/api/context/quality/audit')
+    fetch(`${API_BASE}/api/context/quality/audit`)
       .then((res) => res.json())
       .then((data) => setQualityAudit(data))
       .catch(() => {
@@ -397,7 +398,7 @@ export const DataDiscoveryLineageView: React.FC = () => {
   const handleRunLineageQuery = (queryText: string) => {
     setIsQuerying(true);
     setLineageQuery(queryText);
-    fetch('http://localhost:8000/api/context/lineage/query', {
+    fetch(`${API_BASE}/api/context/lineage/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: queryText }),

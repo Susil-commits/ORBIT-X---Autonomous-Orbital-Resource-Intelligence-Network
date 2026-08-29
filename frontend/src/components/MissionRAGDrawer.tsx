@@ -18,6 +18,7 @@ import {
   Check,
 } from 'lucide-react';
 import type { TrustLayerResponse, HumanFeedbackResponse } from '../types';
+import { API_BASE } from '../config';
 
 interface MissionRAGDrawerProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
     setError(null);
     setFeedbackStatus(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/context/ask?query=${encodeURIComponent(queryText)}`, {
+      const response = await fetch(`${API_BASE}/api/context/ask?query=${encodeURIComponent(queryText)}`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -66,7 +67,7 @@ export const MissionRAGDrawer: React.FC<MissionRAGDrawerProps> = ({ isOpen, onCl
   const handleFeedback = async (type: 'APPROVE' | 'REJECT' | 'INVESTIGATE') => {
     if (!trustResult) return;
     try {
-      const res = await fetch('http://localhost:8000/api/context/feedback', {
+      const res = await fetch(`${API_BASE}/api/context/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

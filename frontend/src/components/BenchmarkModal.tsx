@@ -17,6 +17,7 @@ import type {
   BaselineComparisonReport,
   FeatureAblationReport,
 } from '../types';
+import { API_BASE } from '../config';
 
 export const BenchmarkModal: React.FC = () => {
   const show = useSimulationStore((s) => s.showBenchmarkModal);
@@ -41,7 +42,7 @@ export const BenchmarkModal: React.FC = () => {
   const fetchMlBaselines = async () => {
     setIsLoadingMl(true);
     try {
-      const res = await fetch('http://localhost:8000/api/experiments/baselines');
+      const res = await fetch(`${API_BASE}/api/experiments/baselines`);
       if (res.ok) {
         const data = await res.json();
         setMlReport(data);
@@ -56,7 +57,7 @@ export const BenchmarkModal: React.FC = () => {
   const fetchAblation = async () => {
     setIsLoadingMl(true);
     try {
-      const res = await fetch('http://localhost:8000/api/experiments/ablation');
+      const res = await fetch(`${API_BASE}/api/experiments/ablation`);
       if (res.ok) {
         const data = await res.json();
         setAblationReport(data);
