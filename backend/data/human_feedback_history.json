@@ -475,5 +475,14 @@
     "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
     "suggested_alternative_satellite": null,
     "recorded_at_iso": "2026-08-29T05:44:33.545610+00:00"
+  },
+  {
+    "feedback_id": "FB-6fa992d8",
+    "decision_record_id": "REC-TEST-001",
+    "mission_id": "M-TEST-100",
+    "feedback_type": "APPROVE",
+    "operator_notes": "Verified battery margin > 30% and sunlit imaging window.",
+    "suggested_alternative_satellite": null,
+    "recorded_at_iso": "2026-08-29T06:03:43.158624+00:00"
   }
 ]

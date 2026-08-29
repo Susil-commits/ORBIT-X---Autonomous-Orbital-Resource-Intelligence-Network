@@ -1,6 +1,6 @@
 {
   "registry_version": "2.0.0",
-  "last_updated": "2026-08-28T06:14:08.435406+00:00",
+  "last_updated": "2026-08-29T06:05:31.646875+00:00",
   "total_registered_models": 7,
   "models": [
     {
@@ -262,7 +262,7 @@
       "data_freshness": "2026-08-25T00:00:00Z (Daily automated retrain gate)",
       "sha256": "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
       "created_at": "2026-08-25T00:00:00Z",
-      "last_evaluated_at": "2026-08-28T06:14:08.434885+00:00",
+      "last_evaluated_at": "2026-08-29T06:05:31.646342+00:00",
       "governance_gates": {
         "sla_gate_passed": true,
         "freshness_passed": true,

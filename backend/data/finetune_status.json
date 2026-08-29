@@ -1,183 +1,30 @@
 {
   "is_training": false,
-  "current_epoch": 35,
-  "total_epochs": 35,
+  "current_epoch": 2,
+  "total_epochs": 2,
   "active_model_name": "ConstellationCrossAttentionNet-LoRA",
-  "model_hash": "5a4a9fce31caf16633b354df68d940916df2cc71e21d6b2bb89fd1648d678ee3",
+  "model_hash": "f0b64d429da2b6590237a881e99b72698cb2a73532e1de552ef23c91a1ca2490",
   "dataset_sample_count": 247,
   "latest_metrics": {
-    "mae": 119.65,
-    "rmse": 140.37,
+    "mae": 123.502,
+    "rmse": 142.649,
     "r2_score": 0.0,
-    "top1_agreement_pct": 68.75,
-    "win_accuracy_pct": 42.11,
-    "evaluated_missions": 16
+    "top1_agreement_pct": 20.0,
+    "win_accuracy_pct": 44.23,
+    "evaluated_missions": 15
   },
   "loss_history": [
     {
       "epoch": 2,
-      "train_loss": 160.3048,
-      "val_loss": 120.332,
-      "top1_agreement_pct": 12.5,
-      "mae": 120.332,
+      "train_loss": 160.061,
+      "val_loss": 123.502,
+      "top1_agreement_pct": 20.0,
+      "mae": 123.502,
       "r2_score": 0.0,
-      "learning_rate": 0.0013577
-    },
-    {
-      "epoch": 4,
-      "train_loss": 159.538,
-      "val_loss": 120.235,
-      "top1_agreement_pct": 6.25,
-      "mae": 120.235,
-      "r2_score": 0.0,
-      "learning_rate": 0.0009852
-    },
-    {
-      "epoch": 6,
-      "train_loss": 159.1624,
-      "val_loss": 120.167,
-      "top1_agreement_pct": 6.25,
-      "mae": 120.167,
-      "r2_score": 0.0,
-      "learning_rate": 0.0005248
-    },
-    {
-      "epoch": 8,
-      "train_loss": 159.0068,
-      "val_loss": 120.133,
-      "top1_agreement_pct": 37.5,
-      "mae": 120.133,
-      "r2_score": 0.0,
-      "learning_rate": 0.0001523
-    },
-    {
-      "epoch": 10,
-      "train_loss": 158.9638,
-      "val_loss": 120.127,
-      "top1_agreement_pct": 31.25,
-      "mae": 120.127,
-      "r2_score": 0.0,
-      "learning_rate": 0.0015
-    },
-    {
-      "epoch": 12,
-      "train_loss": 158.7394,
-      "val_loss": 120.061,
-      "top1_agreement_pct": 37.5,
-      "mae": 120.061,
-      "r2_score": 0.0,
-      "learning_rate": 0.0014635
-    },
-    {
-      "epoch": 14,
-      "train_loss": 158.3609,
-      "val_loss": 119.977,
-      "top1_agreement_pct": 43.75,
-      "mae": 119.977,
-      "r2_score": 0.0,
-      "learning_rate": 0.0013577
-    },
-    {
-      "epoch": 16,
-      "train_loss": 157.9874,
-      "val_loss": 119.918,
-      "top1_agreement_pct": 43.75,
-      "mae": 119.918,
-      "r2_score": 0.0,
-      "learning_rate": 0.0011929
-    },
-    {
-      "epoch": 18,
-      "train_loss": 157.5661,
-      "val_loss": 119.828,
-      "top1_agreement_pct": 50.0,
-      "mae": 119.828,
-      "r2_score": 0.0,
-      "learning_rate": 0.0009852
-    },
-    {
-      "epoch": 20,
-      "train_loss": 157.2145,
-      "val_loss": 119.773,
-      "top1_agreement_pct": 31.25,
-      "mae": 119.773,
-      "r2_score": 0.0,
-      "learning_rate": 0.000755
-    },
-    {
-      "epoch": 22,
-      "train_loss": 156.9981,
-      "val_loss": 119.741,
-      "top1_agreement_pct": 43.75,
-      "mae": 119.741,
-      "r2_score": 0.0,
-      "learning_rate": 0.0005248
-    },
-    {
-      "epoch": 24,
-      "train_loss": 156.8559,
-      "val_loss": 119.719,
-      "top1_agreement_pct": 50.0,
-      "mae": 119.719,
-      "r2_score": 0.0,
-      "learning_rate": 0.0003171
-    },
-    {
-      "epoch": 26,
-      "train_loss": 156.7723,
-      "val_loss": 119.717,
-      "top1_agreement_pct": 50.0,
-      "mae": 119.717,
-      "r2_score": 0.0,
-      "learning_rate": 0.0001523
-    },
-    {
-      "epoch": 28,
-      "train_loss": 156.7373,
-      "val_loss": 119.714,
-      "top1_agreement_pct": 50.0,
-      "mae": 119.714,
-      "r2_score": 0.0,
-      "learning_rate": 4.65e-05
-    },
-    {
-      "epoch": 30,
-      "train_loss": 156.7092,
-      "val_loss": 119.713,
-      "top1_agreement_pct": 43.75,
-      "mae": 119.713,
-      "r2_score": 0.0,
-      "learning_rate": 0.0015
-    },
-    {
-      "epoch": 32,
-      "train_loss": 156.5005,
-      "val_loss": 119.692,
-      "top1_agreement_pct": 68.75,
-      "mae": 119.692,
-      "r2_score": 0.0,
-      "learning_rate": 0.0014908
-    },
-    {
-      "epoch": 34,
-      "train_loss": 156.2749,
-      "val_loss": 119.664,
-      "top1_agreement_pct": 62.5,
-      "mae": 119.664,
-      "r2_score": 0.0,
-      "learning_rate": 0.0014635
-    },
-    {
-      "epoch": 35,
-      "train_loss": 156.2061,
-      "val_loss": 119.65,
-      "top1_agreement_pct": 68.75,
-      "mae": 119.65,
-      "r2_score": 0.0,
-      "learning_rate": 0.0014433
+      "learning_rate": 0.0009055
     }
   ],
-  "last_trained_utc": "2026-08-28T06:21:13.618892+00:00",
+  "last_trained_utc": "2026-08-29T06:05:31.889039+00:00",
   "scheduler_type": "CosineAnnealingWarmRestarts",
   "peft_lora_stats": {
     "is_lora": true,
