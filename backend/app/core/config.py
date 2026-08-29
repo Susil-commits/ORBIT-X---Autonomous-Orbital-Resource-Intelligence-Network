@@ -9,8 +9,11 @@ MODELS_DIR = BASE_DIR / "models"
 
 try:
     from pydantic_settings import BaseSettings
+    from pydantic import ConfigDict
 
     class Settings(BaseSettings):
+        model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
         PROJECT_NAME: str = "ORBIT-X"
         VERSION: str = "2.0.0"
 
@@ -51,10 +54,7 @@ try:
         BID_NETWORK_PATH: Path = MODELS_DIR / "bid_network.pt"
         SHAP_SURROGATE_PATH: Path = MODELS_DIR / "shap_surrogate.json"
 
-        class Config:
-            env_file = ".env"
-            env_file_encoding = "utf-8"
-            extra = "ignore"
+
 
 except ImportError:
     from pydantic import BaseModel

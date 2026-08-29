@@ -2,8 +2,8 @@
 
 > **Multi-Source Autonomous Agent Evaluation**: Measures Groundedness, Tool Accuracy, Task Success, Hallucination Rate, Latency, and Evidence Completeness across 128 curated operational benchmark questions.
 
-**Benchmark ID**: `HARNESS-20260828-061240`  
-**Evaluated At**: `2026-08-28T06:12:40.945709+00:00`  
+**Benchmark ID**: `HARNESS-20260829-054426`  
+**Evaluated At**: `2026-08-29T05:44:26.779275+00:00`  
 **Total Questions**: `128` (128 across 8 categories)  
 **Passed Questions**: `128/128` (**100.0%**)  
 
@@ -38,7 +38,7 @@ User → Agent →──────┤
 | **Evidence Completeness** | **90.3%** | $\ge 90.0\%$ | PASSED |
 | **Pipeline Latency (p50)** | **0.0 ms** | $\le 20.0\text{ ms}$ | PASSED |
 | **Pipeline Latency (p95)** | **0.0 ms** | $\le 50.0\text{ ms}$ | PASSED |
-| **Pipeline Latency (p99)** | **0.01 ms** | $\le 120.0\text{ ms}$ | PASSED |
+| **Pipeline Latency (p99)** | **0.0 ms** | $\le 120.0\text{ ms}$ | PASSED |
 
 ---
 

@@ -1,6 +1,6 @@
 {
-  "benchmark_id": "HARNESS-20260828-061240",
-  "evaluated_at_iso": "2026-08-28T06:12:40.945709+00:00",
+  "benchmark_id": "HARNESS-20260829-054426",
+  "evaluated_at_iso": "2026-08-29T05:44:26.779275+00:00",
   "total_questions": 128,
   "passed_questions": 128,
   "overall_task_success_rate": 100.0,
@@ -10,7 +10,7 @@
   "overall_evidence_completeness": 90.3,
   "latency_p50_ms": 0.0,
   "latency_p95_ms": 0.0,
-  "latency_p99_ms": 0.01,
+  "latency_p99_ms": 0.0,
   "category_scores": [
     {
       "category": "metadata_questions",
@@ -399,7 +399,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.02,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (3/3)."
     },
@@ -681,7 +681,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 1.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Successfully matched operational ground truth entities (4/4)."
     },
@@ -1400,7 +1400,7 @@
       "has_hallucination": false,
       "task_success": true,
       "evidence_completeness": 0.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.0,
       "passed": true,
       "feedback_reason": "Cautious reasoning: requested clarification and avoided ungrounded assumptions."
     },

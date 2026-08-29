@@ -7,7 +7,7 @@ import json
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Set
+from typing import Set, Optional
 
 # Ensure backend and project root are in sys.path
 backend_dir = Path(__file__).resolve().parent.parent
@@ -77,7 +77,7 @@ class ConnectionManager:
 
 
 ws_manager = ConnectionManager()
-_sim_loop_task: asyncio.Task = None
+_sim_loop_task: Optional[asyncio.Task] = None
 
 
 async def background_simulation_loop():

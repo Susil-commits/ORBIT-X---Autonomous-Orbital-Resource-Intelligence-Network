@@ -102,10 +102,17 @@ export const MissionQueue: React.FC = () => {
                     <Target className="w-3 h-3 text-cyan-400" />
                     <span>{m.target_location.lat.toFixed(1)}°, {m.target_location.lon.toFixed(1)}°</span>
                   </div>
-                  <div className="flex items-center gap-1 justify-end">
-                    <Clock className="w-3 h-3 text-amber-400" />
-                    <span>Expires: {timeRemaining.toFixed(0)}s</span>
-                  </div>
+                  {!isCompleted && !isFailed ? (
+                    <div className="flex items-center gap-1 justify-end">
+                      <Clock className="w-3 h-3 text-amber-400" />
+                      <span>Expires: {timeRemaining.toFixed(0)}s</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 justify-end text-slate-500">
+                      <Clock className="w-3 h-3" />
+                      <span>{isCompleted ? 'Done' : 'Expired'}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Assignment & Explain button */}

@@ -3,12 +3,14 @@ import { useSimulationStore } from './useSimulationStore';
 import type { ConstellationTick } from '../types';
 
 const WS_URL = 'ws://localhost:8000/ws/constellation';
+const MAX_RECONNECT_DELAY_MS = 30_000;
 
 export function useConstellationSocket() {
   const setTickData = useSimulationStore((s) => s.setTickData);
   const setIsConnected = useSimulationStore((s) => s.setIsConnected);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
+  const retryCountRef = useRef<number>(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -25,6 +27,7 @@ export function useConstellationSocket() {
         ws.onopen = () => {
           if (!isMounted) return;
           console.log('[ORBIT-X WS] Connected to constellation stream');
+          retryCountRef.current = 0; // reset backoff on successful connect
           setIsConnected(true);
         };
 
@@ -44,17 +47,21 @@ export function useConstellationSocket() {
 
         ws.onclose = () => {
           if (!isMounted) return;
-          console.log('[ORBIT-X WS] Stream closed, reconnecting in 2s...');
+          const delay = Math.min(MAX_RECONNECT_DELAY_MS, 1000 * Math.pow(2, retryCountRef.current));
+          retryCountRef.current += 1;
+          console.log(`[ORBIT-X WS] Stream closed, reconnecting in ${delay}ms (attempt ${retryCountRef.current})...`);
           setIsConnected(false);
           reconnectTimeoutRef.current = window.setTimeout(() => {
             if (isMounted) connect();
-          }, 2000);
+          }, delay);
         };
       } catch (e) {
         console.error('[ORBIT-X WS] Initialization error', e);
+        const delay = Math.min(MAX_RECONNECT_DELAY_MS, 1000 * Math.pow(2, retryCountRef.current));
+        retryCountRef.current += 1;
         reconnectTimeoutRef.current = window.setTimeout(() => {
           if (isMounted) connect();
-        }, 2000);
+        }, delay);
       }
     }
 
